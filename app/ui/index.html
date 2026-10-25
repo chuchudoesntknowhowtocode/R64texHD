@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:">
-<title>R64texHD - HD Texture Toolkit - RT64 Support</title>
+<title>R64texHD - HD Texture Toolkit - RT64 Support v0.4.20</title>
 <style>
 :root {
   --bg: #0b1022; --panel: #111833; --panel-2: #0e152d; --field: #18213f; --field-hover: #202b50; --line: #1d2747;
@@ -26,9 +26,9 @@ header::after { content: ""; position: absolute; inset: auto 0 0 0; height: 34px
   -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.55) 9%, #000 22%);
           mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.55) 9%, #000 22%); }
 .hdr-text { position: relative; z-index: 2; }
-h1 { margin: 0; white-space: nowrap; font-size: 27px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; text-shadow: 0 2px 0 rgba(0,0,0,.6), 0 0 18px rgba(11,16,34,.9); }
+h1 { margin: 0; white-space: nowrap; font-size: 27px; font-weight: 800; letter-spacing: .3px; text-shadow: 0 2px 0 rgba(0,0,0,.6), 0 0 18px rgba(11,16,34,.9); }
+.sub span { white-space: nowrap; }
 .sub { margin-top: 12px; color: var(--orange); font-size: 13.5px; font-weight: 600; letter-spacing: .1px; max-width: 520px; line-height: 1.5; text-shadow: 0 1px 0 rgba(0,0,0,.6), 0 0 14px rgba(11,16,34,.95); }
-.sub span { margin: 0 8px; opacity: .8; }
 
 main { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 22px; padding: 0 18px; min-height: 0; position: relative; z-index: 1; }
 nav { background: var(--panel); border-radius: var(--r); padding: 10px; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
@@ -137,8 +137,8 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .pv-empty { height: 90px; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: #222c52; border: 1px solid #34417a; padding: 10px 18px; border-radius: 10px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
 .toast.show { opacity: 1; }
-.about p { color: var(--muted); max-width: 72ch; }
-.repo { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding: 16px 20px; border-radius: var(--r); background: var(--card-2, #151c38); border: 1px solid #253058; max-width: 72ch; }
+.about p { color: var(--muted); }
+.repo { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding: 16px 20px; border-radius: var(--r); background: var(--card-2, #151c38); border: 1px solid #253058; }
 .repo svg { width: 30px; height: 30px; flex: none; fill: var(--text); }
 .repo .rt { flex: 1; min-width: 0; } .repo .rt b { display: block; } .repo .rt span { color: var(--muted); font-size: 13px; word-break: break-all; }
 @media (max-width: 1240px) { h1 { font-size: 21px; } .sub { font-size: 12.5px; max-width: 400px; } }
@@ -148,8 +148,8 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 <div class="app">
   <header>
     <div class="hdr-text">
-      <h1>HD Texture Toolkit - RT64 Support</h1>
-      <div class="sub">A simple tool designed to upscale DDS/PNG with support for RT64 texture dumps &amp; .rtz texture packs</div>
+      <h1>R64texHD - Reimagine Every Pixel</h1>
+      <div class="sub"><span>Upscale .dds / .png textures -</span> <span>Convert RT64 Texture Dump -</span> <span>Pack/Extract .rtz texture packs</span></div>
     </div>
     <img class="hdr-art" src="header-art.jpg" alt="" aria-hidden="true">
   </header>
@@ -302,7 +302,7 @@ const pages = {
   },
   about() {
     return `<h2>About</h2><div class="about">
-      <p><b>R64texHD ${esc(S.version)}</b> · HD Texture Toolkit - RT64 Support</p>
+      <p><b>R64texHD v${esc(S.version)}</b> · Reimagine Every Pixel · HD Texture Toolkit - RT64 Support</p>
       <p><b>1 · Upscale Textures</b> enlarges PNG and DDS textures. Standard mode works in 2× steps and sharpens after each step, clamps every step to the original pixels (no halos) and keeps tiling textures seamless.</p>
       <p><b>2 · Convert RT64 Dump</b> decodes RT64 texture dumps with a port of RT64's own texture decoder, so the images match what RT64 hashes.</p>
       <p><b>3 · Pack / Unpack .rtz</b> packs a texture folder in the same layout as RT64's texture_packer (zstd, rt64.json, low-mip cache), or unpacks any .rtz (zstd, deflate or stored) back into a folder.</p>

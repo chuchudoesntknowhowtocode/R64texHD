@@ -1,7 +1,7 @@
 {
   "name": "hd-texture-toolkit",
   "productName": "HD Texture Toolkit",
-  "version": "1.0.0",
+  "version": "0.4.20",
   "description": "Upscale textures, convert RT64 texture dumps and pack .rtz texture packs.",
   "main": "main.js",
   "license": "MIT"

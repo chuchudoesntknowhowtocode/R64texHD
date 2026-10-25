@@ -10,7 +10,7 @@ const rtz = require('./core/rtz');
 
 const APP_NAME = 'HD Texture Toolkit';
 const REPO_URL = 'https://github.com/chuchudoesntknowhowtocode/R64texHD';
-const WINDOW_TITLE = 'R64texHD - HD Texture Toolkit - RT64 Support';
+const WINDOW_TITLE = `R64texHD - HD Texture Toolkit - RT64 Support v${app.getVersion()}`;
 app.setName(APP_NAME);
 app.setAppUserModelId('HDTextureToolkit');
 nativeTheme.themeSource = 'dark';
@@ -43,7 +43,7 @@ const toolsDir = () => path.join(DATA_DIR, 'tools');
 const programDir = () => (app.isPackaged ? path.dirname(process.execPath) : path.join(__dirname, '..'));
 
 const DEFAULTS = {
-  firstRunDone: false, checkTools: true,
+  firstRunDone: false, checkTools: true, iconStamp: '',
   dumpFolder: '', outputFolder: '', page: 'upscale',
   workers: 'auto', maxSize: 4096, texconv: '', realesrgan: '', realesrganModel: 'realesrgan-x4plus',
   upscale: { inputs: [], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'clamp', hardAlpha: true,
@@ -104,6 +104,7 @@ function createWindow() {
   });
   win.loadFile(path.join(__dirname, 'ui', 'index.html'));
   win.once('ready-to-show', () => win.show());
+  win.on('page-title-updated', (e) => e.preventDefault());   // keep the title with the version
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   win.on('close', (e) => {
@@ -212,6 +213,28 @@ function createShortcuts() {
   return { ok, made: ok ? [lnk] : [] };
 }
 
+// ---------------------------------------------------------------- Windows icon refresh
+// Explorer caches exe icons by path, so an updated R64texHD.exe unzipped over an older copy keeps
+// showing the old icon. Once per new build (exe size + date), ask Windows to refresh its icon cache
+// and re-save our Desktop shortcut so it picks up the current icon too.
+function refreshWindowsIcon() {
+  if (process.platform !== 'win32' || !app.isPackaged) return;
+  let stamp = '';
+  try { const st = fs.statSync(process.execPath); stamp = `${st.size}-${Math.round(st.mtimeMs)}`; } catch { return; }
+  if (settings.iconStamp === stamp) return;
+  settings.iconStamp = stamp;
+  saveSettings();
+  try {
+    const lnk = path.join(app.getPath('desktop'), `${APP_NAME}.lnk`);
+    if (fs.existsSync(lnk) && path.resolve(shell.readShortcutLink(lnk).target) === path.resolve(process.execPath)) createShortcuts();
+  } catch { /* not our shortcut */ }
+  try {
+    const ie4uinit = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'ie4uinit.exe');
+    const arg = /^6\.[0-2]\./.test(os.release()) ? '-ClearIconCache' : '-show';   // Windows 7/8 vs 10/11
+    if (fs.existsSync(ie4uinit)) require('child_process').spawn(ie4uinit, [arg], { detached: true, stdio: 'ignore', windowsHide: true }).unref();
+  } catch { /* cosmetic only */ }
+}
+
 // ---------------------------------------------------------------- live preview
 // Only the newest request matters: if one is waiting when another arrives, the older one is
 // answered { superseded: true } and dropped; the one being rendered finishes normally.
@@ -279,9 +302,10 @@ else {
     settings = loadSettings();
     registerIpc();
     createWindow();
+    refreshWindowsIcon();
     if (!dataWritable) {
       dialog.showMessageBox(win, { type: 'warning', title: WINDOW_TITLE, message: 'This folder is read-only.',
-        detail: `Settings and downloads cannot be saved in ${DATA_DIR}.\nMove the HD Texture Toolkit folder somewhere you can write to (for example C:\\Tools or your Documents).` });
+        detail: `Settings and downloads cannot be saved in ${DATA_DIR}.\nMove the R64texHD folder somewhere you can write to (for example C:\\Tools or your Documents).` });
     }
     selfTest();
   });

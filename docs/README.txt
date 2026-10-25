@@ -1,12 +1,13 @@
-HD TEXTURE TOOLKIT - RT64 SUPPORT  (portable)
-=============================================
-A simple tool designed to upscale DDS/PNG with support for RT64 texture
-dumps & .rtz texture packs.
+R64texHD v0.4.20 - Reimagine Every Pixel  (portable)
+==================================================
+HD Texture Toolkit - RT64 Support
+Upscale .dds / .png textures - Convert RT64 Texture Dump - Pack/Extract .rtz
+texture packs.
 
 
 Start: double-click "R64texHD.exe" (it shows as R64texHD in Task Manager).
 Nothing is installed: no Python, no registry, nothing in AppData.
-Put this folder anywhere you can write to (for example C:\Tools\HD Texture Toolkit,
+Put this folder anywhere you can write to (for example C:\Tools\R64texHD,
 a second drive or a USB stick) and keep its files together.
 
 Everything the toolkit saves stays in the "data" folder next to the program:
@@ -15,6 +16,8 @@ Everything the toolkit saves stays in the "data" folder next to the program:
   data\chromium\       the window engine's own cache
   data\temp\           scratch files, cleared when you close the toolkit
 To reset the toolkit, delete the data folder. To remove it, delete this folder.
+To update, unzip the new version next to this one and copy this data folder
+into it to keep your settings and downloaded tools.
 
 First launch shows a Setup page: RT64 texture dump folder (optional), output
 folder, and an optional Desktop shortcut.

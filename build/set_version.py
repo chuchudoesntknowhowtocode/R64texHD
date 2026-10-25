@@ -2,20 +2,23 @@
 
 Each new value must fit in the space of the old one; the rest of the slot is zero-filled.
 """
-import struct, sys
+import json, os, struct, sys
 import pefile
+
+# The version comes from app/package.json (the one place it is set).
+APP_VERSION = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'app', 'package.json')))['version']
 
 VALUES = {
     'CompanyName': 'R64texHD',
     'FileDescription': 'R64texHD',          # Task Manager's process name
-    'FileVersion': '1.0.0',
+    'FileVersion': APP_VERSION,
     'InternalName': 'R64texHD.exe',
     'LegalCopyright': 'HD Texture Toolkit - RT64 Support',
     'OriginalFilename': 'R64texHD.exe',
     'ProductName': 'R64texHD',
-    'ProductVersion': '1.0.0',
+    'ProductVersion': APP_VERSION,
 }
-VERSION = (1, 0, 0, 0)
+VERSION = tuple((list(map(int, APP_VERSION.split('.'))) + [0, 0, 0, 0])[:4])
 
 def main(src, dst):
     pe = pefile.PE(src, fast_load=True)
