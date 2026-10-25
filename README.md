@@ -95,6 +95,13 @@ build/             packaging scripts
 docs/              README.txt shipped in the release, screenshots
 ```
 
+## Why was this made?
+
+R64texHD was created to simplify the entire RT64 texture upscaling workflow — from
+extracting textures and converting them to PNG/DDS, to upscaling them and repacking
+them into `.rtz` texture packs for compatible N64 emulators, renderers, and ports —
+all in one tool.
+
 ## How this was made
 
 R64texHD was vibe coded with **Claude Opus 5.5**. The author has **zero**
