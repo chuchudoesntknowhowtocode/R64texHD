@@ -45,7 +45,9 @@ def main(src, dst):
     off = ff.get_file_offset()
     ms, ls = (VERSION[0] << 16) | VERSION[1], (VERSION[2] << 16) | VERSION[3]
     struct.pack_into('<IIII', data, off + 8, ms, ls, ms, ls)   # dwFileVersionMS/LS, dwProductVersionMS/LS
-    open(dst, 'wb').write(data)
+    out = pefile.PE(data=bytes(data), fast_load=True)
+    out.OPTIONAL_HEADER.CheckSum = out.generate_checksum()
+    out.write(dst)
     print('version info set:', dst)
 
 if __name__ == '__main__':

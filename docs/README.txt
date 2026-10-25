@@ -19,6 +19,11 @@ To reset the toolkit, delete the data folder. To remove it, delete this folder.
 First launch shows a Setup page: RT64 texture dump folder (optional), output
 folder, and an optional Desktop shortcut.
 
+At every start R64texHD checks for the two optional tools below. If either one
+has not been downloaded yet it opens on Settings, where "Download" fetches it
+into data\tools. Choose "Not now" to carry on without them, or turn off
+"Check tools at startup" in Settings.
+
 THE THREE OPTIONS (sidebar)
 
 1  Upscale Textures
@@ -53,8 +58,11 @@ THE THREE OPTIONS (sidebar)
    - Unpack .rtz -> folder: opens an .rtz pack (zstd, deflate or stored) back
      into a folder of textures and rt64.json, ready to edit, upscale or repack.
 
-OPTIONAL TOOLS (Settings)
+OPTIONAL TOOLS (Settings, offered at startup until downloaded)
    texconv     - Microsoft DirectXTex, for BC7 DDS output (1 MB download).
    Real-ESRGAN - for the AI upscale method, needs a Vulkan GPU (45 MB download).
 
 Your input folders and packs are only read, never changed.
+
+Source code, issues and updates:
+   https://github.com/chuchudoesntknowhowtocode/R64texHD

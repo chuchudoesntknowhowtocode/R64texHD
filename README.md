@@ -40,6 +40,9 @@ stay in a `data` folder next to `R64texHD.exe`, never in AppData.
 2. Unzip it anywhere you can write to (for example `C:\Tools\R64texHD`).
 3. Run **R64texHD.exe**. The first launch asks for your RT64 dump folder (optional)
    and an output folder.
+4. If the optional tools (texconv for BC7, Real-ESRGAN for AI upscaling) aren't
+   downloaded yet, R64texHD opens on **Settings** so you can fetch them with one
+   click, or choose **Not now**. The check can be turned off in Settings.
 
 The release is not code-signed, so Windows SmartScreen may warn the first time:
 choose **More info › Run anyway**.
@@ -65,7 +68,9 @@ build/package.sh
 
 This downloads Electron 38.4.0 for win32-x64, writes the app icon and the
 `R64texHD` version info into the exe (`build/set_icon.py`, `build/set_version.py`),
-and produces `dist/R64texHD-Windows.zip`.
+and produces `dist/R64texHD-Windows.zip`. The full-colour 256 px icon is larger
+than Electron's original icon slot, so `set_icon.py` enlarges the exe's resource
+section (.rsrc) to hold it, the same way a resource editor would.
 
 ## Project layout
 
@@ -80,8 +85,20 @@ build/             packaging scripts
 docs/              README.txt shipped in the release, screenshots
 ```
 
+## How this was made
+
+R64texHD was vibe coded with **Claude Opus 5.5**. The author has **zero**
+understanding of code: every line here came from describing what the tool should
+do, testing it, and asking for changes until it worked. What the author did bring
+was the drive to make something and to give the community a free tool for
+building HD texture packs.
+
+If you know your way around code, issues and pull requests are welcome. If you
+don't, that's fine too: this project shows that you can still build something
+useful.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE). Parts are ported from RT64 and bcdec (both MIT);
-see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The RT logo belongs to the
-RT64 project and is not covered by this repository's licence.
+see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The R64 icon and header
+artwork were supplied by the project author.

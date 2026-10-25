@@ -78,6 +78,11 @@ nav.locked button { pointer-events: none; opacity: .45; }
 .seg button:focus-visible, .btn:focus-visible, .path input:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 2px; }
 .tool { margin-top: 6px; color: var(--muted); font-size: 12.5px; word-break: break-all; }
 .tool.ok { color: var(--good); }
+.card.notice { background: linear-gradient(90deg, rgba(255,138,28,.16), rgba(255,138,28,.05)); border-color: rgba(255,138,28,.45); }
+.card.notice .p { color: #f3e6da; word-break: normal; }
+.card.notice ul { margin: 8px 0 0; padding-left: 18px; color: #f3e6da; font-size: 13.5px; }
+nav button .badge { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); margin-left: auto; box-shadow: 0 0 0 3px rgba(255,138,28,.18); }
+nav button.active .badge { background: var(--ink); box-shadow: none; }
 .log { margin-top: 18px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
   font: 12px/1.5 "Cascadia Mono", Consolas, monospace; color: #c2c9df; max-height: 150px; overflow: auto; white-space: pre-wrap; user-select: text; }
 .log:empty { display: none; }
@@ -133,6 +138,9 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: #222c52; border: 1px solid #34417a; padding: 10px 18px; border-radius: 10px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
 .toast.show { opacity: 1; }
 .about p { color: var(--muted); max-width: 72ch; }
+.repo { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding: 16px 20px; border-radius: var(--r); background: var(--card-2, #151c38); border: 1px solid #253058; max-width: 72ch; }
+.repo svg { width: 30px; height: 30px; flex: none; fill: var(--text); }
+.repo .rt { flex: 1; min-width: 0; } .repo .rt b { display: block; } .repo .rt span { color: var(--muted); font-size: 13px; word-break: break-all; }
 @media (max-width: 1240px) { h1 { font-size: 21px; } .sub { font-size: 12.5px; max-width: 400px; } }
 </style>
 </head>
@@ -151,7 +159,7 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
       <button data-page="convert"><span class="n">2</span>Convert RT64 Dump</button>
       <button data-page="pack"><span class="n">3</span>Pack / Unpack .rtz</button>
       <div class="spacer"></div>
-      <button data-page="settings">Settings</button>
+      <button data-page="settings">Settings<span class="badge" id="tools-badge" hidden title="Optional tools not downloaded"></span></button>
       <button data-page="about">About</button>
     </nav>
     <section class="page" id="page"></section>
@@ -270,13 +278,24 @@ const pages = {
   settings() {
     const t = S.tools;
     const tool = (name, path, label, size) => `<div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}<button class="btn" data-browse="exe" data-for="${name}">Locate…</button></div><div class="tool" id="tool-${name}"></div>`;
+    const miss = missingTools();
+    const notice = !toolNotice ? '' : miss.length
+      ? `<div class="card notice"><div class="dot"></div><div class="body"><div class="t">Download the optional tools</div>
+          <div class="p">These tools haven't been downloaded to this copy of R64texHD yet:</div>
+          <ul>${miss.map((n) => `<li><b>${TOOL_INFO[n].label}</b>: ${TOOL_INFO[n].use}</li>`).join('')}</ul>
+          <div class="p">They go in the portable data folder. Everything else works without them.</div>
+          <div class="tool" id="tool-all"></div></div>
+          <div class="act"><button class="btn primary" id="dl-all">Download ${miss.length > 1 ? 'both' : TOOL_INFO[miss[0]].label} (${miss.map((n) => TOOL_INFO[n].size).join(' + ')})</button><button class="btn" id="skip-tools">Not now</button></div></div>`
+      : `<div class="card done"><div class="dot"></div><div class="body"><div class="t">All tools are ready</div><div class="p">BC7 DDS output and the AI upscale method are now available.</div></div><div class="act"><button class="btn primary" id="skip-tools">Start ▶</button></div></div>`;
     return `<h2>Settings</h2><p class="lead">Default folders, performance and optional tools.</p>
+      ${notice}
       ${row('RT64 texture dump folder', 'Default for Convert RT64 Dump.', pathField('dumpFolder', cfg.dumpFolder, [['folder', 'Browse…']]))}
       ${row('Output folder', 'Default place for new output.', pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']]))}
       ${row('Worker threads', `Textures are processed in parallel (${S.cpus} CPU threads).`, seg('workers', [['auto', 'Auto'], ['half', 'Half'], ['one', 'One']], cfg.workers))}
       ${row('Largest texture', 'Upscaling never goes past this size on the longest side.', seg('maxSize', [['2048', '2048'], ['4096', '4096'], ['8192', '8192']], cfg.maxSize))}
       ${row('texconv (BC7)', 'Microsoft DirectXTex texconv.exe, for BC7 DDS output.', tool('texconv', t.texconv, 'texconv', '1 MB'))}
       ${row('Real-ESRGAN (AI)', 'realesrgan-ncnn-vulkan, for the AI upscale method. Needs a Vulkan-capable GPU.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', '45 MB'))}
+      ${row('Check tools at startup', 'If texconv or Real-ESRGAN is missing, R64texHD opens on this page so you can download them.', seg('checkTools', [['true', 'On'], ['false', 'Off']], String(cfg.checkTools !== false)))}
       ${row('AI model', 'General suits most textures; Art suits drawn or cartoon textures.', seg('realesrganModel', [['realesrgan-x4plus', 'General'], ['realesrgan-x4plus-anime', 'Art / anime']], cfg.realesrganModel))}
       ${S.platform === 'win32' ? row('Desktop shortcut', 'Optional shortcut to this portable copy.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`) : ''}
       ${row('Portable data', 'Settings, downloaded tools and temporary files. Nothing goes to AppData.', `<div class="path"><div class="tool" style="flex:1">${esc(S.dataDir)}</div><button class="btn" data-open="${esc(S.dataDir)}">Open</button></div>`)}`;
@@ -288,9 +307,43 @@ const pages = {
       <p><b>2 · Convert RT64 Dump</b> decodes RT64 texture dumps with a port of RT64's own texture decoder, so the images match what RT64 hashes.</p>
       <p><b>3 · Pack / Unpack .rtz</b> packs a texture folder in the same layout as RT64's texture_packer (zstd, rt64.json, low-mip cache), or unpacks any .rtz (zstd, deflate or stored) back into a folder.</p>
       <p>Portable: settings, downloaded tools and temporary files are kept in the <b>data</b> folder next to the program. Nothing is written to AppData or the registry.</p>
-      <p>Input folders are only read, never changed. Optional tools: Microsoft texconv (BC7) and Real-ESRGAN (AI).</p></div>`;
+      <p>Input folders are only read, never changed. Optional tools: Microsoft texconv (BC7) and Real-ESRGAN (AI).</p>
+      <div class="repo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <div class="rt"><b>GitHub repository</b><span>github.com/chuchudoesntknowhowtocode/R64texHD</span></div>
+        <button class="btn primary" id="open-repo">Open on GitHub</button></div></div>`;
   },
 };
+// Optional tools: checked at startup, offered on the Settings page.
+const TOOL_INFO = {
+  texconv: { label: 'texconv', size: '1 MB', use: 'BC7 compression for DDS output' },
+  realesrgan: { label: 'Real-ESRGAN', size: '45 MB', use: 'the AI upscale method' },
+};
+const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !S.tools[n]);
+let toolNotice = false, afterTools = 'upscale';
+// Startup check: open Settings when a tool is missing (unless turned off).
+function toolsLanding(next) {
+  afterTools = next;
+  if (cfg.checkTools !== false && missingTools().length) { toolNotice = true; return 'settings'; }
+  return next;
+}
+async function installAll() {
+  const btn = $('#dl-all'), skip = $('#skip-tools');
+  if (btn) { btn.disabled = true; btn.textContent = 'Downloading…'; }
+  if (skip) skip.disabled = true;
+  for (const name of missingTools()) {
+    const status = $('#tool-all');
+    if (status) status.textContent = `Downloading ${TOOL_INFO[name].label}…`;
+    const r = await window.htk.installTool(name);
+    if (!r.ok) {
+      render();
+      const el = $('#tool-all'); if (el) el.textContent = `${TOOL_INFO[name].label} download failed: ${r.error}`;
+      return;
+    }
+    S.tools = r.tools;
+  }
+  toast('Tools installed'); render();
+}
+
 // The Pack / Unpack page runs either task, chosen by its Mode switch.
 const taskOf = (pg) => (pg === 'pack' && cfg.pack.mode === 'unpack' ? 'unpack' : pg);
 const pageOf = (task) => (task === 'unpack' ? 'pack' : task);
@@ -312,6 +365,7 @@ function render() {
   const setup = page === 'setup';
   document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('active', b.dataset.page === page));
   $('#nav').classList.toggle('locked', setup);
+  $('#tools-badge').hidden = !missingTools().length;
   suggest();
   savePreviewScroll();
   $('#page').innerHTML = pages[page]();
@@ -464,6 +518,9 @@ document.addEventListener('click', async (e) => {
   if (e.target.id === 'm-yes') { packConverted(packAfter); return; }
   if (e.target.id === 'm-no') { closeModal(); return; }
   if (e.target.id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }
+  if (e.target.id === 'open-repo') { window.htk.openRepo(); return; }
+  if (e.target.id === 'dl-all') { installAll(); return; }
+  if (e.target.id === 'skip-tools') { toolNotice = false; page = afterTools; cfg.page = page; render(); return; }
   const inst = e.target.closest('[data-install]');
   if (inst) {
     inst.disabled = true; inst.textContent = 'Downloading…';
@@ -518,7 +575,7 @@ async function start(task) {
 async function go() {
   if (page === 'setup') {
     if (!cfg.outputFolder) { toast('Choose an output folder first'); return; }
-    cfg.firstRunDone = true; await save(true); page = 'upscale'; cfg.page = page; render(); return;
+    cfg.firstRunDone = true; await save(true); page = toolsLanding('upscale'); cfg.page = 'upscale'; render(); return;
   }
   if (job.running) { await window.htk.cancel(); toast('Cancelling…'); return; }
   if (pages[page] && RUN_LABEL[page]) start(taskOf(page));
@@ -544,7 +601,11 @@ window.htk.onDone((d) => {
   if (d.task === 'convert' && d.result && d.result.packable) askPack(d.result);
   if (d.task === 'upscale' && d.result && d.result.packable) askGoPack(d.result);
 });
-window.htk.onToolProgress((p) => { const el = $('#tool-' + p.name); if (el) el.textContent = p.total ? `Downloading… ${Math.round(p.got * 100 / p.total)}%` : `Downloading… ${(p.got / 1048576).toFixed(1)} MB`; });
+window.htk.onToolProgress((p) => {
+  const amount = p.total ? `${Math.round(p.got * 100 / p.total)}%` : `${(p.got / 1048576).toFixed(1)} MB`;
+  const el = $('#tool-' + p.name); if (el) el.textContent = `Downloading… ${amount}`;
+  const all = $('#tool-all'); if (all) all.textContent = `Downloading ${TOOL_INFO[p.name] ? TOOL_INFO[p.name].label : p.name}… ${amount}`;
+});
 
 $('#go').addEventListener('click', go);
 $('#save').addEventListener('click', () => save(false));
@@ -707,7 +768,7 @@ window.addEventListener('resize', () => { if (page === 'upscale') drawPreview();
   if (!Array.isArray(cfg.upscale.inputs)) cfg.upscale.inputs = cfg.upscale.inputs ? [cfg.upscale.inputs] : [];
   if (cfg.page === 'unpack') { cfg.page = 'pack'; cfg.pack.mode = 'unpack'; }
   if (!cfg.pack.mode) cfg.pack.mode = 'pack';
-  page = !cfg.firstRunDone ? 'setup' : (pages[cfg.page] && cfg.page !== 'setup' ? cfg.page : 'upscale');
+  page = !cfg.firstRunDone ? 'setup' : toolsLanding(pages[cfg.page] && cfg.page !== 'setup' ? cfg.page : 'upscale');
   render();
 })();
 </script>

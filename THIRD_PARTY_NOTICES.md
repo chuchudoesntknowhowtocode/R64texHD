@@ -78,8 +78,7 @@ Downloaded by the user from Settings, not redistributed with R64texHD:
 - texconv from Microsoft DirectXTex (MIT) - https://github.com/microsoft/DirectXTex
 - Real-ESRGAN ncnn Vulkan (BSD-3-Clause) - https://github.com/xinntao/Real-ESRGAN
 
-## Logo
+## Artwork
 
-The RT logo used as the app icon (`app/assets/icon.*`) is the RT64 project's
-logo. It is not covered by this repository's MIT licence. The header artwork
-(`app/ui/header-art.jpg`) was supplied by the project author.
+The R64 app icon (`app/assets/icon.*`) and the header artwork
+(`app/ui/header-art.jpg`) were supplied by the project author.

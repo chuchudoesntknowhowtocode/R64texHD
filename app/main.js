@@ -9,6 +9,7 @@ const tasks = require('./core/tasks');
 const rtz = require('./core/rtz');
 
 const APP_NAME = 'HD Texture Toolkit';
+const REPO_URL = 'https://github.com/chuchudoesntknowhowtocode/R64texHD';
 const WINDOW_TITLE = 'R64texHD - HD Texture Toolkit - RT64 Support';
 app.setName(APP_NAME);
 app.setAppUserModelId('HDTextureToolkit');
@@ -42,7 +43,7 @@ const toolsDir = () => path.join(DATA_DIR, 'tools');
 const programDir = () => (app.isPackaged ? path.dirname(process.execPath) : path.join(__dirname, '..'));
 
 const DEFAULTS = {
-  firstRunDone: false,
+  firstRunDone: false, checkTools: true,
   dumpFolder: '', outputFolder: '', page: 'upscale',
   workers: 'auto', maxSize: 4096, texconv: '', realesrgan: '', realesrganModel: 'realesrgan-x4plus',
   upscale: { inputs: [], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'clamp', hardAlpha: true,
@@ -258,6 +259,7 @@ function registerIpc() {
   ipcMain.handle('task:run', (_e, { task, params }) => runTask(task, params));
   ipcMain.handle('task:cancel', () => { cancelTask(); return true; });
   ipcMain.handle('open', (_e, p) => { if (fs.existsSync(p) && fs.statSync(p).isFile()) shell.showItemInFolder(p); else shell.openPath(p); return true; });
+  ipcMain.handle('repo', () => { shell.openExternal(REPO_URL); return REPO_URL; });
   ipcMain.handle('shortcuts', () => createShortcuts());
   ipcMain.handle('tool:install', async (_e, name) => { try { return { ok: true, tools: await installTool(name) }; } catch (e) { return { ok: false, error: e.message }; } });
   ipcMain.handle('quit', () => { if (running) cancelTask(); quitting = true; setTimeout(() => app.quit(), 200); return true; });
