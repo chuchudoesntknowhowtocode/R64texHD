@@ -1,3 +1,5 @@
+![R64texHD: HD texture upscaling & repacking](docs/banner.jpg)
+
 # R64texHD - Reimagine Every Pixel
 
 **HD Texture Toolkit - RT64 Support** · current version **v0.4.20**
