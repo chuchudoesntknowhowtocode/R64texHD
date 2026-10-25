@@ -1,0 +1,388 @@
+'use strict';
+// The toolkit's processes: 1) upscale textures, 2) convert an RT64 dump, 3) pack to .rtz.
+// Each runs on a pool of worker threads and reports progress / log lines through `ctx`.
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { Worker } = require('worker_threads');
+const { spawn } = require('child_process');
+const { findDumps, loadDump } = require('./tmem');
+const { Database, listFiles, DATABASE } = require('./rt64db');
+const rtz = require('./rtz');
+
+const IMAGE_RE = /\.(png|dds)$/i;
+const WORKER = path.join(__dirname, 'worker.js');
+
+class Cancelled extends Error { constructor() { super('Cancelled'); this.cancelled = true; } }
+
+class Pool {
+  constructor(size) {
+    this.size = Math.max(1, size);
+    this.workers = [];
+    this.queue = [];
+    this.pending = new Map();
+    this.nextId = 1;
+    this.closed = false;
+  }
+  spawnWorker() {
+    const w = new Worker(WORKER);
+    w.busy = null;
+    w.on('message', (m) => {
+      const p = this.pending.get(m.id);
+      if (!p) return;
+      if (m.progress) { p.onProgress && p.onProgress(...m.progress); return; }
+      this.pending.delete(m.id);
+      w.busy = null;
+      if (m.ok) p.resolve(m.result); else p.reject(new Error(m.error));
+      this.pump();
+    });
+    w.on('error', (e) => { if (w.busy) { const p = this.pending.get(w.busy); this.pending.delete(w.busy); p && p.reject(e); } this.drop(w); });
+    w.on('exit', (code) => { if (w.busy && !this.closed) { const p = this.pending.get(w.busy); this.pending.delete(w.busy); p && p.reject(new Error('worker stopped (out of memory?)')); } this.drop(w); });
+    this.workers.push(w);
+    return w;
+  }
+  drop(w) { this.workers = this.workers.filter((x) => x !== w); if (!this.closed) this.pump(); }
+  run(kind, job, onProgress) {
+    if (this.closed) return Promise.reject(new Cancelled());
+    return new Promise((resolve, reject) => {
+      const id = this.nextId++;
+      this.pending.set(id, { resolve, reject, onProgress });
+      this.queue.push({ id, kind, job });
+      this.pump();
+    });
+  }
+  pump() {
+    while (this.queue.length) {
+      let w = this.workers.find((x) => !x.busy);
+      if (!w && this.workers.length < this.size) w = this.spawnWorker();
+      if (!w) return;
+      const item = this.queue.shift();
+      w.busy = item.id;
+      w.postMessage(item);
+    }
+  }
+  async close() {
+    this.closed = true;
+    for (const { id } of this.queue) { const p = this.pending.get(id); this.pending.delete(id); p && p.reject(new Cancelled()); }
+    this.queue = [];
+    for (const [id, p] of this.pending) { this.pending.delete(id); p.reject(new Cancelled()); }
+    await Promise.all(this.workers.map((w) => w.terminate()));
+    this.workers = [];
+  }
+}
+
+// Runs fn over items with the pool, counting progress; failures are logged and counted, not fatal.
+async function runAll(pool, items, kind, makeJob, ctx, label) {
+  let done = 0, failed = 0;
+  const results = [];
+  await Promise.all(items.map((it, i) => pool.run(kind, makeJob(it)).then((r) => { results[i] = r; }, (e) => {
+    if (e instanceof Cancelled || ctx.cancelled()) return;
+    failed++;
+    if (failed <= 25) ctx.log(`Failed ${it.rel || path.basename(it.src)}: ${e.message}`);
+  }).finally(() => {
+    done++;
+    if (!ctx.cancelled()) ctx.progress(done, items.length, label(it));
+  })));
+  if (ctx.cancelled()) throw new Cancelled();
+  if (failed > 25) ctx.log(`... ${failed} failed in total`);
+  return { results, failed };
+}
+
+// Removes .part files left by writes that a cancel interrupted.
+function cleanupParts(dir) {
+  const walk = (d) => {
+    let entries; try { entries = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const f = path.join(d, e.name);
+      if (e.isDirectory()) walk(f); else if (e.name.endsWith('.part')) fs.rmSync(f, { force: true });
+    }
+  };
+  walk(dir);
+}
+
+function sameFolder(a, b) { return path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase(); }
+function inside(child, parent) { const r = path.relative(path.resolve(parent), path.resolve(child)); return r && !r.startsWith('..') && !path.isAbsolute(r); }
+
+// ---------------------------------------------------------------- inspect (status card)
+function walkCount(folder, limit = 500000) {
+  let png = 0, dds = 0, other = 0, dumps = 0, n = 0, db = false;
+  const walk = (dir) => {
+    let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      if (++n > limit) return;
+      if (e.isDirectory()) walk(path.join(dir, e.name));
+      else if (/\.png$/i.test(e.name)) png++;
+      else if (/\.dds$/i.test(e.name)) dds++;
+      else if (/^[0-9a-f]{16}\.v\d+\.tmem$/i.test(e.name)) dumps++;
+      else { other++; if (e.name === DATABASE && dir === folder) db = true; }
+    }
+  };
+  walk(folder);
+  return { png, dds, other, dumps, db, truncated: n > limit };
+}
+
+function inspect(kind, value) {
+  const list = Array.isArray(value) ? value : (value ? [value] : []);
+  if (!list.length) return { state: 'idle', title: 'Choose an input', text: '' };
+  const missing = list.filter((p) => !fs.existsSync(p));
+  if (missing.length) return { state: 'error', title: 'Not found', text: missing[0] };
+  if (kind === 'pack-output') return { state: 'ready', title: 'Ready', text: list[0] };
+  if (kind === 'unpack') {
+    if (!fs.statSync(list[0]).isFile()) return { state: 'error', title: 'Not a file', text: 'Choose an .rtz pack file.\n' + list[0] };
+    let info;
+    try { info = rtz.inspect(list[0]); } catch (e) { return { state: 'error', title: 'Not an .rtz pack', text: `${e.message}\n${list[0]}` }; }
+    const methods = Object.keys(info.methods).join(', ');
+    return { state: 'ready', title: 'Ready', text: `.rtz pack: ${info.textures.toLocaleString()} textures (${info.dds.toLocaleString()} DDS, ${info.png.toLocaleString()} PNG), ${(info.size / 1048576).toFixed(1)} MB unpacked, ${methods}${info.hasDatabase ? ', rt64.json' : ''}\n${list[0]}` };
+  }
+  const p = list[0];
+  const st = fs.statSync(p);
+  if (kind === 'upscale') {
+    if (list.length > 1 || st.isFile()) {
+      const images = list.filter((f) => IMAGE_RE.test(f));
+      return images.length ? { state: 'ready', title: 'Ready', text: `${images.length} image${images.length === 1 ? '' : 's'} selected\n${list.length > 1 ? path.dirname(p) : p}` }
+        : { state: 'error', title: 'Not usable here', text: 'Choose PNG or DDS images, or a folder of them' };
+    }
+    const c = walkCount(p);
+    const n = c.png + c.dds;
+    return n ? { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} images (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.other ? `, ${c.other.toLocaleString()} other files` : ''}\n${p}` }
+      : { state: 'error', title: 'No images here', text: (c.dumps ? 'This is an RT64 texture dump: use 2 · Convert RT64 Dump first.\n' : 'No PNG or DDS files in this folder.\n') + p };
+  }
+  if (kind === 'convert') {
+    if (!st.isDirectory()) return { state: 'error', title: 'Not a folder', text: p };
+    const { files, problems } = findDumps(p);
+    if (!files.length) return { state: 'error', title: 'No RT64 dumps here', text: `No <hash>.v<N>.tmem files with .tile.json in this folder.\n${p}` };
+    const v = loadDump(files[0]).version;
+    return { state: 'ready', title: 'Ready', text: `RT64 texture dump: ${files.length.toLocaleString()} textures (hash v${v})${problems.length ? `, ${problems.length} incomplete` : ''}\n${p}` };
+  }
+  if (kind === 'pack') {
+    if (!st.isDirectory()) return { state: 'error', title: 'Not a folder', text: p };
+    const c = walkCount(p);
+    const n = c.png + c.dds;
+    if (!n) return { state: 'error', title: 'No textures here', text: `No PNG or DDS files in this folder.\n${p}` };
+    return { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} textures (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.db ? ' with rt64.json' : ', no rt64.json (made from hash-named files)'}\n${p}` };
+  }
+  return { state: 'idle', title: '', text: '' };
+}
+
+// ---------------------------------------------------------------- 1) upscale
+function gatherImages(inputs, subfolders) {
+  const items = [], others = [];
+  const roots = [];
+  for (const input of inputs) {
+    const st = fs.statSync(input);
+    if (st.isDirectory()) {
+      roots.push(input);
+      const files = subfolders ? listFiles(input) : fs.readdirSync(input, { withFileTypes: true }).filter((e) => e.isFile()).map((e) => e.name);
+      for (const rel of files) {
+        if (/\.part$/i.test(rel)) continue;
+        if (IMAGE_RE.test(rel)) items.push({ src: path.join(input, rel), rel });
+        else others.push({ src: path.join(input, rel), rel });
+      }
+    } else if (IMAGE_RE.test(input)) items.push({ src: input, rel: path.basename(input) });
+  }
+  return { items, others, roots };
+}
+
+async function upscaleTask(p, ctx, tools) {
+  const t0 = Date.now();
+  const inputs = (Array.isArray(p.inputs) ? p.inputs : [p.inputs]).filter(Boolean);
+  if (!inputs.length) throw new Error('Choose a folder or images to upscale.');
+  if (!p.output) throw new Error('Choose the output folder.');
+  for (const i of inputs) {
+    if (!fs.existsSync(i)) throw new Error('Not found: ' + i);
+    if (fs.statSync(i).isDirectory() && sameFolder(i, p.output)) throw new Error('The output folder must be different from the input folder.');
+  }
+  const { items, others, roots } = gatherImages(inputs, p.subfolders !== false);
+  if (!items.length) throw new Error('No PNG or DDS images found.');
+  const opts = { size: p.size, fit: p.fit, maxSize: p.maxSize, method: p.method, sharpness: p.sharpness, hardAlpha: p.hardAlpha };
+  const outInside = roots.some((r) => inside(p.output, r));
+  const work = items.filter((it) => !(outInside && inside(it.src, p.output))).map((it) => {
+    const fmt = p.format === 'same' ? path.extname(it.src).slice(1).toLowerCase() : p.format;
+    const outNoExt = path.join(p.output, it.rel.replace(/\.(png|dds)$/i, ''));
+    return { ...it, fmt, outNoExt };
+  });
+  let todo = work;
+  if (p.existing === 'skip') {
+    todo = work.filter((it) => !fs.existsSync(`${it.outNoExt}.${it.fmt}`));
+    if (todo.length < work.length) ctx.log(`Skipping ${work.length - todo.length} image(s) that already exist in the output folder.`);
+  }
+  let ai = null;
+  if (p.method === 'ai') {
+    ai = tools.realesrgan;
+    if (!ai) { ctx.log('Real-ESRGAN is not installed (Settings), so Standard is used instead.'); opts.method = 'standard'; }
+  }
+  const sizeText = p.size === 'fit' ? `to ${p.fit} px` : `${p.size}x`;
+  ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText} with ${ai ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art' }[opts.method] || 'Standard'}${opts.method === 'standard' || ai ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
+  fs.mkdirSync(p.output, { recursive: true });
+  if (p.copyOther !== false && others.length) {
+    let copied = 0;
+    for (const o of others) {
+      if (outInside && inside(o.src, p.output)) continue;
+      const dest = path.join(p.output, o.rel);
+      if (p.existing === 'skip' && fs.existsSync(dest)) continue;
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(o.src, dest);
+      copied++;
+    }
+    if (copied) ctx.log(`Copied ${copied} other file(s) (such as rt64.json) alongside.`);
+  }
+  const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv });
+  const pool = new Pool(ctx.workers);
+  ctx.onCancel(() => pool.close());
+  let failed = 0, written = 0;
+  try {
+    if (!ai) {
+      const r = await runAll(pool, todo, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts, edges: p.edges, save: save(it) }), ctx, (it) => it.rel);
+      failed = r.failed; written = r.results.filter(Boolean).length;
+    } else {
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-ai-'));
+      try {
+        const batch = 32;
+        for (let s = 0; s < todo.length; s += batch) {
+          const chunk = todo.slice(s, s + batch);
+          const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
+          fs.rmSync(inDir, { recursive: true, force: true }); fs.rmSync(outDir, { recursive: true, force: true });
+          fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
+          const prepared = await Promise.all(chunk.map((it, i) => pool.run('aiPrep', { src: it.src, tmpPng: path.join(inDir, `${i}.png`), pad: 8, edges: p.edges }).then(() => true, (e) => { failed++; ctx.log(`Failed ${it.rel}: ${e.message}`); return false; })));
+          if (ctx.cancelled()) throw new Cancelled();
+          await runProcess(ai, ['-i', inDir, '-o', outDir, '-n', tools.realesrganModel || 'realesrgan-x4plus', '-s', '4', '-f', 'png'], ctx);
+          const ready = chunk.filter((_, i) => prepared[i] && fs.existsSync(path.join(outDir, `${i}.png`)));
+          const idx = new Map(chunk.map((it, i) => [it, i]));
+          const missingAi = chunk.filter((_, i) => prepared[i]).length - ready.length;
+          if (missingAi) { failed += missingAi; ctx.log(`Real-ESRGAN produced no output for ${missingAi} image(s).`); }
+          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: path.join(outDir, `${idx.get(it)}.png`), pad: 8, outNoExt: it.outNoExt, opts, edges: p.edges, save: save(it) }),
+            { ...ctx, progress: (d) => ctx.progress(s + d, todo.length, '') }, (it) => it.rel);
+          failed += r.failed; written += r.results.filter(Boolean).length;
+        }
+      } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+    }
+  } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
+  return { title: 'Upscaled', written, failed, output: p.output, packable: written > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
+function runProcess(exe, args, ctx) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(exe, args, { cwd: path.dirname(exe), windowsHide: true });
+    let err = '';
+    child.stderr.on('data', (d) => { err = (err + d).slice(-2000); });
+    ctx.onCancel(() => child.kill());
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (ctx.cancelled()) reject(new Cancelled());
+      else if (code !== 0) reject(new Error(`Real-ESRGAN failed (${code}): ${err.trim().split('\n').slice(-2).join(' ')}`));
+      else resolve();
+    });
+  });
+}
+
+// ---------------------------------------------------------------- 2) convert RT64 dump
+async function convertTask(p, ctx, tools) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose the RT64 texture dump folder.');
+  if (!p.output) throw new Error('Choose the output folder.');
+  if (sameFolder(p.input, p.output)) throw new Error('The output folder must be different from the dump folder.');
+  const { files, problems } = findDumps(p.input);
+  problems.slice(0, 5).forEach((x) => ctx.log('Skipped ' + x));
+  if (problems.length > 5) ctx.log(`... and ${problems.length - 5} more incomplete dumps`);
+  const seen = new Set(), versions = new Map(), items = [];
+  for (const f of files) {
+    let d;
+    try { d = loadDump(f); } catch (e) { ctx.log(`Skipped ${path.basename(f)}: ${e.message}`); continue; }
+    if (seen.has(d.hash) || d.width <= 0 || d.height <= 0) continue;
+    seen.add(d.hash);
+    versions.set(d.version, (versions.get(d.version) || 0) + 1);
+    items.push({ src: f, rel: `textures/${d.hash}`, hash: d.hash, version: d.version });
+  }
+  if (!items.length) throw new Error('No RT64 texture dumps (<hash>.v<N>.tmem with .tile.json) in that folder.');
+  const version = [...versions.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  let todo = items;
+  if (versions.size > 1) { todo = items.filter((i) => i.version === version); ctx.log(`Dumps use several hash versions; keeping the ${todo.length} made with v${version}.`); }
+  ctx.log(`Converting ${todo.length.toLocaleString()} textures to ${p.format.toUpperCase()} (hash version ${version}).`);
+  const pool = new Pool(ctx.workers);
+  ctx.onCancel(() => pool.close());
+  let res;
+  try {
+    res = await runAll(pool, todo, 'dump', (it) => ({ src: it.src, outNoExt: path.join(p.output, it.rel), save: { format: p.format, ddsFormat: p.ddsFormat, texconv: tools.texconv } }), ctx, (it) => it.hash);
+  } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
+  const db = new Database();
+  db.config.hashVersion = version;
+  todo.forEach((it, i) => { if (res.results[i]) db.add(it.hash, `${it.rel}.${p.format}`); });
+  db.save(path.join(p.output, DATABASE));
+  const written = res.results.filter(Boolean).length;
+  return { title: 'Converted', written, failed: res.failed, output: p.output, packable: written > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
+// ---------------------------------------------------------------- 3) pack
+async function packTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input) || !fs.statSync(p.input).isDirectory()) throw new Error('Choose the texture folder to pack.');
+  if (!p.output) throw new Error('Choose where to save the .rtz.');
+  if (!/\.rtz$/i.test(p.output)) throw new Error('The pack name must end in .rtz.');
+  ctx.log(`Packing ${p.input} (${p.compression}${p.compression === 'store' ? '' : ', ' + p.level}).`);
+  const pool = new Pool(1);
+  ctx.onCancel(() => pool.close());
+  let r;
+  try {
+    r = await pool.run('pack', { folder: p.input, outFile: p.output, options: { compression: p.compression, level: p.level, lowMipCache: p.lowMipCache !== false } },
+      (done, total, name) => ctx.progress(done, total, name));
+  } finally { await pool.close(); if (ctx.cancelled()) fs.rmSync(p.output + '.part', { force: true }); }
+  if (ctx.cancelled()) throw new Cancelled();
+  (r.notes || []).forEach((n) => ctx.log(n));
+  if (r.cacheEntries) ctx.log(`Low-mip cache: ${r.cacheEntries} DDS texture(s).`);
+  return { title: 'Packed', written: r.textures, failed: 0, output: r.file, sizeMB: r.bytesOut / 1048576, seconds: (Date.now() - t0) / 1000 };
+}
+
+// ---------------------------------------------------------------- 4) unpack
+async function unpackTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input) || !fs.statSync(p.input).isFile()) throw new Error('Choose the .rtz pack to unpack.');
+  if (!p.output) throw new Error('Choose the output folder.');
+  ctx.log(`Unpacking ${p.input}${p.keepCache ? '' : ' (low-mip cache left out)'}.`);
+  const pool = new Pool(1);
+  ctx.onCancel(() => pool.close());
+  let n;
+  try {
+    n = await pool.run('unpack', { file: p.input, output: p.output, keepCache: !!p.keepCache }, (done, total, name) => ctx.progress(done, total, name));
+  } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
+  if (ctx.cancelled()) throw new Cancelled();
+  const textures = (() => { try { return rtz.inspect(p.input).textures; } catch { return n; } })();
+  return { title: 'Unpacked', written: textures, files: n, failed: 0, output: p.output, upscalable: textures > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
+// ---------------------------------------------------------------- live preview (1 · Upscale)
+// Textures available to preview for the current inputs.
+function previewList(inputs, subfolders) {
+  try {
+    const list = (Array.isArray(inputs) ? inputs : [inputs]).filter((i) => i && fs.existsSync(i));
+    if (!list.length) return { items: [], total: 0 };
+    const { items } = gatherImages(list, subfolders !== false);
+    items.sort((a, b) => a.rel.localeCompare(b.rel, undefined, { numeric: true, sensitivity: 'base' }));
+    return { items: items.slice(0, 5000).map((i) => ({ src: i.src, rel: i.rel })), total: items.length };
+  } catch (e) { return { items: [], total: 0, error: e.message }; }
+}
+
+let previewPool = null;
+// One texture upscaled with the current settings; runs on its own worker, separate from jobs.
+async function preview(req, tools) {
+  if (!previewPool) previewPool = new Pool(1);
+  const opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha };
+  const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv };
+  let r;
+  if (req.method === 'ai' && tools.realesrgan) {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-preview-'));
+    try {
+      const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
+      fs.mkdirSync(inDir); fs.mkdirSync(outDir);
+      await previewPool.run('aiPrep', { src: req.src, tmpPng: path.join(inDir, '0.png'), pad: 8, edges: req.edges });
+      const noCancel = { cancelled: () => false, onCancel: () => {} };
+      await runProcess(tools.realesrgan, ['-i', inDir, '-o', outDir, '-n', tools.realesrganModel || 'realesrgan-x4plus', '-s', '4', '-f', 'png'], noCancel);
+      r = await previewPool.run('previewAi', { src: req.src, aiPng: path.join(outDir, '0.png'), pad: 8, opts, edges: req.edges, save });
+    } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+  } else {
+    if (opts.method === 'ai') opts.method = 'standard';
+    r = await previewPool.run('preview', { src: req.src, opts, edges: req.edges, save });
+  }
+  return r;
+}
+
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, inspect, previewList, preview, Cancelled, Pool };
