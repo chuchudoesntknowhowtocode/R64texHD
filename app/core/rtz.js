@@ -5,6 +5,7 @@ const path = require('path');
 const zlib = require('zlib');
 const { parseHeader } = require('./dds');
 const { Database, listFiles, databaseFromFiles, detectHashVersion, fwd, DATABASE, LOW_MIP_CACHE } = require('./rt64db');
+const recomp = require('./recomp');
 
 const STORE = 0, DEFLATE = 8, ZSTD = 93;
 const ZSTD_LEVELS = { fast: 3, balanced: 12, max: 22 };
@@ -141,7 +142,8 @@ function prepareDatabase(folder, files) {
 
 const byteOrder = (a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8'));
 
-// opts: { compression, level, lowMipCache, forceZip64, progress(done,total,name), cancelled() }
+// opts: { compression, level, lowMipCache, forceZip64, recomp: { name, author, version, description, game, thumb, toggle } | null,
+//        progress(done,total,name), cancelled() }
 function packFolder(folder, outFile, opts = {}) {
   const compression = opts.compression || 'zstd';
   const level = compression === 'zstd' ? (ZSTD_LEVELS[opts.level] ?? 12) : (opts.level === 'max' ? 9 : opts.level === 'fast' ? 1 : 6);
@@ -172,6 +174,24 @@ function packFolder(folder, outFile, opts = {}) {
   const jobs = textureFiles.map((f) => ({ name: f, file: path.join(folder, f) }));
   for (const f of db.extraFiles) if (fs.existsSync(path.join(folder, f))) jobs.push({ name: fwd(f), file: path.join(folder, f), deflate: true });
   jobs.push({ name: DATABASE, data: Buffer.from(db.text()) });
+  // Recomp mod info: a new mod.json (and picture) from the options, or the folder's own if it has them.
+  let recompInfo = null;
+  if (opts.recomp) {
+    const m = recomp.manifest(opts.recomp);
+    jobs.push({ name: recomp.MANIFEST, data: Buffer.from(JSON.stringify(m, null, 4) + '\n'), deflate: true });
+    recompInfo = m;
+    const thumb = opts.recomp.thumb;
+    if (thumb) {
+      const b = fs.existsSync(thumb) ? fs.readFileSync(thumb) : null;
+      if (b && b.length > 8 && b[0] === 0x89 && b.toString('latin1', 1, 4) === 'PNG') jobs.push({ name: recomp.THUMB, data: b });
+      else notes.push('The Recomp picture was left out: it must be a PNG file.');
+    }
+    notes.push(`Recomp mod info: “${m.display_name}” v${m.version} by ${m.authors.join(', ')}${m.config_schema ? ', with an on / off switch' : ''}.`);
+  } else {
+    for (const extra of [recomp.MANIFEST, recomp.THUMB, 'thumb.dds']) {
+      if (fs.existsSync(path.join(folder, extra))) jobs.push({ name: extra, file: path.join(folder, extra), deflate: extra === recomp.MANIFEST });
+    }
+  }
   if (cache) jobs.push({ name: LOW_MIP_CACHE, data: cache });
 
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
@@ -196,7 +216,7 @@ function packFolder(folder, outFile, opts = {}) {
     fs.rmSync(part, { force: true });
     throw e;
   }
-  return { file: outFile, textures: textureFiles.length, files: jobs.length, bytesIn, bytesOut: fs.statSync(outFile).size, cacheEntries, generated, notes };
+  return { file: outFile, textures: textureFiles.length, files: jobs.length, bytesIn, bytesOut: fs.statSync(outFile).size, cacheEntries, generated, notes, recomp: recompInfo };
 }
 
 // ------------------------------------------------------------ reading
@@ -291,6 +311,7 @@ function inspect(file) {
     files: entries.length, textures: names.filter((n) => n.endsWith('.png') || n.endsWith('.dds')).length,
     dds: names.filter((n) => n.endsWith('.dds')).length, png: names.filter((n) => n.endsWith('.png')).length,
     size: entries.reduce((s, e) => s + e.usize, 0), methods, hasDatabase: names.includes(DATABASE), hasCache: names.includes(LOW_MIP_CACHE),
+    hasRecomp: names.includes(recomp.MANIFEST),
   };
 }
 

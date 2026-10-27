@@ -53,7 +53,11 @@ THE PAGES (sidebar)
    - Pack: a DDS / PNG texture folder into a single .rtz file (Zstandard like
      RT64's own packer, Deflate or Store; low-mip cache for DDS).
    - Unpack: an .rtz back into a folder of textures and rt64.json.
-   - Check a pack and Recomp mod info: coming in the next builds.
+   - Recomp mod info: a name, author, picture and on / off switch for the
+     mod menu in Zelda 64: Recompiled and other recomps.
+   - Check a pack: looks over an .rtz or pack folder before you share it.
+     "Make them DDS" saves a fixed copy (<name>-fixed.rtz) with every PNG
+     texture turned into DDS. The original is never changed.
 
 4  Ship Mods .o2r          (coming in the next builds)
    HD texture mods for 2 Ship 2 Harkinian, Ship of Harkinian, Starship and

@@ -162,8 +162,18 @@ function inspect(kind, value) {
     if (!n) return { state: 'error', title: 'No textures here', text: `No PNG or DDS files in this folder.\n${p}` };
     return { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} textures (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.db ? ' with rt64.json' : ', no rt64.json (made from hash-named files)'}\n${p}` };
   }
+  if (kind === 'check') {
+    if (st.isFile()) {
+      let info;
+      try { info = rtz.inspect(p); } catch (e) { return { state: 'error', title: 'Not an .rtz pack', text: `${e.message}\n${p}` }; }
+      return { state: 'ready', title: 'Ready', text: `.rtz pack: ${info.textures.toLocaleString()} textures (${info.dds.toLocaleString()} DDS, ${info.png.toLocaleString()} PNG), ${(info.size / 1048576).toFixed(0)} MB unpacked${info.hasRecomp ? ', Recomp mod info' : ''}\n${p}` };
+    }
+    const c = walkCount(p);
+    if (!c.png && !c.dds) return { state: 'error', title: 'No textures here', text: `No PNG or DDS files in this folder.\n${p}` };
+    return { state: 'ready', title: 'Ready', text: `Pack folder: ${(c.png + c.dds).toLocaleString()} textures (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.db ? ' with rt64.json' : ''}\n${p}` };
+  }
   // Pages whose engine arrives in a later build: show the input, say what's coming.
-  const SOON = { check: 'Pack checking', o2rExtract: 'Ship .o2r support', o2rBuild: 'Ship .o2r support', legacyImport: 'Rice / GLideN64 support',
+  const SOON = { o2rExtract: 'Ship .o2r support', o2rBuild: 'Ship .o2r support', legacyImport: 'Rice / GLideN64 support',
     legacyHts: 'Rice / GLideN64 support', riceToO2r: 'Rice / GLideN64 support' };
   if (SOON[kind]) return { state: 'idle', title: `${SOON[kind]} arrives in the next build`, text: p };
   return { state: 'idle', title: '', text: '' };
@@ -365,13 +375,16 @@ async function packTask(p, ctx) {
   ctx.onCancel(() => pool.close());
   let r;
   try {
-    r = await pool.run('pack', { folder: p.input, outFile: p.output, options: { compression: p.compression, level: p.level, lowMipCache: p.lowMipCache !== false } },
+    const recompOpts = p.recomp ? { name: p.recompName || path.basename(p.output).replace(/\.rtz$/i, ''), author: p.recompAuthor, version: p.recompVersion,
+      description: p.recompDescription, game: p.recompGame, thumb: p.recompThumb, toggle: p.recompToggle !== false } : null;
+    if (recompOpts) require('./recomp').manifest(recompOpts);          // check the version etc. before packing
+    r = await pool.run('pack', { folder: p.input, outFile: p.output, options: { compression: p.compression, level: p.level, lowMipCache: p.lowMipCache !== false, recomp: recompOpts } },
       (done, total, name) => ctx.progress(done, total, name));
   } finally { await pool.close(); if (ctx.cancelled()) fs.rmSync(p.output + '.part', { force: true }); }
   if (ctx.cancelled()) throw new Cancelled();
   (r.notes || []).forEach((n) => ctx.log(n));
   if (r.cacheEntries) ctx.log(`Low-mip cache: ${r.cacheEntries} DDS texture(s).`);
-  return { title: 'Packed', written: r.textures, failed: 0, output: r.file, sizeMB: r.bytesOut / 1048576, seconds: (Date.now() - t0) / 1000 };
+  return { title: 'Packed', written: r.textures, failed: 0, output: r.file, sizeMB: r.bytesOut / 1048576, checkable: true, seconds: (Date.now() - t0) / 1000 };
 }
 
 // ---------------------------------------------------------------- 4) unpack
@@ -389,6 +402,41 @@ async function unpackTask(p, ctx) {
   if (ctx.cancelled()) throw new Cancelled();
   const textures = (() => { try { return rtz.inspect(p.input).textures; } catch { return n; } })();
   return { title: 'Unpacked', written: textures, files: n, failed: 0, output: p.output, upscalable: textures > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
+// ---------------------------------------------------------------- 3b) check a pack, and its fixes
+async function checkTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose an .rtz pack or a pack folder to check.');
+  const pool = new Pool(1);
+  ctx.onCancel(() => pool.close());
+  let r;
+  try { r = await pool.run('check', { input: p.input }, (done, total, name) => ctx.progress(done, total, name)); }
+  finally { await pool.close(); }
+  if (ctx.cancelled()) throw new Cancelled();
+  for (const c of r.checks) ctx.log(`${{ ok: 'OK  ', warn: 'Look', bad: 'Fix ' }[c.level]}  ${c.title}${c.text ? ' – ' + c.text : ''}`);
+  return { title: 'Checked', checks: r.checks, summary: r.summary, output: p.input, seconds: (Date.now() - t0) / 1000 };
+}
+
+// Fixes offered by Check a pack. png-to-dds: a fixed copy of the pack with PNG textures as DDS.
+async function fixTask(p, ctx, tools) {
+  const t0 = Date.now();
+  if (p.kind !== 'png-to-dds') throw new Error('Unknown fix.');
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('The pack to fix was not found.');
+  const ddsFormat = tools.texconv ? 'bc7' : 'auto';
+  ctx.log(`Making the PNG textures DDS (${ddsFormat === 'bc7' ? 'BC7' : 'BC1 / BC3'}, with mipmaps) in a fixed copy of the pack.`);
+  const pool = new Pool(ctx.workers);
+  ctx.onCancel(() => pool.close());
+  let r;
+  try {
+    r = await require('./check').fixPngToDds(p.input, async (jobs) => {
+      const res = await runAll(pool, jobs, 'toDds', (j) => ({ src: j.src, dest: j.dest, ddsFormat, texconv: tools.texconv }), ctx, (j) => `Making DDS: ${j.rel}`);
+      return res.failed;
+    }, { progress: ctx.progress, cancelled: ctx.cancelled });
+  } finally { await pool.close(); }
+  if (ctx.cancelled()) throw new Cancelled();
+  ctx.log(`Saved as ${r.output}`);
+  return { title: 'Fixed:', written: r.converted, failed: 0, output: r.output, sizeMB: r.sizeMB, fixed: true, seconds: (Date.now() - t0) / 1000 };
 }
 
 // ---------------------------------------------------------------- live preview (1 · Upscale)
@@ -436,4 +484,4 @@ async function preview(req, tools) {
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };

@@ -34,7 +34,7 @@ module.exports = async ({ app, win }) => {
   // A page whose engine comes later answers kindly instead of failing.
   await js(`document.querySelector('nav button[data-page="ports"]').click()`); await wait(300);
   const soon = await js("window.htk.run('o2rBuild', {})");
-  check(soon.ok === false && /next build/.test(soon.error), 'later features say "next build"');
+  check(soon.ok === false && /next build/.test(soon.error), 'Ship .o2r and Rice pages say "next build"');
 
   // Convert the generated dump, then upscale it with Edges: Auto.
   const runAndWait = async (setup, task) => {
@@ -60,6 +60,30 @@ module.exports = async ({ app, win }) => {
   await shot('run-upscale-done');
   const cap = await js("(document.querySelector('#pv-cap-o') || {}).textContent || ''");
   check(/from dump/.test(cap), `preview shows edges from the dump (${cap.trim()})`);
+
+  // Step 2: pack the upscaled DDS with Recomp info, check it; then check + fix the PNG folder.
+  const rtzOut = JSON.stringify(path.join(out, 'Majora HD.rtz'));
+  const thumb = JSON.stringify(path.join(__dirname, '..', '..', 'app', 'ui', 'splash.png'));
+  await js(`document.querySelector('nav button[data-page="pack"]').click()`); await wait(300);
+  const pk = await runAndWait(`cfg.pack.mode = 'pack'; cfg.pack.input = ${up}; cfg.pack.output = ${rtzOut}; cfg.pack.recomp = true; cfg.pack.recompName = 'Majora HD Reimagined';
+    cfg.pack.recompAuthor = 'chuchu'; cfg.pack.recompVersion = '1.0.0'; cfg.pack.recompDescription = 'Every texture in Termina, redone in HD.'; cfg.pack.recompThumb = ${thumb}; render();`, 'pack');
+  check(pk && pk.result && pk.result.written === 2, 'Pack .rtz with Recomp info');
+  await wait(400); await js('document.querySelector("#page").scrollTop = 99999'); await wait(200); await shot('run-pack-recomp');
+  await js('document.querySelector("#page").scrollTop = 0');
+  const ck = await (async () => { await js(`window.__done = null; document.querySelector('#go-check').click()`); for (let i = 0; i < 100; i++) { const d = await js('window.__done'); if (d) return d; await wait(100); } return null; })();
+  check(ck && ck.result && ck.result.checks.every((c) => c.level === 'ok'), 'Check it: the new pack is all good');
+  check(ck && ck.result.checks.some((c) => /Recomp mod info and picture found/.test(c.title)), 'Check sees the Recomp info and picture');
+  await wait(300); await shot('run-check-good');
+
+  const cp = await runAndWait(`cfg.pack.mode = 'check'; cfg.check.input = ${conv}; render();`, 'check');
+  check(cp && cp.result.checks.some((c) => c.fix === 'png-to-dds'), 'Check finds PNG textures and offers a fix');
+  await wait(300); await shot('run-check-png');
+  await js(`window.__done = null; document.querySelector('[data-fix="png-to-dds"]').click()`);
+  let fixedCheck = null;
+  for (let i = 0; i < 200; i++) { const d = await js('window.__done'); if (d && d.task === 'check') { fixedCheck = d; break; } await wait(100); }
+  check(fixedCheck && fixedCheck.result.checks.every((c) => c.level === 'ok'), 'Make them DDS, then the fixed pack checks all good');
+  check(fs.existsSync(path.join(out, 'converted-fixed.rtz')), 'fixed copy saved next to the folder');
+  await wait(300); await shot('run-check-fixed');
 
   fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n');
   app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);

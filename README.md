@@ -38,9 +38,17 @@ packs along.
 **3 · Pack / Check .rtz**
 - Pack a DDS / PNG texture folder into an `.rtz` in the same layout as RT64's
   `texture_packer` (Zstandard, Deflate or Store; low-mip cache for DDS streaming).
-- Unpack any `.rtz` back into a folder of textures and `rt64.json`.
-- *Coming in the next builds:* **Check a pack** before sharing it, and **Recomp mod
-  info** (name, author, picture and an on / off switch in the Recomp mod menu).
+- **Recomp mod info** (new): give the pack a name, author, version, description and
+  picture for the mod menu in Zelda 64: Recompiled and other recomps, plus an on / off
+  switch players can flip in game. Written as `mod.json` + `thumb.png` inside the `.rtz`,
+  following Recomp's own rules.
+- **Check a pack** (new): looks over an `.rtz` or a pack folder before you share it,
+  following RT64's texture pack advice: PNG textures left in, missing files, DDS without
+  mipmaps, the low-mip cache size, very large textures, preloads, unused images and the
+  Recomp mod info. Nothing is changed.
+- **Make them DDS** (new): one click turns the PNG textures into DDS (BC7 with texconv)
+  in a fixed copy of the pack, `<name>-fixed.rtz`, then checks it again. The original stays as it was.
+- Unpack any `.rtz` back into a folder of textures and `rt64.json` (Recomp info included).
 
 **4 · Ship Mods .o2r** *(coming in the next builds)*
 - Get the textures out of a Ship port's `.o2r` / `.otr` (2 Ship 2 Harkinian,
@@ -115,21 +123,23 @@ app/
   ui/index.html    the launcher (pages, splash screen, live preview)
   ui/pixel-icons.js  the pixel-art status buttons
   core/            png, dds, bc (block codecs), upscale, tmem (RT64 dumps), tiling (Edges: Auto),
-                   rt64db (rt64.json), rtz (packs), tasks + worker (parallel jobs)
+                   rt64db (rt64.json), rtz (packs), recomp (mod.json), check (Check a pack),
+                   tasks + worker (parallel jobs)
 build/             packaging scripts; ui-preview/ makes UI screenshots and runs the app self-test
-tests/             automated tests: node --test tests/core.test.js
+tests/             automated tests: node --test tests/core.test.js tests/check.test.js
 docs/              README.txt shipped in the release, screenshots
 ```
 
 ## Testing
 
 ```
-node --test tests/core.test.js
+node --test tests/core.test.js tests/check.test.js
 ```
 
 Needs Node 22.15 or newer (the same Node that Electron 38 uses). The tests cover
 the image formats, mipmaps (fences far away, odd sizes), RT64 dump tiling and
-Edges: Auto, Convert's "Only new", `.rtz` pack / unpack, and the AI options.
+Edges: Auto, Convert's "Only new", `.rtz` pack / unpack, Recomp mod info,
+Check a pack and the Make them DDS fix, and the AI options.
 
 ## Why was this made?
 

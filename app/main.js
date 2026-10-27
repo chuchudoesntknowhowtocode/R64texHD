@@ -143,7 +143,7 @@ async function runTask(task, params) {
   running = { task, cancel: () => { cancelledFlag = true; hooks.splice(0).forEach((f) => { try { f(); } catch { /* ignore */ } }); } };
   send('task:started', { task });
   const t = tools();
-  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask }[task];
+  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask }[task];
   if (!fn) { running = null; return { ok: false, error: 'This part arrives in the next build. Hang tight!' }; }
   (async () => {
     try {
@@ -293,7 +293,6 @@ function thumbnail(p) {
 }
 function registerIpc() {
   ipcMain.handle('thumbnail', (_e, p) => thumbnail(p));
-  ipcMain.handle('fix', () => ({ ok: false, error: 'Fixes arrive in the next build.' }));
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));
   ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task }));

@@ -85,6 +85,17 @@ const handlers = {
     const out = upscale(img, { ...job.opts, edges: edgesOf(job) }, { img: ai, scale: 4 });
     return previewResult(img, out, job, t0);
   },
+  check(job, progress) {
+    return require('./check').checkPack(job.input, { progress });
+  },
+  toDds(job) {
+    // One PNG -> DDS with mipmaps (fences far away kept), written atomically.
+    const img = loadImage(job.src);
+    const bytes = dds.encodeDDS(img, job.ddsFormat, { mipmaps: true, texconv: job.texconv, keepCoverage: true });
+    fs.writeFileSync(job.dest + '.part', bytes);
+    fs.renameSync(job.dest + '.part', job.dest);
+    return { out: job.dest };
+  },
   unpack(job, progress) {
     return rtz.unpack(job.file, job.output, { keepCache: job.keepCache, progress });
   },
