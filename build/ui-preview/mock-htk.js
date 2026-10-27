@@ -32,10 +32,10 @@
   }
 
   const settings = {
-    firstRunDone: true, checkTools: true, page: q.get('page') || 'upscale', dumpFolder: 'D:\\N64\\RT64 dumps\\Majora', outputFolder: 'D:\\N64\\HD',
+    firstRunDone: !q.has('setup'), checkTools: true, page: q.get('page') || 'upscale', dumpFolder: 'D:\\N64\\RT64 dumps\\Majora', outputFolder: 'D:\\N64\\HD',
     workers: 'auto', maxSize: 4096, realesrganModel: 'realesrgan-x4plus', splash: q.has('splash'),
     upscale: { inputs: ['D:\\N64\\HD\\majora-textures'], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'auto', hardAlpha: true,
-      format: 'dds', ddsFormat: 'bc7', output: 'D:\\N64\\HD\\majora-textures-upscaled', existing: 'overwrite', copyOther: true, keepCoverage: true },
+      format: 'dds', ddsFormat: 'auto', output: 'D:\\N64\\HD\\majora-textures-upscaled', existing: 'overwrite', copyOther: true, keepCoverage: true },
     convert: { input: 'D:\\N64\\RT64 dumps\\Majora', format: 'png', ddsFormat: 'auto', output: 'D:\\N64\\HD\\Majora-textures', wrapInfo: true, rice: true, onlyNew: true },
     pack: { mode: q.get('mode') || 'pack', input: 'D:\\N64\\HD\\majora-textures-upscaled', output: 'D:\\N64\\HD\\Majora HD.rtz', compression: 'zstd', level: 'balanced', lowMipCache: true,
       recomp: true, recompName: 'Majora HD Reimagined', recompAuthor: 'chuchu', recompVersion: '1.0.0', recompDescription: 'Every texture in Termina, redone in HD.', recompThumb: 'D:\\N64\\HD\\thumb.png', recompToggle: true },
@@ -87,7 +87,15 @@
     fix: async () => ({ ok: true }),
     thumbnail: async () => 'splash.png',
     previewList: async () => ({ items: [{ src: 'a', rel: 'textures/0f3a9c21d8e4b7a1.png' }, { src: 'b', rel: 'textures/1b77e0a4c2d39f05.png' }], total: 4812 }),
-    preview: async () => { const o = brick(32, 32); return { orig: o, up: smoothUp(o, 4), encoded: 'DDS BC7', ms: 180, edges: 'tile × tile (from dump)' }; },
+    preview: async () => {
+      // Real upscale result from make-preview-data.js when present; a quick stand-in otherwise.
+      const P = window.__PREVIEW;
+      if (P) {
+        const dec = (x) => ({ width: x.width, height: x.height, data: Uint8Array.from(atob(x.data), (c) => c.charCodeAt(0)) });
+        return { orig: dec(P.orig), up: dec(P.up), encoded: P.encoded, ms: 140, edges: 'tile × tile (from dump)' };
+      }
+      const o = brick(32, 32); return { orig: o, up: smoothUp(o, 4), encoded: 'DDS BC7', ms: 180, edges: 'tile × tile (from dump)' };
+    },
     onStarted: on('started'), onProgress: on('progress'), onLog: on('log'), onDone: on('done'), onToolProgress: on('tool'),
   };
 })();
