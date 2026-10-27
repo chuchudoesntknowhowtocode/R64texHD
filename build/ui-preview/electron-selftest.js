@@ -35,6 +35,23 @@ module.exports = async ({ app, win }) => {
   await js(`document.querySelector('nav button[data-page="ports"]').click()`); await wait(300);
 
 
+  // Picking a folder again (even the same one) looks at it again: an empty dump folder, then files arrive.
+  const late = path.join(process.env.HTK_OUT, 'late-dump');
+  fs.mkdirSync(late, { recursive: true });
+  await js(`document.querySelector('nav button[data-page="convert"]').click()`); await wait(300);
+  await js(`cfg.convert.input = ${JSON.stringify(late)}; onPath('convert.input'); render();`); await wait(600);
+  check(/No RT64 dumps here/.test(await js("document.querySelector('#status .t').textContent")), 'empty dump folder shows the problem');
+  check(!!(await js("document.querySelector('#check-again')")), 'problem card has a Check again button');
+  for (const f of fs.readdirSync(process.env.HTK_DUMP)) fs.copyFileSync(path.join(process.env.HTK_DUMP, f), path.join(late, f));
+  await js(`cfg.convert.input = ${JSON.stringify(late)}; onPath('convert.input'); render();`); await wait(600);   // same folder picked again
+  check(/Ready/.test(await js("document.querySelector('#status .t').textContent")), 'same folder picked again: dump now found');
+  fs.rmSync(late, { recursive: true, force: true }); fs.mkdirSync(late);
+  await js(`document.querySelector('#check-again') ? 0 : 0; recheck();`); await wait(600);
+  check(/No RT64 dumps here/.test(await js("document.querySelector('#status .t').textContent")), 'Check again sees the folder change');
+  await js(`document.querySelector('#check-again').click()`); await wait(300);
+  await shot('run-check-again');
+  fs.rmSync(late, { recursive: true, force: true });
+
   // Convert the generated dump, then upscale it with Edges: Auto.
   const runAndWait = async (setup, task) => {
     await js(setup); await wait(200);

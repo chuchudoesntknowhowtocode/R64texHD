@@ -753,13 +753,21 @@ function inputFor() {
   return v === undefined ? [null, null] : [t, v];
 }
 
+const CHECK_AGAIN = '<button class="btn" id="check-again">Check again</button>';
+// Look at the input again (after picking a folder, coming back to the app, or pressing Check again).
+function recheck() { statusCache = {}; PV.listKey = ''; if (!job.running) refreshStatus(); if (page === 'upscale') afterRenderPreview(); }
 async function refreshStatus() {
   if (!$('#status')) return;
   if (job.task === taskOf(page) && (job.running || job.result || job.error)) return renderJob();
   const [kind, value] = inputFor();
   if (!value || (Array.isArray(value) && !value.length)) return setCard('idle', IDLE_TEXT[taskOf(page)], 'Use Browse… or paste a path.');
   const key = kind + '|' + JSON.stringify(value);
-  if (!statusCache[key]) { setCard('idle', 'Checking…', ''); statusCache[key] = await window.htk.inspect(kind, value); }
+  if (!statusCache[key]) {
+    setCard('idle', 'Checking…', '');
+    const r = await window.htk.inspect(kind, value);
+    if (r.state === 'ready') statusCache[key] = r;            // problems are never remembered: they're checked again every time
+    else { if (inputFor()[0] === kind) setCard(r.state, r.title, r.text, undefined, CHECK_AGAIN); return; }
+  }
   if (inputFor()[0] !== kind) return;
   const s = statusCache[key];
   setCard(s.state, s.title, s.text);
@@ -908,6 +916,7 @@ document.addEventListener('click', async (e) => {
   if (id === 'go-upscale') { goTo('upscale', null, { inputs: [job.result.output], output: '', edges: 'auto', ...(job.task === 'o2rExtract' ? { format: 'png' } : {}) }); return; }
   if (id === 'm-yes') { packConverted(packAfter); return; }
   if (id === 'm-no') { closeModal(); return; }
+  if (id === 'check-again') { recheck(); return; }
   if (id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }
   if (id === 'open-repo') { window.htk.openRepo(); return; }
   if (id === 'dl-all') { installAll(); return; }
@@ -923,6 +932,7 @@ document.addEventListener('click', async (e) => {
 
 // A new input suggests a matching output name.
 function onPath(key) {
+  statusCache = {}; PV.listKey = '';                // the same folder may have new files now
   const out = cfg.outputFolder;
   if (out) {
     if (key === 'upscale.inputs') {
@@ -1171,6 +1181,8 @@ document.addEventListener('change', (e) => {
   if (item) { PV.src = item.src; PV.scroll = { x: 0, y: 0 }; drawPreview(); schedulePreview(); }
 });
 
+// Back in the app (maybe after dumping more textures): look at the input again.
+window.addEventListener('focus', () => { if (cfg && !job.running && !job.result && !job.error) recheck(); });
 window.addEventListener('resize', () => { if (page === 'upscale') drawPreview(); fillPixelFade(); });
 
 // ---------------------------------------------------------------- footer: 8-bit pixel gradient
