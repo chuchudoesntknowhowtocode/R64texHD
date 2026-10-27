@@ -21,24 +21,16 @@ input { user-select: text; }
 header { position: relative; height: 176px; padding: 0 28px; overflow: hidden; display: flex; align-items: center; background: #0b1022; }
 /* Header artwork: the banner's left side is plain background, so it simply sits on the right and fills the height. */
 .hdr-art { position: absolute; top: 0; right: 0; height: 100%; width: auto; z-index: 0; pointer-events: none; }
-/* Catchphrase strip: bottom right, about 20% of the header's height, changes every time you switch page. */
-.hdr-phrase { position: absolute; right: 0; top: 0; z-index: 3; height: 20%; min-height: 30px; display: flex; align-items: center; justify-content: flex-end;
-  padding: 0 22px 0 60px; background: linear-gradient(90deg, rgba(11,6,24,0) 0, rgba(11,6,24,.62) 40px, rgba(11,6,24,.4) 70%, rgba(11,6,24,0) 100%); backdrop-filter: blur(2px);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 40px); mask-image: linear-gradient(90deg, transparent 0, #000 40px); pointer-events: none; overflow: hidden; }
-.hdr-phrase::before { content: ""; position: absolute; left: 40px; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, rgba(255,63,180,.75), rgba(51,230,255,.5) 60%, transparent); }
-.hdr-phrase span { position: relative; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: .6px; font-size: 13px; white-space: nowrap;
-  font-family: "Segoe UI Black", "Segoe UI", system-ui, sans-serif;
-  background: linear-gradient(90deg, var(--cyan), #fff 30%, #ffe45c 50%, #fff 70%, var(--pink)); background-size: 220% 100%;
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 6px rgba(255,63,180,.8)); animation: phrase-shine 2.4s linear infinite; }
-.hdr-phrase span.swap { animation: hdr-swap .55s cubic-bezier(.2,.9,.25,1), phrase-shine 2.4s linear infinite; }
-@keyframes hdr-swap { 0% { opacity: 0; transform: translateX(24px) skewX(-12deg); filter: blur(4px); } 45% { opacity: 1; transform: translateX(-3px) skewX(-6deg); filter: drop-shadow(-2px 0 0 rgba(51,230,255,.9)) drop-shadow(2px 0 0 rgba(255,63,180,.9)); }
-  100% { transform: none; filter: drop-shadow(0 0 6px rgba(255,63,180,.8)); } }
 .hdr-text { position: relative; z-index: 2; }
 h1 { margin: 0; white-space: nowrap; font-size: 27px; font-weight: 800; letter-spacing: .3px; text-shadow: 0 2px 0 rgba(0,0,0,.6), 0 0 18px rgba(11,16,34,.9); }
-h1 .ver { font-size: 13px; font-weight: 700; color: var(--muted); margin-left: 10px; letter-spacing: .4px; }
+/* Version: top right corner of the header. */
+.ver { position: absolute; top: 10px; right: 16px; z-index: 3; font-size: 12px; font-weight: 700; letter-spacing: .5px; color: rgba(241,243,249,.75);
+  padding: 3px 9px; border-radius: 6px; background: rgba(11,6,24,.45); pointer-events: none; }
 .sub { margin-top: 12px; color: var(--orange); font-size: 13.5px; font-weight: 600; max-width: 560px; line-height: 1.5; text-shadow: 0 1px 0 rgba(0,0,0,.6), 0 0 14px rgba(11,16,34,.95); }
 .sub span { white-space: nowrap; }
+/* The subtitle is the catchphrase: a new one on every page switch. */
+#sub.swap { animation: sub-swap .35s ease; }
+@keyframes sub-swap { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 main { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 22px; padding: 0 18px; min-height: 0; position: relative; z-index: 1; }
 nav { background: var(--panel); border-radius: var(--r); padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
@@ -242,11 +234,11 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 <div class="app">
   <header>
     <div class="hdr-text">
-      <h1>R64texHD - Reimagine Every Pixel<span class="ver" id="ver"></span></h1>
-      <div class="sub"><span>HD textures for N64 games ·</span> <span>RT64 &amp; recomps ·</span> <span>Ship ports ·</span> <span>classic packs</span></div>
+      <h1>R64texHD - Reimagine Every Pixel</h1>
+      <div class="sub" id="sub"></div>
     </div>
     <img class="hdr-art" src="header-art.jpg" alt="" aria-hidden="true">
-    <div class="hdr-phrase" aria-live="off"><span id="hdr-phrase"></span></div>
+    <span class="ver" id="ver"></span>
   </header>
   <main>
     <nav id="nav">
@@ -315,7 +307,7 @@ function pickPhrase(clean) {
   const pool = clean ? all.filter((p) => !SPICY.test(p.text)) : all;
   return pool[Math.floor(Math.random() * pool.length)];
 }
-// Header catchphrase: steps through the whole list (shuffled once per launch), one per page switch.
+// Header subtitle catchphrase: steps through the whole list (shuffled once per launch), one per page switch.
 let hdrList = [], hdrAt = 0;
 function nextHeaderPhrase() {
   if (!hdrList.length) {
@@ -324,7 +316,7 @@ function nextHeaderPhrase() {
     for (let i = hdrList.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [hdrList[i], hdrList[j]] = [hdrList[j], hdrList[i]]; }
     if (window.__hdrStart) hdrAt = hdrList.indexOf(window.__hdrStart);
   }
-  const el = $('#hdr-phrase');
+  const el = $('#sub');
   el.textContent = hdrList[hdrAt % hdrList.length]; hdrAt++;
   el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap');
 }
