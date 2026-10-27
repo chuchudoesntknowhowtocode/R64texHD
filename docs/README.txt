@@ -18,8 +18,8 @@ To reset the toolkit, delete the data folder. To remove it, delete this folder.
 To update, unzip the new version next to this one and copy this data folder
 into it to keep your settings and downloaded tools.
 
-First launch shows a Setup page: RT64 texture dump folder (optional), output
-folder, and an optional Desktop shortcut.
+First launch shows a Welcome page: the output folder and an optional Desktop
+shortcut. The RT64 dump folder is chosen on 2 Convert RT64 Dump.
 
 At every start R64texHD checks for the two optional tools below. If either one
 has not been downloaded yet it opens on Settings, where "Download" fetches it

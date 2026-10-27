@@ -126,8 +126,8 @@ stay in a `data` folder next to `R64texHD.exe`, never in AppData.
 1. Download `R64texHD-v0.7.1.1-Windows.zip` from [Releases](../../releases).
 2. Unzip it anywhere you can write to. It unzips to a `R64texHD-v0.7.1.1` folder
    (for example `C:\Tools\R64texHD-v0.7.1.1`).
-3. Run **R64texHD.exe**. The first launch asks for your RT64 dump folder (optional)
-   and an output folder.
+3. Run **R64texHD.exe**. The first launch asks for an output folder (the RT64 dump
+   folder is chosen on 2 · Convert RT64 Dump).
 4. If the optional tools (texconv for BC7, Real-ESRGAN for AI upscaling) aren't
    downloaded yet, R64texHD opens on **Settings** so you can fetch them with one
    click, or choose **Not now**. The check can be turned off in Settings.
