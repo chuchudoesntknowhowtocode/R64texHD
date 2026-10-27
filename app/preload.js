@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('htk', {
   previewList: (inputs, subfolders) => ipcRenderer.invoke('preview:list', { inputs, subfolders }),
   preview: (req) => ipcRenderer.invoke('preview', req),
   thumbnail: (p) => ipcRenderer.invoke('thumbnail', p),
+  romInfo: (file) => ipcRenderer.invoke('rom:info', file),
   onStarted: on('task:started'),
   onProgress: on('task:progress'),
   onLog: on('task:log'),

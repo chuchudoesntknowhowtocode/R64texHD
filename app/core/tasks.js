@@ -162,6 +162,15 @@ function inspect(kind, value) {
     if (!n) return { state: 'error', title: 'No textures here', text: `No PNG or DDS files in this folder.\n${p}` };
     return { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} textures (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.db ? ' with rt64.json' : ', no rt64.json (made from hash-named files)'}\n${p}` };
   }
+  if (kind === 'roms') {
+    if (!st.isDirectory()) return { state: 'error', title: 'Not a folder', text: p };
+    let n = 0;
+    const walk = (d, depth) => { let es; try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+      for (const e of es) { if (n > 50000) return; if (e.isDirectory()) { if (depth < 12) walk(path.join(d, e.name), depth + 1); } else if (/\.(z64|v64|n64|rom|bin|u64|ndd|zip)$/i.test(e.name)) n++; } };
+    walk(p, 0);
+    return n ? { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} possible ROM file(s) to look at\n${p}` }
+      : { state: 'error', title: 'No N64 ROMs here', text: `No .z64, .v64, .n64 or .zip files in this folder or below.\n${p}` };
+  }
   if (kind === 'check') {
     if (st.isFile()) {
       let info;
@@ -518,6 +527,30 @@ async function riceToO2rTask(p, ctx) {
   return { title: 'Built', written: r.written, failed: 0, output: p.output, sizeMB: r.bytesOut / 1048576, seconds: (Date.now() - t0) / 1000 };
 }
 
+// ---------------------------------------------------------------- 6) ROM Tools
+async function romsTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.folder || !fs.existsSync(p.folder) || !fs.statSync(p.folder).isDirectory()) throw new Error('Choose the folder with your N64 ROMs.');
+  const pool = new Pool(1);
+  ctx.onCancel(() => pool.close());
+  let r;
+  try { r = await pool.run('romScan', { folder: p.folder }, (d, t, m) => ctx.progress(d, t, `Reading ${m}`)); }
+  finally { await pool.close(); }
+  if (ctx.cancelled()) throw new Cancelled();
+  const folders = new Set(r.roms.map((x) => x.folder)).size;
+  ctx.log(`Found ${r.roms.length.toLocaleString()} N64 ROM(s) in ${folders.toLocaleString()} folder(s).`);
+  if (r.skipped) ctx.log(`${r.skipped.toLocaleString()} file(s) with ROM-like names aren’t N64 ROMs and were left out.`);
+  if (r.truncated) ctx.log('Stopped at 20,000 files: pick a smaller folder to see the rest.');
+  return { title: 'Found', roms: r.roms, count: r.roms.length, folders, output: p.folder, seconds: (Date.now() - t0) / 1000 };
+}
+
+// Everything about one ROM (hashes, checksum...), on its own worker so the window stays responsive.
+let romPool = null;
+async function romInfo(file) {
+  if (!romPool) romPool = new Pool(1);
+  return romPool.run('romInfo', { file });
+}
+
 // ---------------------------------------------------------------- 3b) check a pack, and its fixes
 async function checkTask(p, ctx) {
   const t0 = Date.now();
@@ -596,6 +629,6 @@ async function preview(req, tools) {
 }
 
 // Stops the preview worker (on quit, and in tests).
-async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } }
+async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } if (romPool) { const p = romPool; romPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };

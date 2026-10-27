@@ -10,7 +10,7 @@ HERE = Path(__file__).resolve().parent
 UI = HERE.parent.parent / 'app' / 'ui' / 'index.html'
 OUT = Path(sys.argv[1] if len(sys.argv) > 1 else HERE / 'shots')
 OUT.mkdir(parents=True, exist_ok=True)
-MOCK = (HERE / 'mock-htk.js').read_text(encoding='utf-8')
+MOCK = ((HERE / 'rom-preview-data.js').read_text(encoding='utf-8') if (HERE / 'rom-preview-data.js').exists() else '') + (HERE / 'mock-htk.js').read_text(encoding='utf-8')
 
 SHOTS = [
     # name, query, phrase, actions

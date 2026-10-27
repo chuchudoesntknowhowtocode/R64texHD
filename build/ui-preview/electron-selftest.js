@@ -13,7 +13,8 @@ module.exports = async ({ app, win }) => {
   const js = (code) => wc.executeJavaScript(code, true);
   const shot = async (name) => { const img = await wc.capturePage(); fs.writeFileSync(path.join(shots, name + '.png'), img.toPNG()); };
   const report = [];
-  const check = (ok, what) => { report.push(`${ok ? 'PASS' : 'FAIL'} ${what}`); };
+  // Written as it goes, so a crash part-way still shows how far it got.
+  const check = (ok, what) => { report.push(`${ok ? 'PASS' : 'FAIL'} ${what}`); fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n'); };
 
   await new Promise((r) => (wc.isLoading() ? wc.once('did-finish-load', r) : r()));
   await wait(1200);                                   // splash: 3.5 s; the app appears at 3 s
@@ -29,7 +30,7 @@ module.exports = async ({ app, win }) => {
   check((await js("document.querySelector('#ver').textContent")) === 'v' + app.getVersion(), 'version in the header');
 
   // Every page renders, and the subtitle phrase changes on each switch.
-  const pages = ['upscale', 'convert', 'pack', 'ports', 'legacy', 'settings', 'about'];
+  const pages = ['upscale', 'convert', 'pack', 'ports', 'legacy', 'roms', 'settings', 'about'];
   const seen = new Set();
   for (const p of pages) {
     await js(`document.querySelector('nav button[data-page="${p}"]').click()`); await wait(350);
@@ -181,6 +182,40 @@ module.exports = async ({ app, win }) => {
   const hl = ht && ht.result ? riceM.readGlidenPack(path.join(out, 'GAME_HIRESTEXTURES.hts')) : [];
   check(hl.length === 1 && riceM.riceId(hl[0]) === riceId, 'Rice / GLideN64: GLideN64 .hts made with the right Rice ID');
   await wait(300); await shot('run-rice-hts');
+
+  // Step 6: ROM Tools. Picking a folder scans it on its own; clicking a ROM shows its header.
+  // HTK_ROMS=<folder of real ROMs> also checks that their checksums come out OK.
+  const romDir = process.env.HTK_ROMS || path.join(out, 'roms');
+  if (!process.env.HTK_ROMS) {
+    fs.mkdirSync(path.join(romDir, 'USA'), { recursive: true });
+    const head = (title, code) => { const b = Buffer.alloc(0x2000, 0x11); b.writeUInt32BE(0x80371240, 0); b.fill(0x20, 0x20, 0x34); b.write(title, 0x20, 'latin1'); b.write(code, 0x3b, 'latin1'); return b; };
+    fs.writeFileSync(path.join(romDir, 'USA', 'Alpha.z64'), head('ALPHA TEST', 'NATE'));
+    const v = head('BRAVO TEST', 'NBTJ'); for (let i = 0; i < v.length; i += 2) { const t = v[i]; v[i] = v[i + 1]; v[i + 1] = t; }
+    fs.writeFileSync(path.join(romDir, 'Bravo.v64'), v);
+  }
+  await js(`document.querySelector('nav button[data-page="roms"]').click()`); await wait(300);
+  await js(`window.__done = null; if (!window.__hooked) { window.__hooked = true; window.htk.onDone((d) => { window.__done = d; }); }
+    cfg.roms.folder = ${JSON.stringify(romDir)}; onPath('roms.folder'); render();`);
+  let rd = null; for (let i = 0; i < 300 && !rd; i++) { await wait(100); rd = await js('window.__done'); }
+  const want = process.env.HTK_ROMS ? null : 2;
+  check(rd && rd.task === 'roms' && rd.result.count > 0 && (want == null || rd.result.count === want), `ROM Tools: picking the folder scans it (${rd ? rd.result.count : 0} ROMs)`);
+  await wait(300);
+  check((await js("document.querySelectorAll('.rom-item').length")) === (rd ? rd.result.count : -1), 'ROM Tools: every ROM is listed');
+  check(/Found \d+ ROM/.test(await js("document.querySelector('#status .t').textContent")), 'ROM Tools: card says how many were found');
+  await js("([...document.querySelectorAll('.rom-item')].find((b) => /ALPHA/.test(b.textContent)) || document.querySelector('.rom-item')).click()"); await wait(1500);
+  const det = await js("document.querySelector('#rom-detail').innerText");
+  check(/GAME/.test(det) && /MD5/.test(det) && /CIC chip/.test(det), 'ROM Tools: clicking a ROM shows its details');
+  if (process.env.HTK_ROMS) {
+    let allOk = true;
+    for (const r of rd.result.roms) { const i = await js(`window.htk.romInfo(${JSON.stringify(r.path)})`); if (!i || i.checksumOk !== true) { allOk = false; report.push(`  checksum: ${r.rel}: ${i && (i.checksum || i.error)}`); } }
+    check(allOk, `ROM Tools: checksum OK for all ${rd.result.count} real ROMs`);
+  } else {
+    check(/ALPHA TEST/.test(det) && /NATE/.test(det) && /North America/.test(det), 'ROM Tools: title, game code and region read');
+    await js("document.querySelector('#rom-search').value = 'bravo'; document.querySelector('#rom-search').dispatchEvent(new Event('input', { bubbles: true }))"); await wait(200);
+    check((await js("[...document.querySelectorAll('.rom-item b')].map((b) => b.textContent).join()")) === 'BRAVO TEST', 'ROM Tools: search filters the list');
+    await js("document.querySelector('#rom-search').value = ''; document.querySelector('#rom-search').dispatchEvent(new Event('input', { bubbles: true }))");
+  }
+  await wait(200); await shot('run-rom-tools');
 
   fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n');
   app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);

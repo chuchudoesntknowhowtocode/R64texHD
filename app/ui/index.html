@@ -43,6 +43,11 @@ nav button.active { background: var(--orange); color: var(--ink); box-shadow: 0 
 nav button.active .n { background: rgba(43,11,40,.18); color: var(--ink); }
 nav button:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 2px; }
 nav .spacer { flex: 1; }
+/* Six pages plus Settings / About: a little tighter so all fit at 800 px high, and never squashed. */
+nav > * { flex-shrink: 0; }
+nav { gap: 4px; }
+nav button { padding: 8px 14px; }
+nav .grp { margin-top: 8px; }
 nav.locked button { pointer-events: none; opacity: .45; }
 
 .page { background: var(--panel); border-radius: var(--r); padding: 22px 26px 18px; overflow: auto; min-height: 0; }
@@ -379,6 +384,40 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
 /* progress bar: silver segments in a dark slot */
 .card:not(.idle):not(.error) .bar { background: #15161c !important; box-shadow: inset 0 0 0 2px #0d0e13 !important; }
 .card:not(.idle):not(.error) .bar i { background: repeating-linear-gradient(90deg, #b9bdc8 0 8px, transparent 8px 10px) !important; }
+
+/* ================================================================ ROM Tools explorer */
+.rom-bar { display: grid; grid-template-columns: minmax(200px, 32%) minmax(0, 1fr); gap: 14px; margin-top: 14px; }
+.rom-bar .rom-search { order: -1; }
+.romx { display: grid; grid-template-columns: minmax(200px, 32%) minmax(0, 1fr); gap: 14px; margin-top: 10px; }
+.rom-items, .rom-detail { background: var(--panel-2); box-shadow: inset 0 0 0 2px #2c1b46; clip-path: var(--notch); height: var(--rom-h, 300px); overflow: auto; }
+.rom-items { padding: 6px; }
+.rom-folder { padding: 8px 8px 4px; font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--orange); text-transform: uppercase; word-break: break-all; }
+.rom-count { padding: 4px 8px; font-size: 11.5px; color: var(--muted); }
+.rom-item { display: block; width: 100%; text-align: left; border: 0; background: transparent; padding: 7px 10px; cursor: pointer; clip-path: var(--notch); --step: 2px; }
+.rom-item b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rom-item span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--muted); }
+.rom-item:hover { background: var(--field); }
+.rom-item.on { background: linear-gradient(104deg, #3a3d49, #4a4e5b 50%, #3a3d49); box-shadow: inset 0 0 0 2px #15161c, inset 0 0 0 3px #8d919d; }
+.rom-item.on b { color: #fff; text-shadow: 1px 1px 0 #15161c; } .rom-item.on span { color: #c9ccd6; }
+.rom-detail { padding: 14px 18px 18px; }
+.rom-empty { padding: 18px 10px; color: var(--muted); font-size: 13px; text-align: center; }
+.rom-empty.big { height: 100%; display: grid; place-content: center; justify-items: center; gap: 10px; }
+.rom-empty.big .px-icon { width: 32px; height: 32px; }
+.rom-head { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+.rom-title { font-size: 18px; font-weight: 800; text-shadow: 2px 2px 0 #000; }
+.rom-sub { margin-top: 4px; color: var(--muted); font-size: 12.5px; }
+.rom-sec { margin: 16px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--orange); }
+.kv { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; padding: 5px 0; border-top: 1px dotted #30204a; font-size: 13px; }
+.kv span { color: var(--muted); } .kv b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kv b small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.kv.wrap b, .kv.sel b { white-space: normal; word-break: break-all; }
+.kv.mono b { font-family: "Cascadia Mono", Consolas, monospace; font-size: 12px; font-weight: 500; }
+.kv.sel b { user-select: text; }
+.kv.icon b { display: flex; align-items: center; gap: 8px; } .kv.icon .px-icon { width: 16px; height: 16px; flex: none; }
+.rom-map { display: flex; gap: 2px; height: 26px; margin: 8px 0 6px; }
+.rom-map i { display: block; min-width: 0; background: linear-gradient(180deg, #5b3b81, #3b2756); box-shadow: inset 0 0 0 1px #170c27; overflow: hidden; font-style: normal; }
+.rom-map i:nth-child(2) { background: linear-gradient(180deg, #a865d6, #6e3f97); } .rom-map i:nth-child(3) { background: linear-gradient(180deg, #e9508a, #9e2f5b); }
+.rom-map i span { display: block; padding: 5px 6px; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; text-shadow: 1px 1px 0 #000; }
 </style>
 </head>
 <body>
@@ -411,6 +450,8 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
       <button data-page="ports"><span class="n">4</span>Ship Mods .o2r</button>
       <div class="grp">Classic Packs</div>
       <button data-page="legacy"><span class="n">5</span>Rice / GLideN64</button>
+      <div class="grp">ROM Tools</div>
+      <button data-page="roms"><span class="n">6</span>ROM Tools</button>
       <div class="spacer"></div>
       <button data-page="settings">Settings<span class="badge" id="tools-badge" hidden title="A helper tool isn’t downloaded yet"></span></button>
       <button data-page="about">About</button>
@@ -531,6 +572,7 @@ const NEW_DEFAULTS = {
   check: { input: '' },
   ports: { mode: 'extract', archive: '', output: '', hdInput: '', base: '', modOutput: '', alt: true, compression: 'store' },
   legacy: { mode: 'import', input: '', dumpDb: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
+  roms: { folder: '' },
 };
 function withDefaults(c) {
   for (const [k, v] of Object.entries(NEW_DEFAULTS)) {
@@ -716,6 +758,19 @@ const pages = {
       ${row('Desktop shortcut', 'Optional shortcut to this portable copy.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)}
       ${row('Portable data', 'Settings, tools and temporary files. Nothing goes in AppData.', `<div class="path"><div class="tool" style="flex:1">${esc(S.dataDir)}</div><button class="btn" data-open="${esc(S.dataDir)}">Open</button></div>`)}`;
   },
+  roms() {
+    const r = cfg.roms;
+    return `<h2>ROM Tools</h2><p class="lead">Look inside your N64 ROMs. Pick their folder, then click a ROM to see its details.</p>
+      ${card()}
+      <div class="rom-bar">
+        <div class="rom-folderpick" title="Subfolders are searched too: .z64, .v64, .n64 and .zip">${pathField('roms.folder', r.folder, [['folder', 'Browse…']], 'Where are your N64 ROMs?')}</div>
+        <input class="text rom-search" id="rom-search" placeholder="Search title, file or game code" value="${esc(ROMS.filter)}" spellcheck="false">
+      </div>
+      <div class="romx">
+        <div class="rom-items" id="rom-items"></div>
+        <div class="rom-detail" id="rom-detail"></div>
+      </div>`;
+  },
   about() {
     return `<h2>About</h2><div class="about">
       <p><b>R64texHD v${esc(S.version)}</b> · Reimagine Every Pixel · HD textures for N64 games</p>
@@ -762,24 +817,28 @@ function taskOf(pg) {
   if (pg === 'pack') return job.task === 'fix' && cfg.pack.mode === 'check' ? 'fix' : { pack: 'pack', unpack: 'unpack', check: 'check' }[cfg.pack.mode];
   if (pg === 'ports') return cfg.ports.mode === 'build' ? 'o2rBuild' : 'o2rExtract';
   if (pg === 'legacy') return { import: 'legacyImport', hts: 'legacyHts', ship: 'riceToO2r' }[cfg.legacy.mode];
+  if (pg === 'roms') return 'roms';
   return pg;
 }
 const TASK_PAGE = { unpack: ['pack', 'unpack'], check: ['pack', 'check'], fix: ['pack', 'check'], pack: ['pack', 'pack'], o2rExtract: ['ports', 'extract'], o2rBuild: ['ports', 'build'],
   legacyImport: ['legacy', 'import'], legacyHts: ['legacy', 'hts'], riceToO2r: ['legacy', 'ship'] };
 const pageOf = (task) => (TASK_PAGE[task] ? TASK_PAGE[task][0] : task);
 const RUN_LABEL = { upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK ▶', unpack: 'UNPACK ▶', check: 'CHECK ▶', fix: 'CHECK ▶', setup: 'CONTINUE ▶',
-  o2rExtract: 'GET TEXTURES ▶', o2rBuild: 'BUILD MOD ▶', legacyImport: 'IMPORT ▶', legacyHts: 'MAKE .HTS ▶', riceToO2r: 'BUILD MOD ▶' };
-const RUN_VERB = { upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking', check: 'Checking', fix: 'Fixing', o2rExtract: 'Getting textures', o2rBuild: 'Building mod',
+  o2rExtract: 'GET TEXTURES ▶', o2rBuild: 'BUILD MOD ▶', roms: 'SCAN ▶', legacyImport: 'IMPORT ▶', legacyHts: 'MAKE .HTS ▶', riceToO2r: 'BUILD MOD ▶' };
+const RUN_VERB = { upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking', check: 'Checking', fix: 'Fixing', o2rExtract: 'Getting textures', o2rBuild: 'Building mod', roms: 'Looking for ROMs',
   legacyImport: 'Importing', legacyHts: 'Making .hts', riceToO2r: 'Matching textures' };
 const IDLE_TEXT = { upscale: 'Choose a folder or files to upscale', convert: 'Choose your RT64 texture dump folder', pack: 'Choose the texture folder to pack',
   unpack: 'Choose the .rtz pack to unpack', check: 'Choose a pack to check', o2rExtract: 'Choose the game’s .o2r archive', o2rBuild: 'Choose your HD texture folder',
-  legacyImport: 'Choose a classic texture pack', legacyHts: 'Choose your texture folder', riceToO2r: 'Choose the Rice texture folder' };
+  roms: 'Choose the folder with your N64 ROMs', legacyImport: 'Choose a classic texture pack', legacyHts: 'Choose your texture folder', riceToO2r: 'Choose the Rice texture folder' };
 
 // ---------------------------------------------------------------- render
 function suggest() {
+  const u = cfg.upscale, c = cfg.convert, p = cfg.pack, o = cfg.ports, g = cfg.legacy;
+  // The game archive carries over whether or not there's an output folder.
+  if (!o.base && o.archive) o.base = o.archive;
+  if (!g.base && o.archive) g.base = o.archive;
   const out = cfg.outputFolder;
   if (!out) return;
-  const u = cfg.upscale, c = cfg.convert, p = cfg.pack, o = cfg.ports, g = cfg.legacy;
   const firstIn = Array.isArray(u.inputs) ? u.inputs[0] : u.inputs;
   if (!u.output && firstIn) u.output = join(out, baseName(u.inputs.length > 1 ? firstIn.replace(/[\\/][^\\/]*$/, '') : firstIn).replace(/\.(png|dds)$/i, '') + '-upscaled');
   if (!c.output) c.output = join(out, (baseName(c.input || cfg.dumpFolder) || 'rt64-dump') + '-textures');
@@ -787,10 +846,8 @@ function suggest() {
   if (!cfg.unpack.output && cfg.unpack.input) cfg.unpack.output = join(out, baseName(cfg.unpack.input).replace(/\.rtz$/i, '') + '-unpacked');
   if (!o.output && o.archive) o.output = join(out, baseName(o.archive).replace(/\.(o2r|otr)$/i, '') + '-textures');
   if (!o.modOutput && o.hdInput) o.modOutput = join(out, baseName(o.hdInput) + '.o2r');
-  if (!o.base && o.archive) o.base = o.archive;
   if (!g.output && g.input) g.output = join(out, baseName(g.input).replace(/\.(hts|htc)$/i, '') + '-rt64');
   if (!g.modOutput && g.riceInput) g.modOutput = join(out, baseName(g.riceInput).replace(/\.(hts|htc)$/i, '') + '.o2r');
-  if (!g.base && o.archive) g.base = o.archive;
 }
 
 function render() {
@@ -807,6 +864,7 @@ function render() {
   renderJob();
   refreshStatus();
   if (page === 'upscale') afterRenderPreview();
+  if (page === 'roms') afterRenderRoms();
   const th = $('#thumb-img');
   if (th) window.htk.thumbnail(th.dataset.src).then((url) => { if (url && th.isConnected) th.src = url; });
 }
@@ -814,7 +872,7 @@ function render() {
 function inputFor() {
   const t = taskOf(page);
   const v = { upscale: cfg.upscale.inputs, convert: cfg.convert.input || cfg.dumpFolder, pack: cfg.pack.input, unpack: cfg.unpack.input, check: cfg.check.input,
-    o2rExtract: cfg.ports.archive, o2rBuild: cfg.ports.hdInput, legacyImport: cfg.legacy.input, legacyHts: cfg.legacy.htsInput, riceToO2r: cfg.legacy.riceInput }[t];
+    o2rExtract: cfg.ports.archive, o2rBuild: cfg.ports.hdInput, roms: cfg.roms.folder, legacyImport: cfg.legacy.input, legacyHts: cfg.legacy.htsInput, riceToO2r: cfg.legacy.riceInput }[t];
   return v === undefined ? [null, null] : [t, v];
 }
 
@@ -878,6 +936,11 @@ function renderJob() {
       renderChecks(r);
       return;
     }
+    if (job.task === 'roms') {
+      setCard(r.count ? 'done' : 'error', r.count ? `Found ${r.count.toLocaleString()} ROM${r.count === 1 ? '' : 's'} in ${r.folders.toLocaleString()} folder${r.folders === 1 ? '' : 's'}` : 'No N64 ROMs found',
+        r.output, undefined, `<button class="btn" data-open="${esc(r.output)}">Open</button>`);
+      return;
+    }
     const count = `${r.written.toLocaleString()} texture${r.written === 1 ? '' : 's'}`;
     const size = r.sizeMB === undefined ? '' : r.sizeMB >= 1 ? `, ${r.sizeMB.toFixed(1)} MB` : `, ${Math.max(1, Math.round(r.sizeMB * 1024))} KB`;
     const what = count + size;
@@ -931,7 +994,9 @@ async function packConverted(folder) {
 // ---------------------------------------------------------------- events
 document.addEventListener('click', async (e) => {
   const nav = e.target.closest('nav button');
-  if (nav) { const changed = nav.dataset.page !== page; page = nav.dataset.page; cfg.page = page; render(); if (changed) nextHeaderPhrase(); return; }
+  if (nav) { const changed = nav.dataset.page !== page; page = nav.dataset.page; cfg.page = page; render(); if (changed) nextHeaderPhrase(); maybeScanRoms(); return; }
+  const ri = e.target.closest('[data-rom]');
+  if (ri) { selectRom(ri.dataset.rom); return; }
   const pz = e.target.closest('[data-pvzoom]');
   if (pz) {
     savePreviewScroll();
@@ -997,6 +1062,7 @@ document.addEventListener('click', async (e) => {
 
 // A new input suggests a matching output name.
 function onPath(key) {
+  if (key === 'roms.folder') { ROMS.list = []; ROMS.selected = ''; ROMS.info = null; setTimeout(() => maybeScanRoms(true), 0); }
   statusCache = {}; PV.listKey = '';                // the same folder may have new files now
   const out = cfg.outputFolder;
   if (out) {
@@ -1045,6 +1111,7 @@ function params(task) {
     case 'o2rBuild': return { input: cfg.ports.hdInput, base: cfg.ports.base, output: cfg.ports.modOutput, alt: cfg.ports.alt, compression: cfg.ports.compression };
     case 'legacyImport': return { input: cfg.legacy.input, dumpDb: cfg.legacy.dumpDb || cfg.convert.output, output: cfg.legacy.output };
     case 'legacyHts': return { input: cfg.legacy.htsInput, name: cfg.legacy.htsName, output: cfg.legacy.htsOutput || (cfg.legacy.htsName && cfg.outputFolder ? join(cfg.outputFolder, cfg.legacy.htsName.trim() + '_HIRESTEXTURES.hts') : '') };
+    case 'roms': return { folder: cfg.roms.folder };
     case 'riceToO2r': return { input: cfg.legacy.riceInput, base: cfg.legacy.base, output: cfg.legacy.modOutput, alt: cfg.ports.alt };
     default: return { ...cfg.pack };
   }
@@ -1077,6 +1144,7 @@ window.htk.onDone((d) => {
   else {
     job.result = d.result;
     const r = d.result;
+    if (d.task === 'roms') { ROMS.list = r.roms || []; ROMS.folder = r.output; if (!ROMS.list.some((x) => x.path === ROMS.selected)) { ROMS.selected = ''; ROMS.info = null; } }
     if (r.written !== undefined) job.log.push(`${r.title} ${r.written} texture(s)${r.failed ? `, ${r.failed} failed` : ''} in ${r.seconds.toFixed(1)} s → ${r.output}`);
   }
   statusCache = {};
@@ -1111,6 +1179,80 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'Escape') $('#quit').click();
   else if (e.key === 'Enter' && !e.target.closest('input, button')) { e.preventDefault(); go(); }
 });
+
+// ---------------------------------------------------------------- ROM Tools (6)
+const ROMS = { list: [], folder: '', selected: '', info: null, loading: '', filter: '' };
+const REGION_SHORT = { E: 'USA', J: 'JPN', P: 'EUR', D: 'GER', F: 'FRA', I: 'ITA', S: 'SPA', U: 'AUS', A: 'ALL', B: 'BRA', C: 'CHN', K: 'KOR', N: 'CAN', H: 'NED', W: 'SCN', X: 'EUR', Y: 'EUR', Z: 'EUR', G: 'GW', L: 'GW' };
+function maybeScanRoms(force) {
+  if (page !== 'roms' || job.running || !cfg.roms.folder) return;
+  if (force || (!ROMS.list.length && ROMS.folder !== cfg.roms.folder)) start('roms');
+}
+function afterRenderRoms() { fitRomPanes(); fillRomList(); drawRomDetail(); }
+// The list and details fill what's left of the page, so only they scroll.
+function fitRomPanes() {
+  const box = $('.romx'), pg = $('#page'); if (!box || !pg) return;
+  const pad = parseFloat(getComputedStyle(pg).paddingBottom) || 0;
+  const inner = pg.getBoundingClientRect().top + pg.clientTop + pg.clientHeight;   // inside the page's border
+  const h = inner - pad - box.getBoundingClientRect().top - pg.scrollTop - 2;
+  box.style.setProperty('--rom-h', `${Math.max(260, Math.floor(h))}px`);
+}
+window.addEventListener('resize', () => { if (page === 'roms') fitRomPanes(); });
+function fillRomList() {
+  const box = $('#rom-items'); if (!box) return;
+  if (!ROMS.list.length) { box.innerHTML = `<div class="rom-empty">${cfg.roms.folder ? (job.running && job.task === 'roms' ? 'Looking for ROMs…' : 'No ROMs listed yet. Press SCAN.') : 'Choose your ROM folder above.'}</div>`; return; }
+  const q = ROMS.filter.trim().toLowerCase();
+  const shown = q ? ROMS.list.filter((r) => `${r.title} ${r.file} ${r.gameCode} ${r.folder}`.toLowerCase().includes(q)) : ROMS.list;
+  let html = '', last = null;
+  for (const r of shown) {
+    if (r.folder !== last) { last = r.folder; html += `<div class="rom-folder">▸ ${esc(r.folder || '(top folder)')}</div>`; }
+    html += `<button class="rom-item ${r.path === ROMS.selected ? 'on' : ''}" data-rom="${esc(r.path)}" title="${esc(r.rel)}">
+      <b>${esc(r.title)}</b><span>${r.gameCode ? `${esc(r.gameCode)} · ${esc(REGION_SHORT[r.regionCode] || r.regionCode || '?')}` : 'Homebrew'} · ${esc(r.format)}${/\.zip$/i.test(r.file) ? ' · zip' : ''}</span></button>`;
+  }
+  box.innerHTML = (q ? `<div class="rom-count">${shown.length.toLocaleString()} of ${ROMS.list.length.toLocaleString()}</div>` : '') + (html || '<div class="rom-empty">Nothing matches.</div>');
+}
+async function selectRom(file) {
+  ROMS.selected = file; ROMS.info = null; ROMS.loading = file;
+  document.querySelectorAll('.rom-item').forEach((b) => b.classList.toggle('on', b.dataset.rom === file));
+  drawRomDetail();
+  const info = await window.htk.romInfo(file);
+  if (ROMS.loading !== file) return;                 // another ROM was picked meanwhile
+  ROMS.loading = ''; ROMS.info = info; drawRomDetail();
+}
+const sizeOf = (b) => (b >= 1048576 ? `${(b / 1048576).toFixed(b >= 10485760 ? 0 : 1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} bytes`);
+const kv = (k, v, cls = '') => `<div class="kv ${cls}"><span>${k}</span><b>${v}</b></div>`;
+function drawRomDetail() {
+  const el = $('#rom-detail'); if (!el) return;
+  if (!ROMS.selected) { el.innerHTML = `<div class="rom-empty big">${pixelIcon('grey', 'menu')}<div>Click a ROM to see its details.</div></div>`; return; }
+  const i = ROMS.info;
+  if (!i) { el.innerHTML = `<div class="rom-empty big"><div class="pv-busy" style="position:static"><i></i>Reading ROM…</div></div>`; return; }
+  if (i.error) { el.innerHTML = `<div class="rom-empty big">${pixelIcon('red', 'x')}<div>${esc(i.error)}</div></div>`; return; }
+  const ok = i.checksumOk === true, bad = i.checksumOk === false;
+  const z = i.zelda;
+  el.innerHTML = `
+    <div class="rom-head"><div><div class="rom-title">${esc(i.title)}</div><div class="rom-sub">${i.gameCode ? `${esc(i.gameCode)} · ${esc(i.region)}${i.video ? ` (${i.video})` : ''}` : 'Homebrew (no game code)'} · version 1.${i.version}</div></div>
+      <button class="btn" data-open="${esc(i.path)}">Show in folder</button></div>
+    <div class="rom-sec">Game</div>
+    ${kv('Title', esc(i.title))}${kv('Game code', esc(i.gameCode || '—'))}${kv('Type', esc(i.category))}${kv('Game ID', esc(i.gameId || '—'))}
+    ${kv('Region', `${esc(i.region)}${i.video ? ` · ${i.video}` : ''}`)}${kv('Version', `1.${i.version} (revision ${i.version})`)}
+    <div class="rom-sec">File</div>
+    ${kv('File', esc(i.file) + (i.inner ? ` <small>(contains ${esc(i.inner)})</small>` : ''))}${kv('Folder', esc(i.folder), 'wrap')}
+    ${kv('Format', esc(i.formatName))}${kv('Size', `${sizeOf(i.romSize)} · ${i.mbit} Mbit${i.inner ? ` (zip ${sizeOf(i.fileSize)})` : ''}`)}
+    ${i.trailingZeros > 0x10000 ? kv('Padding', `${sizeOf(i.trailingZeros)} of empty space at the end`) : ''}
+    <div class="rom-sec">Boot and checksum</div>
+    ${kv('CIC chip', `${esc(i.cic)}${i.cicNote ? ` <small>${esc(i.cicNote)}</small>` : ''}`)}
+    ${kv('Header checksum', `${ok ? pixelIcon('green', '') : bad ? pixelIcon('red', 'x') : pixelIcon('grey', 'menu')} ${esc(i.checksum)}`, 'icon')}
+    ${kv('CRC1 / CRC2', `${i.crc1Hex} ${i.crc2Hex}`, 'mono')}${kv('Boot code CRC32', i.bootCrc, 'mono')}
+    ${kv('Entry point', '0x' + i.entryHex, 'mono')}${kv('Clock rate', '0x' + i.clockHex, 'mono')}${kv('libultra', esc(i.libultraVersion || '—'))}
+    <div class="rom-sec">Hashes (whole ROM, .z64 order)</div>
+    ${kv('CRC32', i.crc32, 'mono sel')}${kv('MD5', i.md5, 'mono sel')}${kv('SHA-1', i.sha1, 'mono sel')}
+    <div class="rom-sec">Inside the ROM</div>
+    <div class="rom-map">${i.layout.map((p) => `<i style="flex:${Math.max(p.end - p.start, i.romSize * 0.04)}" title="${esc(p.name)}: 0x${p.start.toString(16)}–0x${p.end.toString(16)}"><span>${esc(p.name)}</span></i>`).join('')}</div>
+    ${i.layout.map((p) => kv(esc(p.name), `0x${p.start.toString(16).toUpperCase()} – 0x${p.end.toString(16).toUpperCase()} · ${sizeOf(p.end - p.start)}`, 'mono')).join('')}
+    ${z ? `${kv('File table', `${z.count.toLocaleString()} files (Zelda 64 engine) at 0x${z.table.toString(16).toUpperCase()}`)}
+      ${kv('Compressed files', `${z.compressed.toLocaleString()} of ${z.count.toLocaleString()}${z.missing ? ` · ${z.missing} missing` : ''}`)}
+      ${z.build ? kv('Build', esc(z.build), 'wrap') : ''}` : ''}`;
+}
+document.addEventListener('input', (e) => { if (e.target.id === 'rom-search') { ROMS.filter = e.target.value; fillRomList(); $('#rom-items').scrollTop = 0; } });
 
 // ---------------------------------------------------------------- live preview (1 · Upscale)
 const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new Map(), shown: null, shownKey: '', pendingKey: '',
@@ -1284,6 +1426,7 @@ setTimeout(() => showApp(), 4000);                  // never leave the app hidde
   if (cfg.page === 'unpack') { cfg.page = 'pack'; cfg.pack.mode = 'unpack'; }
   page = !cfg.firstRunDone ? 'setup' : toolsLanding(pages[cfg.page] && cfg.page !== 'setup' ? cfg.page : 'upscale');
   render();
+  maybeScanRoms();
   nextHeaderPhrase();
   fillPixelFade();
   showSplash();

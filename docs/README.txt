@@ -75,6 +75,12 @@ THE PAGES (sidebar)
      from textures with Rice IDs.
    - Use in Ship port: a classic pack into a Ship port .o2r mod.
 
+6  ROM Tools
+   A quick look inside your N64 ROMs. Pick the folder they're in (subfolders
+   too: .z64, .v64, .n64 and .zip) and click a ROM to see its title, game code,
+   region, version, CIC chip, whether the header checksum is right, CRC32 / MD5
+   / SHA-1, and for Zelda 64 games the file table. ROMs are only read.
+
 R64texHD is free software under the GNU General Public License, version 2
 or later (see LICENSE.R64texHD.txt).
 

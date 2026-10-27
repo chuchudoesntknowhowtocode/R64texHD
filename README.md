@@ -5,7 +5,7 @@
 R64texHD is an all-in-one tool for N64 HD texture packs. It gets textures out of
 RT64 dumps and Ship port archives, upscales them, and packs them back up for
 RT64 emulators, recomps and Ship ports. It also brings classic Rice / GLideN64
-packs along.
+packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
 
 ![R64texHD](docs/r64texhd-title.png)
 
@@ -87,6 +87,40 @@ packs along.
 - Classic pack files can be several GB: `.hts` packs are read a texture at a time.
 
 ![Bringing a classic pack into RT64](docs/screenshots/rice-gliden64.png)
+
+**6 · ROM Tools**
+
+A quick explorer for your N64 ROM collection. It only reads ROMs, never changes them.
+
+- **Pick your ROM folder** and it is searched straight away, subfolders included.
+  Found: `.z64` (big-endian), `.v64` (byte-swapped), `.n64` (little-endian), `.rom`,
+  `.bin`, `.u64`, and `.zip` files with a ROM inside. Files with a ROM-like name that
+  aren't N64 ROMs are skipped. The folder is scanned again whenever you pick it, or
+  press **SCAN**.
+- **The list** is grouped by folder, so you see how the collection is laid out, and
+  shows each ROM's title, game code, region and format. **Search** filters by title,
+  file name, game code or folder.
+- **Click a ROM** to see:
+  - **Game**: title, game code, type (cartridge, 64DD…), game ID, region with NTSC /
+    PAL, and version.
+  - **File**: name, folder, byte order, size in MB and Mbit, the ROM inside a `.zip`,
+    and padding at the end.
+  - **Boot and checksum**: the CIC lockout chip (found from the boot code), and whether
+    the header checksum (CRC1 / CRC2) matches the one the boot code calculates. A
+    mismatch usually means a hack or a bad dump. Also the entry point, clock rate and
+    libultra version.
+  - **Hashes**: CRC32, MD5 and SHA-1 of the whole ROM in `.z64` order, the same as No-Intro
+    and most ROM databases, so `.v64` / `.n64` copies match too. They can be selected
+    and copied.
+  - **Inside the ROM**: a map of the header, boot code and game data. For Zelda 64
+    engine games (Ocarina of Time, Majora's Mask and their hacks) it also finds the
+    file table: how many files, how many are compressed, and the build name and date.
+- **Show in folder** opens the ROM's folder with the file selected.
+
+The checksum follows `n64crc.c` for CIC-6101/6102 (7101), 6103 (7103), 6105 (7105) and
+6106 (7106). CIC-7102 and the 64DD's 8303 are named but not checked.
+
+![ROM Tools: the ROM explorer](docs/screenshots/rom-tools.png)
 
 **Settings**
 - **Folders**: the default output folder for everything R64texHD makes. (The RT64
@@ -175,18 +209,18 @@ app/
   ui/pixel-icons.js  the pixel-art status buttons
   core/            png, dds, bc (block codecs), upscale, tmem (RT64 dumps), tiling (Edges: Auto),
                    rt64db (rt64.json), rtz (packs), recomp (mod.json), check (Check a pack), o2r (Ship ports),
-                   rice + legacy (Rice IDs, GLideN64 packs, classic packs; GPL),
+                   rice + legacy (Rice IDs, GLideN64 packs, classic packs; GPL), rom (ROM Tools),
                    tasks + worker (parallel jobs)
 build/             packaging scripts; ui-preview/ makes UI screenshots (docs-shots.py for the README)
                    and runs the app self-test
-tests/             automated tests: node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js
+tests/             automated tests: node --test tests/*.test.js
 docs/              README.txt shipped in the release, screenshots
 ```
 
 ## Testing
 
 ```
-node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js
+node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js tests/rom.test.js
 ```
 
 Needs Node 22.15 or newer (the same Node that Electron 38 uses). The tests cover
@@ -194,7 +228,9 @@ the image formats, mipmaps (fences far away, odd sizes), RT64 dump tiling and
 Edges: Auto, Convert's "Only new", `.rtz` pack / unpack, Recomp mod info,
 Check a pack and the Make them DDS fix, Ship `.o2r` textures and mods, Rice IDs (checked
 against RT64 `texture_hasher`'s own C++, see `build/rice-check`), GLideN64 `.hts` / `.htc`,
-the three classic pack modes, and the AI options.
+the three classic pack modes, the AI options, and ROM Tools (all three byte orders, `.zip`,
+the checksum for every CIC compared with a separate port of `n64crc.c`, and the Zelda 64
+file table).
 
 ## Why was this made?
 

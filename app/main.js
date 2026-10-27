@@ -57,6 +57,7 @@ const DEFAULTS = {
   check: { input: '' },
   ports: { mode: 'extract', archive: '', output: '', hdInput: '', base: '', modOutput: '', alt: true, compression: 'store' },
   legacy: { mode: 'import', input: '', dumpDb: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
+  roms: { folder: '' },
 };
 
 function loadSettings() {
@@ -146,7 +147,7 @@ async function runTask(task, params) {
   const t = tools();
   const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask,
     o2rExtract: tasks.o2rExtractTask, o2rBuild: tasks.o2rBuildTask,
-    legacyImport: tasks.legacyImportTask, legacyHts: tasks.legacyHtsTask, riceToO2r: tasks.riceToO2rTask }[task];
+    legacyImport: tasks.legacyImportTask, legacyHts: tasks.legacyHtsTask, riceToO2r: tasks.riceToO2rTask, roms: tasks.romsTask }[task];
   if (!fn) { running = null; return { ok: false, error: 'This part arrives in the next build. Hang tight!' }; }
   (async () => {
     try {
@@ -296,6 +297,7 @@ function thumbnail(p) {
 }
 function registerIpc() {
   ipcMain.handle('thumbnail', (_e, p) => thumbnail(p));
+  ipcMain.handle('rom:info', async (_e, file) => { try { return await tasks.romInfo(file); } catch (e) { return { error: e.message || String(e) }; } });
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));
   ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task }));

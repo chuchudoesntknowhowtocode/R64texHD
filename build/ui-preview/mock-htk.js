@@ -46,6 +46,7 @@
     legacy: { mode: q.get('mode') || 'import', input: 'D:\\Packs\\THE LEGEND OF ZELDA_HIRESTEXTURES.hts', output: 'D:\\N64\\HD\\OoT Reloaded-rt64',
       htsInput: 'D:\\N64\\HD\\majora-textures-upscaled', htsName: 'ZELDA MAJORA\'S MASK', htsOutput: 'D:\\N64\\HD\\ZELDA MAJORA\'S MASK_HIRESTEXTURES.hts',
       riceInput: 'D:\\Packs\\Djipi Cel-Shaded\\ZELDA MAJORA\'S MASK', base: 'C:\\Games\\2Ship\\mm.o2r', modOutput: 'C:\\Games\\2Ship\\mods\\Celda.o2r' },
+    roms: { folder: q.has('noroms') ? '' : 'D:\\N64\\ROMs' },
   };
   const INSPECT = {
     upscale: ['ready', 'Ready', '4,812 images (4,812 PNG, 0 DDS), 1 other file\nD:\\N64\\HD\\majora-textures'],
@@ -57,6 +58,7 @@
     o2rBuild: ['ready', 'Ready', '6,412 HD textures match the game (116 not found in mm.o2r)\nD:\\N64\\HD\\mm-textures-upscaled'],
     legacyImport: ['ready', 'Ready', 'GLideN64 pack (.hts): 9,841 textures, Rice IDs\nD:\\Packs\\THE LEGEND OF ZELDA_HIRESTEXTURES.hts'],
     legacyHts: ['ready', 'Ready', '4,812 textures, 4,655 with Rice IDs\nD:\\N64\\HD\\majora-textures-upscaled'],
+    roms: ['ready', 'Ready', 'About 14 ROM files\nD:\\N64\\ROMs'],
     riceToO2r: ['ready', 'Ready', 'Rice pack: 6,528 PNG textures\nD:\\Packs\\Djipi Cel-Shaded\\ZELDA MAJORA\'S MASK'],
   };
   const CHECKS = [
@@ -77,7 +79,9 @@
     inspect: async (kind) => { const r = INSPECT[kind] || ['idle', '', '']; return { state: r[0], title: r[1], text: r[2] }; },
     run: async (task) => {
       setTimeout(() => {
-        if (task === 'check') emit('done', { task, result: { title: 'Checked', checks: CHECKS, output: settings.check.input, summary: 'Majora HD.rtz · 4,812 textures · 1.9 GB' } });
+        const R = window.__ROMS || { list: [], folder: 'D:\\N64\\ROMs' };
+        if (task === 'roms') emit('done', { task, result: { title: 'Found', roms: R.list, count: R.list.length, folders: new Set(R.list.map((r) => r.folder)).size, output: R.folder, seconds: 0.4 } });
+        else if (task === 'check') emit('done', { task, result: { title: 'Checked', checks: CHECKS, output: settings.check.input, summary: 'Majora HD.rtz · 4,812 textures · 1.9 GB' } });
         else emit('done', { task, result: { title: 'Done', written: 4812, failed: 0, output: 'D:\\N64\\HD\\out', seconds: 42.1 } });
       }, 50);
       return { ok: true };
@@ -85,6 +89,7 @@
     cancel: async () => true, open: async () => true, createShortcuts: async () => ({ ok: true }), openRepo: async () => '', quit: async () => true,
     installTool: async () => ({ ok: false, error: 'preview' }),
     fix: async () => ({ ok: true }),
+    romInfo: async (file) => (window.__ROMS && window.__ROMS.info[file]) || { error: 'Not in the preview data' },
     thumbnail: async () => 'splash.png',
     previewList: async () => ({ items: [{ src: 'a', rel: 'textures/0f3a9c21d8e4b7a1.png' }, { src: 'b', rel: 'textures/1b77e0a4c2d39f05.png' }], total: 4812 }),
     preview: async () => {

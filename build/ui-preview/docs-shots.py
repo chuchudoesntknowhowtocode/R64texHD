@@ -12,7 +12,7 @@ UI = ROOT / 'app' / 'ui' / 'index.html'
 OUT = ROOT / 'docs' / 'screenshots'
 OUT.mkdir(parents=True, exist_ok=True)
 MOCK = (HERE / 'mock-htk.js').read_text(encoding='utf-8')
-DATA = (HERE / 'preview-data.js').read_text(encoding='utf-8') if (HERE / 'preview-data.js').exists() else ''
+DATA = ''.join((HERE / n).read_text(encoding='utf-8') for n in ('preview-data.js', 'rom-preview-data.js') if (HERE / n).exists())
 
 # name, query, actions, header phrase
 SHOTS = [
@@ -23,6 +23,7 @@ SHOTS = [
     ('check-a-pack', 'page=pack&mode=check', ['run'], 'Rendering Nostalgia. Destroying Blur.'),
     ('ship-mods-o2r', 'page=ports&mode=build', ['scroll:120'], 'Because Even Mario Deserves Better Skin.'),
     ('rice-gliden64', 'page=legacy&mode=import', [], 'Built Different. Runs on Nostalgia.'),
+    ('rom-tools', 'page=roms', ['click:.rom-item:has-text("JULIA")', 'wait'], 'Your Childhood Called. Its Graphics Are Embarrassing.'),
     ('settings', 'page=settings&notools', ['scroll:300'], 'Same Game. Less Fugly.'),
     ('settings-look-and-feel', 'page=settings', ['click:[data-key="splash"] [data-v="true"]', 'scroll:99999'], 'Rendering Nostalgia. Destroying Blur.'),
 ]
