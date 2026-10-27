@@ -361,6 +361,28 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
 .go:not(.cancel) { font-size: 17px; }
 .btn.primary:disabled { filter: grayscale(.3) brightness(.85); }
 @media (prefers-reduced-motion: reduce) { nav button.active::after, .seg button.on::after, .btn.primary::after, .go::after { animation: none !important; } }
+
+/* ================================================================ gunmetal info boxes
+   Status cards (Ready, working, Done) and notices are dark gunmetal plates in the same pixel-metal
+   style as the buttons, a few shades darker so the silver buttons on them still stand out. */
+.card:not(.idle):not(.error), .card.notice {
+  background: linear-gradient(104deg, #2b2d37 0%, #31343f 20%, #3a3d49 23%, #30333e 27%, #2c2e38 48%, #363945 52%, #2d2f39 56%, #2a2c36 80%, #343743 83%, #2b2d37 100%) !important;
+  color: #f4f5f8 !important;
+  box-shadow: inset 0 0 0 2px #121319, inset 0 0 0 4px #6e7280, inset 0 0 0 5px #1c1d24,
+              inset 0 6px 0 0 rgba(255,255,255,.06), inset 0 -6px 0 0 rgba(0,0,0,.28) !important;
+  border: 0 !important;
+}
+.card:not(.idle):not(.error) .t { color: #ffffff; text-shadow: 1px 1px 0 #0d0e13; }
+.card:not(.idle):not(.error) .p, .card.notice .p { color: #c9ccd6 !important; }
+.card.notice ul { color: #dcdee6 !important; }
+.card:not(.idle):not(.error) .tool { color: #aeb2bf !important; }
+/* plain buttons on the plate */
+.card:not(.idle):not(.error) .btn:not(.primary) { background: #3c3f4b !important; color: #f4f5f8 !important; font-weight: 600;
+  box-shadow: inset 0 0 0 2px #15161c, inset 0 2px 0 2px rgba(255,255,255,.08), inset 0 -3px 0 1px rgba(0,0,0,.35) !important; }
+.card:not(.idle):not(.error) .btn:not(.primary):hover { background: #474a57 !important; }
+/* progress bar: silver segments in a dark slot */
+.card:not(.idle):not(.error) .bar { background: #15161c !important; box-shadow: inset 0 0 0 2px #0d0e13 !important; }
+.card:not(.idle):not(.error) .bar i { background: repeating-linear-gradient(90deg, #b9bdc8 0 8px, transparent 8px 10px) !important; }
 </style>
 </head>
 <body>
