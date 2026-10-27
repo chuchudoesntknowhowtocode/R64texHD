@@ -70,7 +70,7 @@
 
   window.htk = {
     state: async () => ({ settings, dataDir: 'C:\\Tools\\R64texHD-v0.7.1.1\\data', dataWritable: true,
-      tools: noTools ? { texconv: '', realesrgan: '' } : { texconv: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\texconv.exe', realesrgan: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\realesrgan\\realesrgan-ncnn-vulkan.exe' },
+      tools: noTools ? { texconv: '', realesrgan: '' } : window.__mixedTools ? { texconv: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\texconv.exe', realesrgan: '' } : { texconv: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\texconv.exe', realesrgan: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\realesrgan\\realesrgan-ncnn-vulkan.exe' },
       version: '0.7.1.1', platform: 'win32', cpus: 16, workers: 8, running: null }),
     saveSettings: async () => true,
     dialog: async () => null,

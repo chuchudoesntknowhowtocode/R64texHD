@@ -65,6 +65,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## Press Start 2P (font)
+
+The pixel font used for titles, the menu and buttons (`app/ui/fonts/PressStart2P.woff2`).
+Copyright 2012 The Press Start 2P Project Authors, licensed under the SIL Open Font License 1.1;
+the full licence is in `app/ui/fonts/PressStart2P-OFL.txt`. https://github.com/codeman38/PressStart2P
+
 ## Electron
 
 The Windows release runs on Electron (MIT, Copyright (c) Electron contributors,
