@@ -1,5 +1,3 @@
-![R64texHD](docs/r64texhd-title.png)
-
 # R64texHD - Reimagine Every Pixel
 
 **HD textures for N64 games** · current version **v0.7.1.1** · Windows x64
@@ -9,7 +7,7 @@ RT64 dumps and Ship port archives, upscales them, and packs them back up for
 RT64 emulators, recomps and Ship ports. It also brings classic Rice / GLideN64
 packs along.
 
-![R64texHD splash screen](docs/screenshots/splash.png)
+![R64texHD](docs/r64texhd-title.png)
 
 ## Features
 
@@ -91,12 +89,32 @@ packs along.
 ![Bringing a classic pack into RT64](docs/screenshots/rice-gliden64.png)
 
 **Settings**
-- Helper tools (texconv for BC7, Real-ESRGAN for AI) download with one click and
-  are checked against a fixed checksum. R64texHD checks for them at startup.
-- AI options: model, graphics card and GPU memory use.
-- Splash screen and catchphrases on or off, or "Keep it clean".
+- **Folders**: the default output folder for everything R64texHD makes. (The RT64
+  dump folder is set on 2 · Convert RT64 Dump.)
+- **Helper tools**: texconv (sharp BC7 DDS textures, and keeps far-away fences visible)
+  and Real-ESRGAN (AI upscaling, needs a Vulkan graphics card). Each shows
+  **Downloaded** or **Not downloaded**, downloads with one click to the portable
+  `data` folder, and is checked against a fixed checksum. **Locate…** points to a copy
+  you already have.
+- **Check tools at startup**: if a tool is missing, R64texHD opens on Settings so you
+  can download it (or choose Not now). Can be turned off.
+- **AI upscaling**: the model (General, Art, Fast art), which graphics card to use, and
+  GPU memory use (pick Low if AI upscaling crashes or the card has little memory).
+- **Performance**: worker threads (Auto, Half, One) and the largest texture size
+  upscaling may reach (2048 / 4096 / 8192 px).
+- **Look and feel**:
+  - **Splash screen**: On or Off. When on, R64texHD opens with a 3.5 s intro showing
+    the logo and a random catchphrase; a click or any key skips it. When off, the app
+    opens straight away.
+  - **Catchphrases**: **Full send** uses the whole list; **Keep it clean** leaves out
+    every catchphrase with swearing, both on the splash screen and in the header
+    subtitle, which shows a new catchphrase each time you switch page.
+- **Desktop shortcut** to this portable copy, and the **Portable data** folder
+  (settings, tools and temporary files; nothing goes in AppData).
 
 ![Settings: helper tools, AI options and more](docs/screenshots/settings.png)
+
+![Settings: splash screen and catchphrase options](docs/screenshots/settings-look-and-feel.png)
 
 ![First-run welcome page](docs/screenshots/welcome.png)
 

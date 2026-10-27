@@ -16,7 +16,6 @@ DATA = (HERE / 'preview-data.js').read_text(encoding='utf-8') if (HERE / 'previe
 
 # name, query, actions, header phrase
 SHOTS = [
-    ('splash', 'splash&page=upscale', ['splash'], None),
     ('welcome', 'setup', [], 'HD Texture Packs for Games That Refuse to Die.'),
     ('upscale', 'page=upscale', ['wait'], 'Making Muddy Textures Eat Their Vegetables.'),
     ('convert-rt64-dump', 'page=convert', ['scroll:250'], 'Expansion Pak for Your Eyeballs.'),
@@ -25,6 +24,7 @@ SHOTS = [
     ('ship-mods-o2r', 'page=ports&mode=build', ['scroll:120'], 'Because Even Mario Deserves Better Skin.'),
     ('rice-gliden64', 'page=legacy&mode=import', [], 'Built Different. Runs on Nostalgia.'),
     ('settings', 'page=settings&notools', ['scroll:300'], 'Same Game. Less Fugly.'),
+    ('settings-look-and-feel', 'page=settings', ['click:[data-key="splash"] [data-v="true"]', 'scroll:99999'], 'Rendering Nostalgia. Destroying Blur.'),
 ]
 
 with sync_playwright() as p:
@@ -45,6 +45,8 @@ with sync_playwright() as p:
                 page.wait_for_timeout(700)
             elif a == 'run':
                 page.click('#go'); page.wait_for_timeout(400)
+            elif a.startswith('click:'):
+                page.click(a[6:]); page.wait_for_timeout(200)
             elif a.startswith('scroll:'):
                 page.evaluate(f"document.querySelector('#page').scrollTop = {a.split(':')[1]}"); page.wait_for_timeout(200)
         page.screenshot(path=str(OUT / f'{name}.png'))
