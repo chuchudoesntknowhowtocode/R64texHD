@@ -50,13 +50,21 @@ packs along.
   in a fixed copy of the pack, `<name>-fixed.rtz`, then checks it again. The original stays as it was.
 - Unpack any `.rtz` back into a folder of textures and `rt64.json` (Recomp info included).
 
-**4 · Ship Mods .o2r** *(coming in the next builds)*
-- Get the textures out of a Ship port's `.o2r` / `.otr` (2 Ship 2 Harkinian,
-  Ship of Harkinian, Starship and other libultraship ports), upscale them, and
-  build an HD mod for the port's `mods` folder, with the in-game "Use Alternate
-  Assets" switch.
+**4 · Ship Mods .o2r** (new)
+- For the PC ports built on libultraship: 2 Ship 2 Harkinian, Ship of Harkinian,
+  Starship and other `.o2r` ports.
+- **Get textures**: every texture in the game's `.o2r` (made by the port from your ROM)
+  as a PNG, in the same folders as inside the archive. Palette textures come out grey,
+  because their colours live in a separate palette: paint them in colour for HD.
+- Then **1 · Upscale** the folder (as PNG; "Upscale these" sets that for you).
+- **Build HD mod**: each PNG replaces the texture at the same path. HD textures are
+  stored the way HarbourMasters' Retro tool stores them (RGBA32 at a whole multiple of
+  the original size, with the scale the renderer needs); textures that aren't a whole
+  multiple are fitted. With **In-game switch** the textures sit under `alt/`, so players
+  flip them with "Use Alternate Assets" (Tab). Put the `.o2r` in the port's `mods` folder.
+- Older MPQ `.otr` archives aren't supported; ports make `.o2r` now.
 
-**5 · Rice / GLideN64** *(coming in the next builds)*
+**5 · Rice / GLideN64** *(coming in the next build)*
 - Bring classic Rice PNG folders and GLideN64 `.hts` / `.htc` packs into RT64,
   make GLideN64 packs for Project64, RetroArch, RMG and BizHawk, and turn Rice
   packs into Ship port mods.
@@ -123,23 +131,23 @@ app/
   ui/index.html    the launcher (pages, splash screen, live preview)
   ui/pixel-icons.js  the pixel-art status buttons
   core/            png, dds, bc (block codecs), upscale, tmem (RT64 dumps), tiling (Edges: Auto),
-                   rt64db (rt64.json), rtz (packs), recomp (mod.json), check (Check a pack),
+                   rt64db (rt64.json), rtz (packs), recomp (mod.json), check (Check a pack), o2r (Ship ports),
                    tasks + worker (parallel jobs)
 build/             packaging scripts; ui-preview/ makes UI screenshots and runs the app self-test
-tests/             automated tests: node --test tests/core.test.js tests/check.test.js
+tests/             automated tests: node --test tests/core.test.js tests/check.test.js tests/o2r.test.js
 docs/              README.txt shipped in the release, screenshots
 ```
 
 ## Testing
 
 ```
-node --test tests/core.test.js tests/check.test.js
+node --test tests/core.test.js tests/check.test.js tests/o2r.test.js
 ```
 
 Needs Node 22.15 or newer (the same Node that Electron 38 uses). The tests cover
 the image formats, mipmaps (fences far away, odd sizes), RT64 dump tiling and
 Edges: Auto, Convert's "Only new", `.rtz` pack / unpack, Recomp mod info,
-Check a pack and the Make them DDS fix, and the AI options.
+Check a pack and the Make them DDS fix, Ship `.o2r` textures and mods, and the AI options.
 
 ## Why was this made?
 

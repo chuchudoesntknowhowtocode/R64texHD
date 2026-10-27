@@ -573,7 +573,7 @@ const pages = {
     const games = `<div class="games">${[['2 Ship 2 Harkinian', /^mm/], ['Ship of Harkinian', /^oot|^mq/], ['Starship', /^sf64/], ['Other .o2r ports', null]]
       .map(([g, re]) => `<span class="chip ${re && re.test(arc) ? 'on' : ''}">${g}</span>`).join('')}</div>`;
     const rows = extract
-      ? row('Game archive', 'The .o2r or .otr the port made from your ROM (for example mm.o2r in the 2Ship folder).', pathField('ports.archive', o.archive, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
+      ? row('Game archive', 'The .o2r the port made from your ROM (for example mm.o2r in the 2Ship folder).', pathField('ports.archive', o.archive, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
         + row('Output folder', 'Gets every texture as a PNG, in the same folders as inside the game.', pathField('ports.output', o.output, [['folder', 'Browse…']]))
       : row('HD texture folder', 'Your upscaled PNGs, in the same folders you got them from.', pathField('ports.hdInput', o.hdInput, [['folder', 'Browse…']], 'Choose your HD texture folder'))
         + row('Game archive', 'The game’s own .o2r, used to match each texture and check its size.', pathField('ports.base', o.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
@@ -581,10 +581,10 @@ const pages = {
         + row('In-game switch', 'Players can flip your textures on and off with “Use Alternate Assets” (Tab key).', seg('ports.alt', [['true', 'Add switch'], ['false', 'Always on']], String(o.alt)))
         + row('Compression', 'Store loads fastest and avoids stutter. Deflate makes a smaller file.', seg('ports.compression', [['store', 'Store'], ['deflate', 'Deflate']], o.compression));
     return `<h2>Ship Mods .o2r</h2><p class="lead">HD textures for the PC ports built from N64 decomps: 2 Ship 2 Harkinian, Ship of Harkinian, Starship and friends.</p>
-      ${tip(extract ? 'Step 1 of 3. Get the textures out, then <b>1 · Upscale</b> the folder, then come back and <b>Build an HD mod</b>.' : 'Step 3 of 3. Turn your upscaled folder into a mod the port loads from its <b>mods</b> folder.')}
+      ${tip(extract ? 'Step 1 of 3. Get the textures out, then <b>1 · Upscale</b> the folder (as PNG), then come back and <b>Build HD mod</b>.' : 'Step 3 of 3. Turn your upscaled PNG folder into a mod the port loads from its <b>mods</b> folder.')}
       ${card()}
       ${row('What to do', '', modes)}
-      ${row('Works with', 'Ports that use .o2r / .otr archives.', games)}
+      ${row('Works with', 'Ports that use .o2r archives.', games)}
       ${rows}
       <div class="log" id="log"></div>`;
   },
@@ -720,6 +720,7 @@ function suggest() {
   if (!cfg.unpack.output && cfg.unpack.input) cfg.unpack.output = join(out, baseName(cfg.unpack.input).replace(/\.rtz$/i, '') + '-unpacked');
   if (!o.output && o.archive) o.output = join(out, baseName(o.archive).replace(/\.(o2r|otr)$/i, '') + '-textures');
   if (!o.modOutput && o.hdInput) o.modOutput = join(out, baseName(o.hdInput) + '.o2r');
+  if (!o.base && o.archive) o.base = o.archive;
   if (!g.output && g.input) g.output = join(out, baseName(g.input).replace(/\.(hts|htc)$/i, '') + '-rt64');
   if (!g.modOutput && g.riceInput) g.modOutput = join(out, baseName(g.riceInput) + '.o2r');
 }
@@ -804,7 +805,7 @@ function renderJob() {
     const what = r.sizeMB !== undefined ? `${r.written.toLocaleString()} textures, ${r.sizeMB.toFixed(1)} MB` : `${r.written.toLocaleString()} texture${r.written === 1 ? '' : 's'}`;
     let actions = `<button class="btn" data-open="${esc(r.output)}">Open</button>`;
     if (r.packable && job.task === 'convert') actions += `<button class="btn primary" id="pack-now">Pack into .rtz…</button>`;
-    if (r.packable && job.task === 'upscale') actions += `<button class="btn primary" id="go-pack">Go to Pack</button>`;
+    if (r.packable && job.task === 'upscale') actions += r.fromO2r ? `<button class="btn primary" id="go-ship">Build HD mod</button>` : `<button class="btn primary" id="go-pack">Go to Pack</button>`;
     if (r.upscalable) actions += `<button class="btn primary" id="go-upscale">Upscale these</button>`;
     if (r.checkable) actions += `<button class="btn primary" id="go-check">Check it</button>`;
     setCard('done', `${r.title} ${what}${r.failed ? ` (${r.failed} failed, see below)` : ''} in ${r.seconds.toFixed(1)} s`, r.note ? `${r.output}\n${r.note}` : r.output, undefined, actions);
@@ -897,8 +898,9 @@ document.addEventListener('click', async (e) => {
   if (id === 'pack-now') { packConverted(job.result.output); return; }
   if (id === 'go-pack' || id === 'm-go-pack') { goTo('pack', 'pack', { input: id === 'go-pack' ? job.result.output : packAfter, output: '' }); return; }
   if (id === 'm-go-ship') { goTo('ports', 'build', { hdInput: packAfter, modOutput: '' }); return; }
+  if (id === 'go-ship') { goTo('ports', 'build', { hdInput: job.result.output, modOutput: '' }); return; }
   if (id === 'go-check') { const out = job.result.output; goTo('pack', 'check', {}); cfg.check.input = out; render(); start('check'); return; }
-  if (id === 'go-upscale') { goTo('upscale', null, { inputs: [job.result.output], output: '', edges: 'auto' }); return; }
+  if (id === 'go-upscale') { goTo('upscale', null, { inputs: [job.result.output], output: '', edges: 'auto', ...(job.task === 'o2rExtract' ? { format: 'png' } : {}) }); return; }
   if (id === 'm-yes') { packConverted(packAfter); return; }
   if (id === 'm-no') { closeModal(); return; }
   if (id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }

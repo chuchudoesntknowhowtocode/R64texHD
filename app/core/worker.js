@@ -85,6 +85,12 @@ const handlers = {
     const out = upscale(img, { ...job.opts, edges: edgesOf(job) }, { img: ai, scale: 4 });
     return previewResult(img, out, job, t0);
   },
+  o2rExtract(job, progress) {
+    return require('./o2r').extract(job.archive, job.output, { progress, skipPalette: job.skipPalette });
+  },
+  o2rBuild(job, progress) {
+    return require('./o2r').build(job.input, job.base, job.output, { alt: job.alt, compression: job.compression, progress });
+  },
   check(job, progress) {
     return require('./check').checkPack(job.input, { progress });
   },

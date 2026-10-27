@@ -143,7 +143,8 @@ async function runTask(task, params) {
   running = { task, cancel: () => { cancelledFlag = true; hooks.splice(0).forEach((f) => { try { f(); } catch { /* ignore */ } }); } };
   send('task:started', { task });
   const t = tools();
-  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask }[task];
+  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask,
+    o2rExtract: tasks.o2rExtractTask, o2rBuild: tasks.o2rBuildTask }[task];
   if (!fn) { running = null; return { ok: false, error: 'This part arrives in the next build. Hang tight!' }; }
   (async () => {
     try {

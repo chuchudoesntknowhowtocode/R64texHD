@@ -59,11 +59,15 @@ THE PAGES (sidebar)
      "Make them DDS" saves a fixed copy (<name>-fixed.rtz) with every PNG
      texture turned into DDS. The original is never changed.
 
-4  Ship Mods .o2r          (coming in the next builds)
+4  Ship Mods .o2r
    HD texture mods for 2 Ship 2 Harkinian, Ship of Harkinian, Starship and
-   other .o2r ports.
+   other .o2r ports, in three steps:
+   - Get textures: every texture in the game's .o2r as a PNG.
+   - Upscale the folder on page 1 (as PNG).
+   - Build HD mod: makes an .o2r for the port's mods folder. With the in-game
+     switch on, players turn it on and off with "Use Alternate Assets" (Tab).
 
-5  Rice / GLideN64         (coming in the next builds)
+5  Rice / GLideN64         (coming in the next build)
    Classic Rice and GLideN64 packs into RT64 and Ship ports, and GLideN64
    packs for Project64, RetroArch, RMG and BizHawk.
 

@@ -315,4 +315,4 @@ function inspect(file) {
   };
 }
 
-module.exports = { packFolder, unpack, inspect, readEntries, readEntry, Cancelled, ZSTD_LEVELS };
+module.exports = { packFolder, unpack, inspect, readEntries, readEntry, ZipWriter, compress, Cancelled, ZSTD_LEVELS, STORE, DEFLATE };

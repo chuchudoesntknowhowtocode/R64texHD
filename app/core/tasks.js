@@ -172,8 +172,22 @@ function inspect(kind, value) {
     if (!c.png && !c.dds) return { state: 'error', title: 'No textures here', text: `No PNG or DDS files in this folder.\n${p}` };
     return { state: 'ready', title: 'Ready', text: `Pack folder: ${(c.png + c.dds).toLocaleString()} textures (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.db ? ' with rt64.json' : ''}\n${p}` };
   }
+  if (kind === 'o2rExtract') {
+    if (!st.isFile()) return { state: 'error', title: 'Not a file', text: 'Choose the game’s .o2r archive.\n' + p };
+    try {
+      const o = require('./o2r').inspect(p);
+      return { state: 'ready', title: 'Ready', text: `${o.game} game archive: ${o.files.toLocaleString()} files, ${(o.size / 1048576).toFixed(0)} MB\n${p}` };
+    } catch (e) { return { state: 'error', title: 'Can’t open this archive', text: `${e.message}\n${p}` }; }
+  }
+  if (kind === 'o2rBuild') {
+    if (!st.isDirectory()) return { state: 'error', title: 'Not a folder', text: p };
+    const n = require('./o2r').listPngs(p).length;
+    const fromShip = fs.existsSync(path.join(p, require('./o2r').INFO_FILE));
+    return n ? { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} PNG textures${fromShip ? ' (from Get textures)' : ''}\n${p}` }
+      : { state: 'error', title: 'No PNG textures here', text: `Ship mods are built from PNG: upscale with Output format PNG.\n${p}` };
+  }
   // Pages whose engine arrives in a later build: show the input, say what's coming.
-  const SOON = { o2rExtract: 'Ship .o2r support', o2rBuild: 'Ship .o2r support', legacyImport: 'Rice / GLideN64 support',
+  const SOON = { legacyImport: 'Rice / GLideN64 support',
     legacyHts: 'Rice / GLideN64 support', riceToO2r: 'Rice / GLideN64 support' };
   if (SOON[kind]) return { state: 'idle', title: `${SOON[kind]} arrives in the next build`, text: p };
   return { state: 'idle', title: '', text: '' };
@@ -280,7 +294,8 @@ async function upscaleTask(p, ctx, tools) {
       } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
     }
   } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
-  return { title: 'Upscaled', written, failed, output: p.output, packable: written > 0, seconds: (Date.now() - t0) / 1000 };
+  const fromO2r = roots.some((r) => fs.existsSync(path.join(r, require('./o2r').INFO_FILE)));
+  return { title: 'Upscaled', written, failed, output: p.output, packable: written > 0, fromO2r, seconds: (Date.now() - t0) / 1000 };
 }
 
 // Real-ESRGAN command line: model, 4x, PNG, plus the graphics card and memory (tile size) choices.
@@ -404,6 +419,44 @@ async function unpackTask(p, ctx) {
   return { title: 'Unpacked', written: textures, files: n, failed: 0, output: p.output, upscalable: textures > 0, seconds: (Date.now() - t0) / 1000 };
 }
 
+// ---------------------------------------------------------------- 4) Ship port archives (.o2r)
+async function o2rExtractTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.archive || !fs.existsSync(p.archive)) throw new Error('Choose the game’s .o2r archive.');
+  if (!p.output) throw new Error('Choose the output folder.');
+  const pool = new Pool(1);
+  ctx.onCancel(() => pool.close());
+  let r;
+  try { r = await pool.run('o2rExtract', { archive: p.archive, output: p.output, skipPalette: !!p.skipPalette }, (d, t, m) => ctx.progress(d, t, m)); }
+  finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
+  if (ctx.cancelled()) throw new Cancelled();
+  ctx.log(`${r.game}: ${r.textures.toLocaleString()} textures, ${r.written.toLocaleString()} saved as PNG.`);
+  if (r.palette) ctx.log(`${r.palette.toLocaleString()} are palette textures: they look grey because their colours live in a separate palette. Paint them in colour for HD.`);
+  ctx.log('Next: upscale this folder on 1 · Upscale Textures, then come back and Build an HD mod.');
+  return { title: 'Got', written: r.written, failed: 0, output: p.output, upscalable: r.written > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
+async function o2rBuildTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose your HD texture folder.');
+  if (!p.base || !fs.existsSync(p.base)) throw new Error('Choose the game’s own .o2r archive.');
+  if (!p.output) throw new Error('Choose where to save the mod.');
+  if (!/\.o2r$/i.test(p.output)) throw new Error('The mod name must end in .o2r.');
+  if (path.resolve(p.output).toLowerCase() === path.resolve(p.base).toLowerCase()) throw new Error('Save the mod as a new file, not over the game archive.');
+  const pool = new Pool(1);
+  ctx.onCancel(() => pool.close());
+  let r;
+  try { r = await pool.run('o2rBuild', { input: p.input, base: p.base, output: p.output, alt: p.alt !== false, compression: p.compression || 'store' }, (d, t, m) => ctx.progress(d, t, m)); }
+  finally { await pool.close(); if (ctx.cancelled()) fs.rmSync(p.output + '.part', { force: true }); }
+  if (ctx.cancelled()) throw new Cancelled();
+  ctx.log(`${r.game} mod: ${r.written.toLocaleString()} HD texture(s)${p.alt !== false ? ', switched with “Use Alternate Assets” (Tab)' : ''}.`);
+  if (r.same.length) ctx.log(`${r.same.length.toLocaleString()} are the original size (kept in their own format).`);
+  if (r.resized.length) { ctx.log(`${r.resized.length.toLocaleString()} weren’t a whole multiple of the original size and were fitted:`); r.resized.slice(0, 10).forEach((x) => ctx.log('  ' + x)); }
+  if (r.unmatched.length) { ctx.log(`${r.unmatched.length.toLocaleString()} PNG(s) don’t match a texture in the game and were left out, e.g. ${r.unmatched.slice(0, 3).join(', ')}`); }
+  ctx.log('Put the .o2r in the port’s mods folder. File names set the load order.');
+  return { title: 'Built', written: r.written, failed: 0, output: r.file, sizeMB: r.bytesOut / 1048576, seconds: (Date.now() - t0) / 1000 };
+}
+
 // ---------------------------------------------------------------- 3b) check a pack, and its fixes
 async function checkTask(p, ctx) {
   const t0 = Date.now();
@@ -484,4 +537,4 @@ async function preview(req, tools) {
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };

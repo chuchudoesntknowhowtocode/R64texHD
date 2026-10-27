@@ -33,8 +33,8 @@ module.exports = async ({ app, win }) => {
 
   // A page whose engine comes later answers kindly instead of failing.
   await js(`document.querySelector('nav button[data-page="ports"]').click()`); await wait(300);
-  const soon = await js("window.htk.run('o2rBuild', {})");
-  check(soon.ok === false && /next build/.test(soon.error), 'Ship .o2r and Rice pages say "next build"');
+  const soon = await js("window.htk.run('legacyImport', {})");
+  check(soon.ok === false && /next build/.test(soon.error), 'Rice / GLideN64 page says "next build"');
 
   // Convert the generated dump, then upscale it with Edges: Auto.
   const runAndWait = async (setup, task) => {
@@ -84,6 +84,31 @@ module.exports = async ({ app, win }) => {
   check(fixedCheck && fixedCheck.result.checks.every((c) => c.level === 'ok'), 'Make them DDS, then the fixed pack checks all good');
   check(fs.existsSync(path.join(out, 'converted-fixed.rtz')), 'fixed copy saved next to the folder');
   await wait(300); await shot('run-check-fixed');
+
+  // Step 3: Ship mods. Get textures from a game archive, upscale them (PNG), build the HD mod.
+  const arc = path.join(out, 'game', 'mm.o2r');
+  require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'make-test-o2r.js'), arc], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
+  const got = JSON.stringify(path.join(out, 'mm-textures')), shipUp = JSON.stringify(path.join(out, 'mm-textures-upscaled')), mod = JSON.stringify(path.join(out, 'mods', 'Majora HD.o2r'));
+  await js(`document.querySelector('nav button[data-page="ports"]').click()`); await wait(300);
+  const gx = await runAndWait(`cfg.ports.mode = 'extract'; cfg.ports.archive = ${JSON.stringify(arc)}; cfg.ports.output = ${got}; render();`, 'o2rExtract');
+  check(gx && gx.result && gx.result.written === 3, 'Ship Mods: Get textures (3 from mm.o2r)');
+  await wait(300); await shot('run-o2r-extract');
+  await js(`window.__done = null; document.querySelector('#go-upscale').click()`); await wait(400);
+  check((await js("cfg.upscale.format")) === 'png', 'Upscale these: switches output to PNG for Ship mods');
+  const su = await runAndWait(`cfg.upscale.output = ${shipUp}; cfg.upscale.size = 4; render();`, 'upscale');
+  check(su && su.result && su.result.fromO2r, 'Upscale knows the textures came from a Ship archive');
+  await wait(1500); await js("closeModal()"); await wait(300);
+  await js(`document.querySelector('#go-ship').click()`); await wait(400);
+  check((await js("cfg.ports.mode")) === 'build' && (await js("cfg.ports.base")) === arc, 'Build HD mod button fills in the folder and game archive');
+  const sb = await runAndWait(`cfg.ports.modOutput = ${mod}; render();`, 'o2rBuild');
+  check(sb && sb.result && sb.result.written === 3, 'Ship Mods: Build HD mod (3 textures)');
+  const o2r = require(path.join(__dirname, '..', '..', 'app', 'core', 'o2r'));
+  const rtzm = require(path.join(__dirname, '..', '..', 'app', 'core', 'rtz'));
+  const modFile = path.join(out, 'mods', 'Majora HD.o2r');
+  const e = rtzm.readEntries(modFile).find((x) => x.name === 'alt/objects/gameplay_keep/gBrickWallTex');
+  const t = e && o2r.parseTexture(rtzm.readEntry(modFile, e));
+  check(t && t.width === 128 && t.flags === 1 && t.hScale === 8 && t.vScale === 4, 'mod texture: 128×128 RGBA32, alt/ path, scales 8 × 4');
+  await wait(300); await shot('run-o2r-build');
 
   fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n');
   app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);
