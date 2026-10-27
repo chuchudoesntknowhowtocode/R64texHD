@@ -8,7 +8,7 @@
 :root {
   --bg: #0b1022; --panel: #111833; --panel-2: #0e152d; --field: #18213f; --field-hover: #202b50; --line: #1d2747;
   --text: #f1f3f9; --muted: #8f9abb; --orange: #ff8a1c; --orange-hi: #ffa043; --ink: #1a1206;
-  --card: #6a330f; --card-line: #8b4716; --good: #3fcf7a; --warn: #ffc44d; --bad: #ff6464; --r: 12px;
+  --card: var(--orange); --card-line: var(--orange-hi); --good: #3fcf7a; --warn: #ffc44d; --bad: #ff6464; --r: 12px;
   --pink: #ff3fb4; --cyan: #33e6ff; --violet: #9a5cff;
 }
 * { box-sizing: border-box; }
@@ -63,6 +63,18 @@ nav.locked button { pointer-events: none; opacity: .45; }
 .card .bar { margin-top: 10px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.35); overflow: hidden; }
 .card .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--orange), var(--orange-hi)); transition: width .25s; }
 .card .act { flex: none; display: flex; gap: 8px; }
+/* Orange cards (ready, working, done, notices) use the same bright orange as the menu, with dark text. */
+.card:not(.idle):not(.error) { color: var(--ink); }
+.card:not(.idle):not(.error) .p { color: rgba(26,18,6,.82); }
+.card:not(.idle):not(.error):not(.done) .dot { background: var(--ink); box-shadow: 0 0 0 4px rgba(26,18,6,.15); }
+.card.done .dot { box-shadow: 0 0 0 4px rgba(26,18,6,.18); }
+.card:not(.idle):not(.error) .bar { background: rgba(26,18,6,.22); }
+.card:not(.idle):not(.error) .bar i { background: var(--ink); }
+.card:not(.idle):not(.error) .btn { background: rgba(26,18,6,.14); color: var(--ink); font-weight: 600; }
+.card:not(.idle):not(.error) .btn:hover { background: rgba(26,18,6,.24); }
+.card:not(.idle):not(.error) .btn.primary { background: var(--ink); color: var(--orange-hi); }
+.card:not(.idle):not(.error) .btn.primary:hover { background: #2c1f0c; }
+.card:not(.idle):not(.error) .tool { color: rgba(26,18,6,.75); }
 
 .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px; align-items: center; padding: 10px 0 12px; }
 .row + .row { border-top: 1px solid var(--line); }
@@ -90,9 +102,9 @@ nav.locked button { pointer-events: none; opacity: .45; }
 .seg button:focus-visible, .btn:focus-visible, .path input:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 2px; }
 .tool { margin-top: 6px; color: var(--muted); font-size: 12.5px; word-break: break-all; }
 .tool.ok { color: var(--good); }
-.card.notice { background: linear-gradient(90deg, rgba(255,138,28,.16), rgba(255,138,28,.05)); border-color: rgba(255,138,28,.45); }
-.card.notice .p { color: #f3e6da; word-break: normal; }
-.card.notice ul { margin: 8px 0 0; padding-left: 18px; color: #f3e6da; font-size: 13.5px; }
+.card.notice { background: var(--orange); border-color: var(--orange-hi); }
+.card.notice .p { word-break: normal; }
+.card.notice ul { margin: 8px 0 0; padding-left: 18px; color: rgba(26,18,6,.85); font-size: 13.5px; }
 nav button .badge { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); margin-left: auto; box-shadow: 0 0 0 3px rgba(255,138,28,.18); }
 nav button.active .badge { background: var(--ink); box-shadow: none; }
 .log { margin-top: 18px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
