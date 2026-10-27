@@ -9,6 +9,7 @@ const { spawn } = require('child_process');
 const { findDumps, loadDump } = require('./tmem');
 const { Database, listFiles, DATABASE } = require('./rt64db');
 const rtz = require('./rtz');
+const tiling = require('./tiling');
 
 const IMAGE_RE = /\.(png|dds)$/i;
 const WORKER = path.join(__dirname, 'worker.js');
@@ -161,6 +162,10 @@ function inspect(kind, value) {
     if (!n) return { state: 'error', title: 'No textures here', text: `No PNG or DDS files in this folder.\n${p}` };
     return { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} textures (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.db ? ' with rt64.json' : ', no rt64.json (made from hash-named files)'}\n${p}` };
   }
+  // Pages whose engine arrives in a later build: show the input, say what's coming.
+  const SOON = { check: 'Pack checking', o2rExtract: 'Ship .o2r support', o2rBuild: 'Ship .o2r support', legacyImport: 'Rice / GLideN64 support',
+    legacyHts: 'Rice / GLideN64 support', riceToO2r: 'Rice / GLideN64 support' };
+  if (SOON[kind]) return { state: 'idle', title: `${SOON[kind]} arrives in the next build`, text: p };
   return { state: 'idle', title: '', text: '' };
 }
 
@@ -226,13 +231,21 @@ async function upscaleTask(p, ctx, tools) {
     }
     if (copied) ctx.log(`Copied ${copied} other file(s) (such as rt64.json) alongside.`);
   }
-  const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv });
+  const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv, keepCoverage: p.keepCoverage !== false });
+  // Edges: Auto uses each texture's own tiling from the RT64 dump (saved by Convert).
+  const tileMap = p.edges === 'auto' ? tiling.loadFor(roots.length ? roots : inputs) : null;
+  const edgesOf = (it) => tiling.edgesFor(it.src, p.edges || 'clamp', tileMap);
+  if (tileMap) {
+    const known = todo.filter((it) => { const h = tiling.hashOf(it.src); return h && tileMap.has(h); }).length;
+    ctx.log(tileMap.size ? `Edges: Auto, tiling known for ${known.toLocaleString()} of ${todo.length.toLocaleString()} texture(s); the rest use Normal.`
+      : 'Edges: Auto found no tiling info (convert the RT64 dump with “Remember tiling” on), so Normal is used.');
+  }
   const pool = new Pool(ctx.workers);
   ctx.onCancel(() => pool.close());
   let failed = 0, written = 0;
   try {
     if (!ai) {
-      const r = await runAll(pool, todo, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts, edges: p.edges, save: save(it) }), ctx, (it) => it.rel);
+      const r = await runAll(pool, todo, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts, edges: edgesOf(it), save: save(it) }), ctx, (it) => it.rel);
       failed = r.failed; written = r.results.filter(Boolean).length;
     } else {
       const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-ai-'));
@@ -243,14 +256,14 @@ async function upscaleTask(p, ctx, tools) {
           const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
           fs.rmSync(inDir, { recursive: true, force: true }); fs.rmSync(outDir, { recursive: true, force: true });
           fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
-          const prepared = await Promise.all(chunk.map((it, i) => pool.run('aiPrep', { src: it.src, tmpPng: path.join(inDir, `${i}.png`), pad: 8, edges: p.edges }).then(() => true, (e) => { failed++; ctx.log(`Failed ${it.rel}: ${e.message}`); return false; })));
+          const prepared = await Promise.all(chunk.map((it, i) => pool.run('aiPrep', { src: it.src, tmpPng: path.join(inDir, `${i}.png`), pad: 8, edges: edgesOf(it) }).then(() => true, (e) => { failed++; ctx.log(`Failed ${it.rel}: ${e.message}`); return false; })));
           if (ctx.cancelled()) throw new Cancelled();
-          await runProcess(ai, ['-i', inDir, '-o', outDir, '-n', tools.realesrganModel || 'realesrgan-x4plus', '-s', '4', '-f', 'png'], ctx);
+          await runProcess(ai, aiArgs(inDir, outDir, tools), ctx);
           const ready = chunk.filter((_, i) => prepared[i] && fs.existsSync(path.join(outDir, `${i}.png`)));
           const idx = new Map(chunk.map((it, i) => [it, i]));
           const missingAi = chunk.filter((_, i) => prepared[i]).length - ready.length;
           if (missingAi) { failed += missingAi; ctx.log(`Real-ESRGAN produced no output for ${missingAi} image(s).`); }
-          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: path.join(outDir, `${idx.get(it)}.png`), pad: 8, outNoExt: it.outNoExt, opts, edges: p.edges, save: save(it) }),
+          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: path.join(outDir, `${idx.get(it)}.png`), pad: 8, outNoExt: it.outNoExt, opts, edges: edgesOf(it), save: save(it) }),
             { ...ctx, progress: (d) => ctx.progress(s + d, todo.length, '') }, (it) => it.rel);
           failed += r.failed; written += r.results.filter(Boolean).length;
         }
@@ -258,6 +271,14 @@ async function upscaleTask(p, ctx, tools) {
     }
   } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
   return { title: 'Upscaled', written, failed, output: p.output, packable: written > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
+// Real-ESRGAN command line: model, 4x, PNG, plus the graphics card and memory (tile size) choices.
+function aiArgs(inDir, outDir, tools) {
+  const args = ['-i', inDir, '-o', outDir, '-n', tools.realesrganModel || 'realesrgan-x4plus', '-s', '4', '-f', 'png'];
+  if (tools.aiGpu && tools.aiGpu !== 'auto') args.push('-g', String(tools.aiGpu));
+  if (tools.aiTile && tools.aiTile !== 'auto') args.push('-t', String(tools.aiTile));
+  return args;
 }
 
 function runProcess(exe, args, ctx) {
@@ -297,17 +318,38 @@ async function convertTask(p, ctx, tools) {
   const version = [...versions.entries()].sort((a, b) => b[1] - a[1])[0][0];
   let todo = items;
   if (versions.size > 1) { todo = items.filter((i) => i.version === version); ctx.log(`Dumps use several hash versions; keeping the ${todo.length} made with v${version}.`); }
-  ctx.log(`Converting ${todo.length.toLocaleString()} textures to ${p.format.toUpperCase()} (hash version ${version}).`);
+  const dbFile = path.join(p.output, DATABASE);
+  const already = new Set();
+  if (p.onlyNew) {
+    for (const it of todo) if (['png', 'dds'].some((e) => fs.existsSync(path.join(p.output, `${it.rel}.${e}`)))) already.add(it.hash);
+    if (already.size) ctx.log(`Only new textures: ${already.size.toLocaleString()} already converted, skipped.`);
+  }
+  const fresh = todo.filter((it) => !already.has(it.hash));
+  if (!fresh.length) {
+    ctx.log('Nothing new to convert.');
+    return { title: 'Nothing new:', written: 0, failed: 0, output: p.output, packable: fs.existsSync(dbFile), seconds: (Date.now() - t0) / 1000 };
+  }
+  ctx.log(`Converting ${fresh.length.toLocaleString()} textures to ${p.format.toUpperCase()} (hash version ${version}).`);
   const pool = new Pool(ctx.workers);
   ctx.onCancel(() => pool.close());
   let res;
   try {
-    res = await runAll(pool, todo, 'dump', (it) => ({ src: it.src, outNoExt: path.join(p.output, it.rel), save: { format: p.format, ddsFormat: p.ddsFormat, texconv: tools.texconv } }), ctx, (it) => it.hash);
+    res = await runAll(pool, fresh, 'dump', (it) => ({ src: it.src, outNoExt: path.join(p.output, it.rel), save: { format: p.format, ddsFormat: p.ddsFormat, texconv: tools.texconv } }), ctx, (it) => it.hash);
   } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
-  const db = new Database();
+  // rt64.json: add to the existing one when only converting new textures.
+  let db = new Database();
+  if (p.onlyNew && fs.existsSync(dbFile)) { try { db = Database.load(dbFile); } catch { db = new Database(); } }
   db.config.hashVersion = version;
-  todo.forEach((it, i) => { if (res.results[i]) db.add(it.hash, `${it.rel}.${p.format}`); });
-  db.save(path.join(p.output, DATABASE));
+  fresh.forEach((it, i) => { if (res.results[i]) db.add(it.hash, `${it.rel}.${p.format}`); });
+  db.save(dbFile);
+  // Remember how each texture repeats, for Upscale's Edges: Auto.
+  if (p.wrapInfo !== false) {
+    const map = p.onlyNew ? tiling.load(path.join(p.output, tiling.TILING)) : new Map();
+    fresh.forEach((it, i) => { if (res.results[i] && res.results[i].edges) map.set(it.hash, res.results[i].edges); });
+    tiling.save(p.output, map);
+    const tiled = [...map.values()].filter((e) => e[0] !== 'clamp' || e[1] !== 'clamp').length;
+    ctx.log(`Remembered tiling: ${tiled.toLocaleString()} repeating texture(s).`);
+  }
   const written = res.results.filter(Boolean).length;
   return { title: 'Converted', written, failed: res.failed, output: p.output, packable: written > 0, seconds: (Date.now() - t0) / 1000 };
 }
@@ -365,8 +407,14 @@ let previewPool = null;
 // One texture upscaled with the current settings; runs on its own worker, separate from jobs.
 async function preview(req, tools) {
   if (!previewPool) previewPool = new Pool(1);
+  const auto = req.edges === 'auto';
+  const edges = tiling.edgesFor(req.src, req.edges || 'clamp', auto ? tiling.loadFor([path.dirname(req.src)]) : null);
+  const known = auto && tiling.hashOf(req.src) && tiling.loadFor([path.dirname(req.src)]).has(tiling.hashOf(req.src));
+  const NAMES = { clamp: 'normal', wrap: 'tile', mirror: 'mirror' };
+  const edgesLabel = `${NAMES[edges[0]]} × ${NAMES[edges[1]]}${auto ? (known ? ' (from dump)' : ' (no dump info)') : ''}`;
+  req = { ...req, edges };
   const opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha };
-  const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv };
+  const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false };
   let r;
   if (req.method === 'ai' && tools.realesrgan) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-preview-'));
@@ -375,14 +423,17 @@ async function preview(req, tools) {
       fs.mkdirSync(inDir); fs.mkdirSync(outDir);
       await previewPool.run('aiPrep', { src: req.src, tmpPng: path.join(inDir, '0.png'), pad: 8, edges: req.edges });
       const noCancel = { cancelled: () => false, onCancel: () => {} };
-      await runProcess(tools.realesrgan, ['-i', inDir, '-o', outDir, '-n', tools.realesrganModel || 'realesrgan-x4plus', '-s', '4', '-f', 'png'], noCancel);
+      await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), noCancel);
       r = await previewPool.run('previewAi', { src: req.src, aiPng: path.join(outDir, '0.png'), pad: 8, opts, edges: req.edges, save });
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   } else {
     if (opts.method === 'ai') opts.method = 'standard';
     r = await previewPool.run('preview', { src: req.src, opts, edges: req.edges, save });
   }
-  return r;
+  return { ...r, edges: edgesLabel };
 }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, inspect, previewList, preview, Cancelled, Pool };
+// Stops the preview worker (on quit, and in tests).
+async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } }
+
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };

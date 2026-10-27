@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld('htk', {
   quit: () => ipcRenderer.invoke('quit'),
   previewList: (inputs, subfolders) => ipcRenderer.invoke('preview:list', { inputs, subfolders }),
   preview: (req) => ipcRenderer.invoke('preview', req),
+  thumbnail: (p) => ipcRenderer.invoke('thumbnail', p),
+  fix: (kind, input) => ipcRenderer.invoke('fix', { kind, input }),
   onStarted: on('task:started'),
   onProgress: on('task:progress'),
   onLog: on('task:log'),

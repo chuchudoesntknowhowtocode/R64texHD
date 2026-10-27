@@ -69,7 +69,7 @@ const handlers = {
     const d = loadDump(job.src);
     const img = d.decode();
     const file = saveImage(img, job.outNoExt, job.save);
-    return { out: file, from: [img.width, img.height], to: [img.width, img.height] };
+    return { out: file, from: [img.width, img.height], to: [img.width, img.height], edges: d.edges };
   },
   preview(job) {
     const t0 = Date.now();

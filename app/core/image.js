@@ -15,10 +15,10 @@ function loadImage(file) {
 }
 
 // Writes `img` to `fileNoExt` + .png/.dds atomically; returns the written path.
-function saveImage(img, fileNoExt, { format = 'png', ddsFormat = 'auto', texconv = null, mipmaps = true, pngLevel = 6 } = {}) {
+function saveImage(img, fileNoExt, { format = 'png', ddsFormat = 'auto', texconv = null, mipmaps = true, pngLevel = 6, keepCoverage = false } = {}) {
   const out = fileNoExt + (format === 'dds' ? '.dds' : '.png');
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  const data = format === 'dds' ? dds.encodeDDS(img, ddsFormat, { mipmaps, texconv }) : png.encodePNG(img, pngLevel);
+  const data = format === 'dds' ? dds.encodeDDS(img, ddsFormat, { mipmaps, texconv, keepCoverage }) : png.encodePNG(img, pngLevel);
   const tmp = out + '.part';
   fs.writeFileSync(tmp, data);
   fs.renameSync(tmp, out);
