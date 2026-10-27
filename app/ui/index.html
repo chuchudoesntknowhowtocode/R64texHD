@@ -139,9 +139,9 @@ nav button.active .badge { background: var(--ink); box-shadow: none; }
 .chip.on { background: rgba(255,138,28,.16); color: var(--orange-hi); box-shadow: inset 0 0 0 1px rgba(255,138,28,.45); }
 
 footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16px; }
-.hints { flex: 1; color: var(--muted); font-size: 12px; }
-.hints div:first-child span { margin-right: 22px; }
-.hints div + div { margin-top: 8px; }
+.pixfade { flex: 1; align-self: stretch; min-width: 0; position: relative; }
+/* 8-bit pixel gradient: chunky blocks, magenta to orange, dissolving away to the right (drawn in fillPixelFade). */
+.pixfade canvas { position: absolute; left: 0; bottom: 2px; width: 100%; height: 50px; image-rendering: pixelated; }
 .foot-btn { width: 130px; height: 50px; border: 0; border-radius: 12px; background: var(--field); font-size: 14.5px; cursor: pointer; }
 .foot-btn:hover { background: var(--field-hover); }
 .go { min-width: 214px; padding: 0 26px; height: 58px; border: 0; border-radius: 30px; cursor: pointer; font-size: 17px; font-weight: 800; letter-spacing: .6px; color: var(--ink);
@@ -348,10 +348,7 @@ header::after { content: ""; position: absolute; inset: 0; pointer-events: none;
     <section class="page" id="page"></section>
   </main>
   <footer>
-    <div class="hints">
-      <div><span>Enter&nbsp; Run</span><span>Esc&nbsp; Quit</span><span>Ctrl+S&nbsp; Save</span></div>
-      <div id="hint2">Run starts the process on this page. Save keeps these settings.</div>
-    </div>
+    <div class="pixfade" aria-hidden="true"><canvas id="pixfade"></canvas></div>
     <button class="foot-btn" id="quit">Quit</button>
     <button class="foot-btn" id="save">Save</button>
     <button class="go" id="go">UPSCALE ▶</button>
@@ -626,7 +623,6 @@ const pages = {
     return `<h2>Settings</h2><p class="lead">Default folders, helper tools and how R64texHD looks and runs.</p>
       ${notice}
       ${section('Folders')}
-      ${row('RT64 texture dump folder', 'Default for Convert RT64 Dump.', pathField('dumpFolder', cfg.dumpFolder, [['folder', 'Browse…']]))}
       ${row('Output folder', 'Default place for new output.', pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']]))}
       ${section('Helper tools')}
       ${row('texconv (BC7)', 'From Microsoft. Makes sharp BC7 DDS textures and keeps far-away fences visible.', tool('texconv', t.texconv, 'texconv', TOOL_INFO.texconv.size))}
@@ -730,7 +726,6 @@ function render() {
   $('#page').innerHTML = pages[page]();
   const go = $('#go');
   go.style.visibility = (page === 'settings' || page === 'about') ? 'hidden' : 'visible';
-  $('#hint2').textContent = setup ? 'Continue saves these folders and opens the toolkit.' : 'Run starts the process on this page. Save keeps these settings.';
   renderJob();
   refreshStatus();
   if (page === 'upscale') afterRenderPreview();
@@ -1159,7 +1154,29 @@ document.addEventListener('change', (e) => {
   if (item) { PV.src = item.src; PV.scroll = { x: 0, y: 0 }; drawPreview(); schedulePreview(); }
 });
 
-window.addEventListener('resize', () => { if (page === 'upscale') drawPreview(); });
+window.addEventListener('resize', () => { if (page === 'upscale') drawPreview(); fillPixelFade(); });
+
+// ---------------------------------------------------------------- footer: 8-bit pixel gradient
+// Square blocks in the header's colours (magenta -> violet -> orange) that thin out from left to
+// right with an ordered (Bayer) dither, like an old console fade. One canvas pixel = one block.
+function fillPixelFade() {
+  const c = $('#pixfade'); if (!c) return;
+  const BLOCK = 5, w = Math.max(1, Math.floor(c.clientWidth / BLOCK)), h = Math.max(1, Math.floor(c.clientHeight / BLOCK));
+  c.width = w; c.height = h;
+  const g = c.getContext('2d'), img = g.createImageData(w, h);
+  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  const stops = [[255, 63, 180], [154, 92, 255], [255, 138, 28]];
+  const mix = (t) => { const k = Math.min(stops.length - 1.0001, t * (stops.length - 1)), i = Math.floor(k), f = k - i;
+    return stops[i].map((v, j) => Math.round(v + (stops[i + 1][j] - v) * f)); };
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const t = x / Math.max(1, w - 1);
+    const keep = (1 - t) * (0.55 + 0.45 * (y + 1) / h);           // fuller at the bottom, gone by the right
+    if (keep <= (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16) continue;
+    const [r, gg, b] = mix(t), o = (y * w + x) * 4, shade = (x + y) % 2 ? 1 : 0.86;
+    img.data[o] = r * shade; img.data[o + 1] = gg * shade; img.data[o + 2] = b * shade; img.data[o + 3] = 230;
+  }
+  g.putImageData(img, 0, 0);
+}
 
 (async function init() {
   S = await window.htk.state();
@@ -1170,6 +1187,7 @@ window.addEventListener('resize', () => { if (page === 'upscale') drawPreview();
   page = !cfg.firstRunDone ? 'setup' : toolsLanding(pages[cfg.page] && cfg.page !== 'setup' ? cfg.page : 'upscale');
   render();
   nextHeaderPhrase();
+  fillPixelFade();
   showSplash();
 })();
 </script>
