@@ -16,8 +16,14 @@ module.exports = async ({ app, win }) => {
   const check = (ok, what) => { report.push(`${ok ? 'PASS' : 'FAIL'} ${what}`); };
 
   await new Promise((r) => (wc.isLoading() ? wc.once('did-finish-load', r) : r()));
-  await wait(3200);                                   // splash: 2.5 s, then gone
-  check(await js("document.querySelector('#splash').hidden"), 'splash fades out on its own');
+  await wait(1200);                                   // splash: 3.5 s; the app appears at 3 s
+  check(!(await js("document.querySelector('#splash').hidden")) && (await js("document.querySelector('.app').classList.contains('waiting')")), 'splash shows first, app still hidden at ~1.5 s');
+  await shot('splash-early');
+  await wait(2000);
+  check(!(await js("document.querySelector('.app').classList.contains('waiting')")), 'app shown by ~3.2 s, under the fading splash');
+  await shot('splash-handover');
+  await wait(800);
+  check(await js("document.querySelector('#splash').hidden"), 'splash gone after 3.5 s');
   check((await js("document.querySelector('#ver').textContent")) === 'v' + app.getVersion(), 'version in the header');
 
   // Every page renders, and the subtitle phrase changes on each switch.

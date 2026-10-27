@@ -194,14 +194,14 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .repo .rt { flex: 1; min-width: 0; } .repo .rt b { display: block; } .repo .rt span { color: var(--muted); font-size: 13px; word-break: break-all; }
 @media (max-width: 1240px) { h1 { font-size: 21px; } .sub { font-size: 12.5px; max-width: 420px; } }
 
-/* ---------------------------------------------------------------- splash (2.5 s: fade in, hold, fade out) */
+/* ---------------------------------------------------------------- splash (3.5 s: fade in, hold, fade out; the app appears at 3 s) */
 #splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; cursor: pointer;
   background: radial-gradient(ellipse at 50% 45%, #1c0c3a 0%, #0b0618 55%, #05030c 100%);
-  animation: splash-life 2.5s ease-in-out forwards; }
+  animation: splash-life 3.5s ease-in-out forwards; }
 #splash[hidden] { display: none; }
 #splash .inner { display: flex; flex-direction: column; align-items: center; width: min(92vw, 980px); }
 #splash img { width: 100%; height: auto; filter: drop-shadow(0 0 30px rgba(255,63,180,.35));
-  animation: splash-logo 2.5s cubic-bezier(.2,.8,.2,1) forwards; }
+  animation: splash-logo 3.5s cubic-bezier(.2,.8,.2,1) forwards; }
 #splash .grid { position: absolute; inset: 55% 0 0 0; pointer-events: none; opacity: .35;
   background-image: linear-gradient(rgba(255,63,180,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(51,230,255,.4) 1px, transparent 1px);
   background-size: 60px 30px; transform: perspective(380px) rotateX(62deg); transform-origin: top; mask-image: linear-gradient(transparent, #000 40%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 40%, transparent); }
@@ -211,13 +211,16 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
   color: #fff; background: linear-gradient(90deg, var(--cyan), #fff 30%, #ffe45c 50%, #fff 70%, var(--pink)); background-size: 220% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 10px rgba(255,63,180,.85)) drop-shadow(0 0 24px rgba(154,92,255,.6));
-  opacity: 0; animation: phrase-in 2.5s cubic-bezier(.2,.9,.25,1) forwards, phrase-shine 1.6s linear .5s infinite; }
+  opacity: 0; animation: phrase-in 3.5s cubic-bezier(.2,.9,.25,1) forwards, phrase-shine 1.6s linear .5s infinite; }
 /* chromatic glitch copies behind the text */
 .phrase::before, .phrase::after { content: attr(data-text); position: absolute; inset: 0; padding: 0 20px; -webkit-text-fill-color: currentColor; background: none; pointer-events: none; mix-blend-mode: screen; opacity: .8; }
-.phrase::before { color: var(--cyan); animation: glitch-a 2.5s steps(1) forwards; }
-.phrase::after { color: var(--pink); animation: glitch-b 2.5s steps(1) forwards; }
-.phrase-sub { margin-top: 14px; font-size: 12px; font-weight: 700; letter-spacing: 4px; color: rgba(255,255,255,.55); text-transform: uppercase; opacity: 0; animation: phrase-sub 2.5s ease forwards; }
-@keyframes splash-life { 0% { opacity: 0; } 22% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+.phrase::before { color: var(--cyan); animation: glitch-a 3.5s steps(1) forwards; }
+.phrase::after { color: var(--pink); animation: glitch-b 3.5s steps(1) forwards; }
+.phrase-sub { margin-top: 14px; font-size: 12px; font-weight: 700; letter-spacing: 4px; color: rgba(255,255,255,.55); text-transform: uppercase; opacity: 0; animation: phrase-sub 3.5s ease forwards; }
+@keyframes splash-life { 0% { opacity: 0; } 18% { opacity: 1; } 85.7% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+/* The app stays out of sight until the splash starts fading (3 s), then fades in under it. */
+.app { transition: opacity .5s ease; }
+.app.waiting { opacity: 0; pointer-events: none; }
 @keyframes splash-logo { 0% { transform: scale(.92); filter: drop-shadow(0 0 0 rgba(255,63,180,0)) brightness(.6); } 30% { transform: scale(1); filter: drop-shadow(0 0 34px rgba(255,63,180,.45)) brightness(1.08); } 100% { transform: scale(1.03); } }
 @keyframes phrase-in {
   0%, 18% { opacity: 0; transform: translateY(14px) scale(1.25) skewX(-8deg); letter-spacing: 10px; filter: blur(8px); }
@@ -321,7 +324,7 @@ header::after { content: ""; position: absolute; inset: 0; pointer-events: none;
 </style>
 </head>
 <body>
-<div id="splash" hidden title="Click to skip">
+<div id="splash" title="Click to skip">
   <div class="grid"></div>
   <div class="inner">
     <img src="splash.png" alt="R64texHD">
@@ -330,7 +333,7 @@ header::after { content: ""; position: absolute; inset: 0; pointer-events: none;
   </div>
 </div>
 
-<div class="app">
+<div class="app waiting">
   <header>
     <div class="hdr-text">
       <h1>R64texHD - Reimagine Every Pixel</h1>
@@ -417,16 +420,21 @@ function nextHeaderPhrase() {
   el.textContent = hdrList[hdrAt % hdrList.length]; hdrAt++;
   el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap');
 }
+// The splash is on screen from the first frame (it's in the page, not added later), so the app never
+// flashes first. It runs 3.5 s; the app is shown at 3 s, under the fading splash. A click or key skips it.
+const SHOW_APP_AT = 3000;
+function showApp() { $('.app').classList.remove('waiting'); }
+function hideSplash() { $('#splash').hidden = true; showApp(); }
 function showSplash() {
   const sp = $('#splash');
-  if (cfg.splash === false) return;
+  if (cfg.splash === false) { hideSplash(); return; }
   const p = window.__phrase || pickPhrase(cfg.cleanPhrases === true);
   $('#phrase').textContent = p.text; $('#phrase').dataset.text = p.text;
   $('#phrase-sub').textContent = `R64texHD v${S.version}`;
-  sp.hidden = false;
-  const done = () => { sp.hidden = true; };
-  sp.addEventListener('animationend', (e) => { if (e.target === sp) done(); });
-  sp.addEventListener('click', done);
+  const started = performance.now();                 // the animation started with the page
+  setTimeout(showApp, Math.max(0, SHOW_APP_AT - started));
+  sp.addEventListener('animationend', (e) => { if (e.target === sp) hideSplash(); });
+  sp.addEventListener('click', hideSplash);
 }
 
 // ---------------------------------------------------------------- controls
@@ -1040,7 +1048,7 @@ $('#go').addEventListener('click', go);
 $('#save').addEventListener('click', () => save(false));
 $('#quit').addEventListener('click', async () => { if (job.running && !confirm('A process is running. Cancel it and quit?')) return; await save(true); window.htk.quit(); });
 document.addEventListener('keydown', (e) => {
-  if (!$('#splash').hidden) { $('#splash').hidden = true; return; }
+  if (!$('#splash').hidden) { hideSplash(); return; }
   if (!$('#modal').hidden) { if (e.key === 'Escape') closeModal(); return; }
   if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(false); }
   else if (e.key === 'Escape') $('#quit').click();
@@ -1210,6 +1218,7 @@ function fillPixelFade() {
   g.putImageData(img, 0, 0);
 }
 
+setTimeout(() => showApp(), 4000);                  // never leave the app hidden, whatever happens during start-up
 (async function init() {
   S = await window.htk.state();
   cfg = withDefaults(S.settings);
