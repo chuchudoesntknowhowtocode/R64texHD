@@ -119,7 +119,36 @@ function decodeDDS(buf) {
 }
 
 // ------------------------------------------------------------------ writing
-function mipChain(img) {
+// Area-average weights for shrinking n pixels to m (m = n/2 rounded down, or 1). Works for odd sizes
+// too: every source pixel counts, so the last row / column is never dropped.
+function shrinkWeights(n, m) {
+  const out = [];
+  const k = n / m;
+  for (let o = 0; o < m; o++) {
+    const a = o * k, b = (o + 1) * k, taps = [];
+    for (let i = Math.floor(a); i < Math.min(n, Math.ceil(b)); i++) {
+      const w = Math.min(b, i + 1) - Math.max(a, i);
+      if (w > 1e-9) taps.push([i, w / k]);
+    }
+    out.push(taps);
+  }
+  return out;
+}
+
+// Cut-out textures (fences, leaves, grass, text): almost every pixel is fully see-through or solid.
+function isCutout(img) {
+  let edge = 0, n = 0;
+  for (let i = 3; i < img.data.length; i += 4) { const a = img.data[i]; n++; if (a > 24 && a < 232) edge++; }
+  return n > 0 && edge / n < 0.1 && hasAlpha(img);
+}
+
+const ALPHA_REF = 0.5;
+const coverage = (alpha, scale) => { let c = 0; for (let i = 0; i < alpha.length; i++) if (alpha[i] * scale >= ALPHA_REF) c++; return c / alpha.length; };
+
+// Full mip chain (premultiplied area average). keepCoverage: for cut-out textures, scale each
+// level's alpha so the share of visible pixels matches the full-size texture, so fences, grass
+// and leaves don't thin out and vanish in the distance.
+function mipChain(img, { keepCoverage = false } = {}) {
   const levels = [img];
   let { width: w, height: h } = img;
   let cur = new Float32Array(img.data.length);
@@ -127,22 +156,38 @@ function mipChain(img) {
     const a = img.data[i + 3] / 255;
     cur[i] = img.data[i] / 255 * a; cur[i + 1] = img.data[i + 1] / 255 * a; cur[i + 2] = img.data[i + 2] / 255 * a; cur[i + 3] = a;
   }
+  let target = -1;
+  if (keepCoverage && isCutout(img)) {
+    const a0 = new Float32Array(w * h);
+    for (let i = 0; i < a0.length; i++) a0[i] = cur[i * 4 + 3];
+    target = coverage(a0, 1);
+    if (target <= 0 || target >= 1) target = -1;
+  }
   while (w > 1 || h > 1) {
     const nw = Math.max(w >> 1, 1), nh = Math.max(h >> 1, 1);
-    const sx = w > 1 ? 2 : 1, sy = h > 1 ? 2 : 1;
+    const wx = shrinkWeights(w, nw), wy = shrinkWeights(h, nh);
     const next = new Float32Array(nw * nh * 4);
-    const data = new Uint8Array(nw * nh * 4);
     for (let y = 0; y < nh; y++) for (let x = 0; x < nw; x++) {
       const d = (y * nw + x) * 4;
-      for (let dy = 0; dy < sy; dy++) for (let dx = 0; dx < sx; dx++) {
-        const s = ((y * sy + dy) * w + (x * sx + dx)) * 4;
-        for (let c = 0; c < 4; c++) next[d + c] += cur[s + c];
+      for (const [sy, ky] of wy[y]) for (const [sx, kx] of wx[x]) {
+        const s = (sy * w + sx) * 4, k = kx * ky;
+        next[d] += cur[s] * k; next[d + 1] += cur[s + 1] * k; next[d + 2] += cur[s + 2] * k; next[d + 3] += cur[s + 3] * k;
       }
-      const n = sx * sy;
-      for (let c = 0; c < 4; c++) next[d + c] /= n;
-      const a = next[d + 3];
+    }
+    // Alpha scale for this level that brings coverage back to the full-size texture's.
+    let scale = 1;
+    if (target > 0) {
+      const al = new Float32Array(nw * nh);
+      for (let i = 0; i < al.length; i++) al[i] = next[i * 4 + 3];
+      let lo = 0, hi = 4;
+      for (let it = 0; it < 24; it++) { const mid = (lo + hi) / 2; if (coverage(al, mid) < target) lo = mid; else hi = mid; }
+      scale = hi;
+    }
+    const data = new Uint8Array(nw * nh * 4);
+    for (let i = 0; i < nw * nh; i++) {
+      const d = i * 4, a = next[d + 3];
       for (let c = 0; c < 3; c++) data[d + c] = a > 1e-6 ? Math.max(0, Math.min(255, Math.round(next[d + c] / a * 255))) : 0;
-      data[d + 3] = Math.max(0, Math.min(255, Math.round(a * 255)));
+      data[d + 3] = Math.max(0, Math.min(255, Math.round(Math.min(1, a * scale) * 255)));
     }
     levels.push({ width: nw, height: nh, data });
     cur = next; w = nw; h = nh;
@@ -188,14 +233,14 @@ function hasAlpha(img) {
 }
 
 // format: auto | bc7 | bc3 | bc1 | rgba8
-function encodeDDS(img, format = 'auto', { mipmaps = true, texconv = null } = {}) {
+function encodeDDS(img, format = 'auto', { mipmaps = true, texconv = null, keepCoverage = false } = {}) {
   let dxgi;
   if (format === 'rgba8') dxgi = DXGI.RGBA8;
   else if (format === 'bc1') dxgi = DXGI.BC1;
   else if (format === 'bc3') dxgi = DXGI.BC3;
-  else if (format === 'bc7' && texconv) return encodeTexconv(img, mipmaps, texconv);
+  else if (format === 'bc7' && texconv) return encodeTexconv(img, mipmaps, texconv, keepCoverage && mipmaps && isCutout(img));
   else dxgi = hasAlpha(img) ? DXGI.BC3 : DXGI.BC1;
-  const levels = mipmaps ? mipChain(img) : [img];
+  const levels = mipmaps ? mipChain(img, { keepCoverage }) : [img];
   const parts = [header(img.width, img.height, levels.length, dxgi)];
   for (const level of levels) {
     if (dxgi === DXGI.RGBA8) parts.push(Buffer.from(level.data.buffer, level.data.byteOffset, level.data.length));
@@ -205,12 +250,14 @@ function encodeDDS(img, format = 'auto', { mipmaps = true, texconv = null } = {}
   return Buffer.concat(parts);
 }
 
-function encodeTexconv(img, mipmaps, texconv) {
+function encodeTexconv(img, mipmaps, texconv, keepCoverage = false) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-'));
   try {
     const src = path.join(dir, 'tex.png');
     fs.writeFileSync(src, png.encodePNG(img, 1));
-    const r = spawnSync(texconv, ['-nologo', '-y', '-f', 'BC7_UNORM', '-m', mipmaps ? '0' : '1', '-dx10', '-o', dir, src], { windowsHide: true, encoding: 'utf8' });
+    const args = ['-nologo', '-y', '-f', 'BC7_UNORM', '-m', mipmaps ? '0' : '1', '-dx10'];
+    if (keepCoverage) args.push('--keep-coverage', String(ALPHA_REF));
+    const r = spawnSync(texconv, [...args, '-o', dir, src], { windowsHide: true, encoding: 'utf8' });
     const out = path.join(dir, 'tex.dds');
     if (r.status !== 0 || !fs.existsSync(out)) throw new Error('texconv failed: ' + ((r.stdout || '') + (r.stderr || '') || String(r.error)).trim().slice(-300));
     return fs.readFileSync(out);
@@ -219,4 +266,4 @@ function encodeTexconv(img, mipmaps, texconv) {
   }
 }
 
-module.exports = { parseHeader, decodeDDS, encodeDDS, mipChain, hasAlpha, DXGI };
+module.exports = { parseHeader, decodeDDS, encodeDDS, mipChain, hasAlpha, isCutout, DXGI };

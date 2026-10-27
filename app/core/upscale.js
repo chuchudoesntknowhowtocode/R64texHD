@@ -251,4 +251,18 @@ function upscale(img, opts, start = null) {
   return { width: t.width, height: t.height, data: out };
 }
 
-module.exports = { upscale, targetSize, fillTransparent, pad, edgeIndex, SHARPNESS };
+// Resize an RGBA image to an exact size (Lanczos, clamped: no halos). Transparent pixels borrow
+// nearby colours first so edges don't darken.
+function resizeRGBA(img, nw, nh) {
+  if (img.width === nw && img.height === nh) return img;
+  const filled = fillTransparent(img, 8), n = img.width * img.height, out = new Uint8Array(nw * nh * 4);
+  for (let c = 0; c < 4; c++) {
+    const src = c === 3 ? img : filled, plane = new Float32Array(n);
+    for (let i = 0; i < n; i++) plane[i] = src.data[i * 4 + c] / 255;
+    const r = resizeClamped(plane, img.width, img.height, nw, nh);
+    for (let i = 0; i < nw * nh; i++) out[i * 4 + c] = Math.max(0, Math.min(255, Math.round(r[i] * 255)));
+  }
+  return { width: nw, height: nh, data: out };
+}
+
+module.exports = { upscale, targetSize, fillTransparent, pad, edgeIndex, resizeRGBA, SHARPNESS };

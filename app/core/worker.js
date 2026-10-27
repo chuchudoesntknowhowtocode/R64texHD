@@ -69,7 +69,7 @@ const handlers = {
     const d = loadDump(job.src);
     const img = d.decode();
     const file = saveImage(img, job.outNoExt, job.save);
-    return { out: file, from: [img.width, img.height], to: [img.width, img.height] };
+    return { out: file, from: [img.width, img.height], to: [img.width, img.height], edges: d.edges };
   },
   preview(job) {
     const t0 = Date.now();
@@ -84,6 +84,26 @@ const handlers = {
     ai = crop(ai, job.pad * 4, job.pad * 4, img.width * 4, img.height * 4);
     const out = upscale(img, { ...job.opts, edges: edgesOf(job) }, { img: ai, scale: 4 });
     return previewResult(img, out, job, t0);
+  },
+  o2rExtract(job, progress) {
+    return require('./o2r').extract(job.archive, job.output, { progress, skipPalette: job.skipPalette });
+  },
+  o2rBuild(job, progress) {
+    return require('./o2r').build(job.input, job.base, job.output, { alt: job.alt, compression: job.compression, progress });
+  },
+  legacyImport(job, progress) { return require('./legacy').importToRt64(job.input, job.dumpDb, job.output, { progress }); },
+  legacyHts(job, progress) { return require('./legacy').makeHts(job.input, job.output, { progress }); },
+  riceToO2r(job, progress) { return require('./legacy').riceToO2r(job.input, job.base, job.output, { alt: job.alt, compression: job.compression, progress }); },
+  check(job, progress) {
+    return require('./check').checkPack(job.input, { progress });
+  },
+  toDds(job) {
+    // One PNG -> DDS with mipmaps (fences far away kept), written atomically.
+    const img = loadImage(job.src);
+    const bytes = dds.encodeDDS(img, job.ddsFormat, { mipmaps: true, texconv: job.texconv, keepCoverage: true });
+    fs.writeFileSync(job.dest + '.part', bytes);
+    fs.renameSync(job.dest + '.part', job.dest);
+    return { out: job.dest };
   },
   unpack(job, progress) {
     return rtz.unpack(job.file, job.output, { keepCache: job.keepCache, progress });

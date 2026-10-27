@@ -1,7 +1,8 @@
 # Third-party notices
 
-R64texHD includes code ported from the projects below. Their licences require
-these notices to be kept with copies of the software.
+R64texHD is licensed under GPL-2.0-or-later (see LICENSE). It includes code ported from
+the projects below. Their licences require these notices to be kept with copies of the
+software.
 
 ## RT64
 
@@ -34,6 +35,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## GLideN64, Rice Video and RT64 texture_hasher (GPL)
+
+Ported parts: the Rice texture ID formula (RiceCRC32, the load width / height / row
+size rules, palette range) in `app/core/rice.js`, from RT64's `tools/texture_hasher`,
+which references GLideN64 and Rice Video and is under the GPL for that reason; and the
+GLideN64 hi-res texture cache file layout (`.hts` / `.htc`) in the same file, written
+from GLideN64's `GLideNHQ/TxCache.cpp`.
+Sources: https://github.com/gonetz/GLideN64 (GPL version 2 or any later version),
+https://github.com/rt64/rt64 (`src/tools/texture_hasher`, GPL),
+Rice Video plugin (Mupen64Plus, GPL version 2 or later).
 
 ## bcdec
 

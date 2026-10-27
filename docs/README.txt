@@ -1,8 +1,7 @@
-R64texHD v0.4.20 - Reimagine Every Pixel  (portable)
+R64texHD v0.7.1.1 - Reimagine Every Pixel  (portable)
 ==================================================
-HD Texture Toolkit - RT64 Support
-Upscale .dds / .png textures - Convert RT64 Texture Dump - Pack/Extract .rtz
-texture packs.
+HD textures for N64 games: RT64 dumps, .rtz packs, Ship port .o2r mods and
+classic Rice / GLideN64 packs.
 
 
 Start: double-click "R64texHD.exe" (it shows as R64texHD in Task Manager).
@@ -27,7 +26,7 @@ has not been downloaded yet it opens on Settings, where "Download" fetches it
 into data\tools. Choose "Not now" to carry on without them, or turn off
 "Check tools at startup" in Settings.
 
-THE THREE OPTIONS (sidebar)
+THE PAGES (sidebar)
 
 1  Upscale Textures
    PNG / DDS textures: a whole folder (subfolders kept) or picked files.
@@ -35,34 +34,53 @@ THE THREE OPTIONS (sidebar)
      Pixel art, or AI (Real-ESRGAN, downloadable in Settings).
    - Size: 2x 3x 4x 6x 8x, or Fit the longest side to 512 - 4096 px.
    - Sharpness: Off / Soft / Normal / Strong / Extra.
-   - Edges: Normal / Tile (seamless repeating textures) / Mirror.
+   - Edges: Auto uses each texture's own tiling from the RT64 dump, so floors
+     and walls stay seamless. Or Normal / Tile / Mirror for everything.
    - Cut-out edges: Hard (crisp leaves, fences, text) or Smooth.
+   - Fences far away: keeps fences, grass and leaves from fading out in the
+     distance (DDS output).
    - Output: same format as input, PNG or DDS (Auto BC1/BC3, BC7, BC3, BC1, none).
-   - Other files such as rt64.json are copied along; "Skip" resumes a run.
-   - Live preview: the original and the upscaled texture side by side. It is
-     regenerated whenever you change a setting (DDS output shows its compression
-     too). Pick any texture from the input, view it Fit, 1:1 or 2:1; zoomed
-     views scroll together. The preview stays at the top while you scroll the
-     settings.
-   When it finishes it asks whether to go to 3 Pack / Unpack .rtz, with the
-   upscaled folder already filled in.
+   - Live preview: the original and the upscaled texture side by side.
+   When it finishes it offers to take you to 3 Pack / Check .rtz.
 
 2  Convert RT64 Dump
    Turns an RT64 texture dump (.tmem + .tile.json files, from RT64's debugger:
    F1 > Textures > Start dumping textures) into PNG or DDS textures plus
-   rt64.json. When it finishes it asks whether to pack the result into an .rtz.
+   rt64.json. "Remember tiling" saves how each texture repeats (for Edges:
+   Auto). "Only new textures" converts just what you dumped since last time.
 
-3  Pack / Unpack .rtz
-   One page, two modes (switch at the top):
-   - Pack folder -> .rtz: packs a DDS / PNG texture pack folder into a single
-     .rtz file (Zstandard like RT64's own packer, Deflate or Store; low-mip
-     cache for DDS). Uses the folder's rt64.json, or builds one from
-     hash-named files.
-   - Unpack .rtz -> folder: opens an .rtz pack (zstd, deflate or stored) back
-     into a folder of textures and rt64.json, ready to edit, upscale or repack.
+3  Pack / Check .rtz
+   - Pack: a DDS / PNG texture folder into a single .rtz file (Zstandard like
+     RT64's own packer, Deflate or Store; low-mip cache for DDS).
+   - Unpack: an .rtz back into a folder of textures and rt64.json.
+   - Recomp mod info: a name, author, picture and on / off switch for the
+     mod menu in Zelda 64: Recompiled and other recomps.
+   - Check a pack: looks over an .rtz or pack folder before you share it.
+     "Make them DDS" saves a fixed copy (<name>-fixed.rtz) with every PNG
+     texture turned into DDS. The original is never changed.
+
+4  Ship Mods .o2r
+   HD texture mods for 2 Ship 2 Harkinian, Ship of Harkinian, Starship and
+   other .o2r ports, in three steps:
+   - Get textures: every texture in the game's .o2r as a PNG.
+   - Upscale the folder on page 1 (as PNG).
+   - Build HD mod: makes an .o2r for the port's mods folder. With the in-game
+     switch on, players turn it on and off with "Use Alternate Assets" (Tab).
+
+5  Rice / GLideN64
+   - Use in RT64: a classic pack (Rice PNG folder, or GLideN64 .hts / .htc)
+     into an RT64 pack folder. It is matched through your RT64 dump, so
+     convert the dump first with "Add Rice IDs" on.
+   - Make GLideN64: a .hts pack for Project64, RetroArch, RMG and BizHawk
+     from textures with Rice IDs.
+   - Use in Ship port: a classic pack into a Ship port .o2r mod.
+
+R64texHD is free software under the GNU General Public License, version 2
+or later (see LICENSE.R64texHD.txt).
 
 OPTIONAL TOOLS (Settings, offered at startup until downloaded)
    texconv     - Microsoft DirectXTex, for BC7 DDS output (1 MB download).
+                 Downloads are checked against a fixed checksum.
    Real-ESRGAN - for the AI upscale method, needs a Vulkan GPU (45 MB download).
 
 Your input folders and packs are only read, never changed.

@@ -81,11 +81,12 @@ function loadDump(tmemPath) {
   const tile = info.tile || {};
   let tlut = info.tlut ?? 'None';
   tlut = typeof tlut === 'string' ? (TLUT[tlut] ?? 0) : Number(tlut);
-  const wrap = (v) => (v & 2 ? 'clamp' : (v & 1 ? 'mirror' : 'wrap'));
+  // How the texture repeats on each axis. No mask means it never wraps; the clamp bit wins over mirror.
+  const wrap = (cm, mask) => (cm & 2 || !mask ? 'clamp' : (cm & 1 ? 'mirror' : 'wrap'));
   return {
     hash: m[1].toLowerCase(), version: Number(m[2]), tmemPath, tilePath,
     width: Number(info.width || 0), height: Number(info.height || 0), tlut, tile,
-    edges: [wrap(Number(tile.cms || 0)), wrap(Number(tile.cmt || 0))],
+    edges: [wrap(Number(tile.cms || 0), Number(tile.masks || 0)), wrap(Number(tile.cmt || 0), Number(tile.maskt || 0))],
     decode() {
       return decodeTMEM(fs.readFileSync(tmemPath), {
         fmt: Number(tile.fmt || 0), siz: Number(tile.siz || 0), tmemAddress: Number(tile.tmem || 0), line: Number(tile.line || 0),

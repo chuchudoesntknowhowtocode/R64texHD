@@ -1,0 +1,4 @@
+build/ui-preview/shots/
+build/.cache/
+dist/
+data/

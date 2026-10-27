@@ -13,7 +13,7 @@ VALUES = {
     'FileDescription': 'R64texHD',          # Task Manager's process name
     'FileVersion': APP_VERSION,
     'InternalName': 'R64texHD.exe',
-    'LegalCopyright': 'HD Texture Toolkit - RT64 Support',
+    'LegalCopyright': 'R64texHD contributors, GPL-2.0+',
     'OriginalFilename': 'R64texHD.exe',
     'ProductName': 'R64texHD',
     'ProductVersion': APP_VERSION,
@@ -33,13 +33,18 @@ def main(src, dst):
                     continue
                 old_len = st.entries_lengths[key][1]          # characters, without the terminator
                 new = VALUES[name]
-                if len(new) > old_len:
-                    raise SystemExit(f'{name}: "{new}" is longer than the original ({old_len} characters)')
-                slot = (old_len + 1) * 2
+                # The value may also use the zero padding that rounds the entry up to 4 bytes
+                # (e.g. Electron's 6-character "38.4.0" leaves room for 7: "0.7.1.1").
+                header = key_off - 6                          # String header: wLength, wValueLength, wType
+                old_end = value_off + (old_len + 1) * 2
+                slot = ((old_end + 3) & ~3) - value_off
+                if (len(new) + 1) * 2 > slot or any(data[old_end:value_off + slot]):
+                    raise SystemExit(f'{name}: "{new}" is longer than the space in the original ({slot // 2 - 1} characters)')
                 data[value_off:value_off + slot] = (new.encode('utf-16-le') + b'\0' * slot)[:slot]
-                # String header (wLength, wValueLength, wType) sits just before the key.
-                header = key_off - 6
                 struct.pack_into('<H', data, header + 2, len(new) + 1)
+                # wLength covers the value; grow it if the new value runs into the padding.
+                w_length = struct.unpack_from('<H', data, header)[0]
+                struct.pack_into('<H', data, header, max(w_length, value_off + (len(new) + 1) * 2 - header))
                 done.add(name)
     missing = set(VALUES) - done
     if missing:

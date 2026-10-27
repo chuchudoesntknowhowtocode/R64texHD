@@ -1,8 +1,8 @@
 {
   "name": "hd-texture-toolkit",
-  "productName": "HD Texture Toolkit",
-  "version": "0.4.20",
-  "description": "Upscale textures, convert RT64 texture dumps and pack .rtz texture packs.",
+  "productName": "R64texHD",
+  "version": "0.7.1.1",
+  "description": "HD textures for N64 games: RT64 dumps, .rtz packs, Ship port .o2r mods and classic Rice / GLideN64 packs.",
   "main": "main.js",
-  "license": "MIT"
+  "license": "GPL-2.0-or-later"
 }

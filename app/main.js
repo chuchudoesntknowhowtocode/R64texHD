@@ -1,5 +1,6 @@
 'use strict';
 // HD Texture Toolkit: Electron main process (window, settings, native dialogs, tasks, tools).
+// R64texHD - Copyright (C) 2026 R64texHD contributors. GPL-2.0-or-later (see LICENSE).
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu, nativeTheme } = require('electron');
 const fs = require('fs');
 const os = require('os');
@@ -8,9 +9,9 @@ const https = require('https');
 const tasks = require('./core/tasks');
 const rtz = require('./core/rtz');
 
-const APP_NAME = 'HD Texture Toolkit';
+const APP_NAME = 'R64texHD';
 const REPO_URL = 'https://github.com/chuchudoesntknowhowtocode/R64texHD';
-const WINDOW_TITLE = `R64texHD - HD Texture Toolkit - RT64 Support v${app.getVersion()}`;
+const WINDOW_TITLE = `R64texHD v${app.getVersion()} - HD textures for N64 games`;
 app.setName(APP_NAME);
 app.setAppUserModelId('HDTextureToolkit');
 nativeTheme.themeSource = 'dark';
@@ -45,12 +46,17 @@ const programDir = () => (app.isPackaged ? path.dirname(process.execPath) : path
 const DEFAULTS = {
   firstRunDone: false, checkTools: true, iconStamp: '',
   dumpFolder: '', outputFolder: '', page: 'upscale',
-  workers: 'auto', maxSize: 4096, texconv: '', realesrgan: '', realesrganModel: 'realesrgan-x4plus',
-  upscale: { inputs: [], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'clamp', hardAlpha: true,
-    format: 'same', ddsFormat: 'auto', output: '', existing: 'overwrite', copyOther: true },
-  convert: { input: '', format: 'png', ddsFormat: 'auto', output: '' },
-  pack: { mode: 'pack', input: '', output: '', compression: 'zstd', level: 'balanced', lowMipCache: true },
+  workers: 'auto', maxSize: 4096, texconv: '', realesrgan: '', realesrganModel: 'realesrgan-x4plus', aiGpu: 'auto', aiTile: 'auto',
+  splash: true, cleanPhrases: false,
+  upscale: { inputs: [], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'auto', hardAlpha: true,
+    format: 'same', ddsFormat: 'auto', output: '', existing: 'overwrite', copyOther: true, keepCoverage: true },
+  convert: { input: '', format: 'png', ddsFormat: 'auto', output: '', wrapInfo: true, rice: true, onlyNew: false },
+  pack: { mode: 'pack', input: '', output: '', compression: 'zstd', level: 'balanced', lowMipCache: true,
+    recomp: false, recompName: '', recompAuthor: '', recompVersion: '1.0.0', recompDescription: '', recompThumb: '', recompToggle: true },
   unpack: { input: '', output: '', keepCache: false },
+  check: { input: '' },
+  ports: { mode: 'extract', archive: '', output: '', hdInput: '', base: '', modOutput: '', alt: true, compression: 'store' },
+  legacy: { mode: 'import', input: '', dumpDb: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
 };
 
 function loadSettings() {
@@ -82,7 +88,7 @@ function tools() {
     texconv: findTool(settings.texconv, [path.join(toolsDir(), 'texconv.exe'), path.join(programDir(), 'tools', 'texconv.exe')]),
     realesrgan: findTool(settings.realesrgan, [path.join(toolsDir(), 'realesrgan', 'realesrgan-ncnn-vulkan' + exe),
       path.join(programDir(), 'tools', 'realesrgan', 'realesrgan-ncnn-vulkan' + exe)]),
-    realesrganModel: settings.realesrganModel,
+    realesrganModel: settings.realesrganModel, aiGpu: settings.aiGpu, aiTile: settings.aiTile,
   };
 }
 function workerCount() {
@@ -98,7 +104,7 @@ function send(channel, payload) { if (win && !win.isDestroyed()) win.webContents
 function createWindow() {
   win = new BrowserWindow({
     width: 1280, height: 800, minWidth: 1100, minHeight: 700, show: false,
-    title: WINDOW_TITLE, backgroundColor: '#0b1022', autoHideMenuBar: true,
+    title: WINDOW_TITLE, backgroundColor: '#130a22', autoHideMenuBar: true,
     icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
   });
@@ -138,7 +144,10 @@ async function runTask(task, params) {
   running = { task, cancel: () => { cancelledFlag = true; hooks.splice(0).forEach((f) => { try { f(); } catch { /* ignore */ } }); } };
   send('task:started', { task });
   const t = tools();
-  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask }[task];
+  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask,
+    o2rExtract: tasks.o2rExtractTask, o2rBuild: tasks.o2rBuildTask,
+    legacyImport: tasks.legacyImportTask, legacyHts: tasks.legacyHtsTask, riceToO2r: tasks.riceToO2rTask }[task];
+  if (!fn) { running = null; return { ok: false, error: 'This part arrives in the next build. Hang tight!' }; }
   (async () => {
     try {
       const p = { ...params };
@@ -177,18 +186,32 @@ function download(url, dest, onProgress, redirects = 0) {
   });
 }
 
+// Helper tools: pinned versions, checked against their SHA-256 after download. To add a tool, add it here
+// and to TOOL_INFO in ui/index.html (the Settings page and the startup check pick it up from there).
 const TOOL_URLS = {
-  texconv: 'https://github.com/microsoft/DirectXTex/releases/latest/download/texconv.exe',
-  realesrgan: 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip',
+  texconv: { url: 'https://github.com/microsoft/DirectXTex/releases/download/may2026/texconv.exe',
+    sha256: 'dcfdec10244e02cf5037fba089c55fb7e1326b1c8181742d77d15fa5cb5eef06' },
+  realesrgan: { url: 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip',
+    sha256: 'abc02804e17982a3be33675e4d471e91ea374e65b70167abc09e31acb412802d' },
 };
+function checkSha(file, want) {
+  const got = require('crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  if (got !== want) { fs.rmSync(file, { force: true }); throw new Error('the download did not match the expected file (checksum). Try again later.'); }
+}
 
 async function installTool(name) {
   const progress = (got, total) => send('tool:progress', { name, got, total });
   if (name === 'texconv') {
-    await download(TOOL_URLS.texconv, path.join(toolsDir(), 'texconv.exe'), progress);
+    const tmp = path.join(TEMP_DIR, 'htk-texconv.exe');
+    await download(TOOL_URLS.texconv.url, tmp, progress);
+    checkSha(tmp, TOOL_URLS.texconv.sha256);
+    fs.mkdirSync(toolsDir(), { recursive: true });
+    fs.copyFileSync(tmp, path.join(toolsDir(), 'texconv.exe'));
+    fs.rmSync(tmp, { force: true });
   } else if (name === 'realesrgan') {
     const zip = path.join(TEMP_DIR, 'htk-realesrgan.zip');
-    await download(TOOL_URLS.realesrgan, zip, progress);
+    await download(TOOL_URLS.realesrgan.url, zip, progress);
+    checkSha(zip, TOOL_URLS.realesrgan.sha256);
     const dir = path.join(toolsDir(), 'realesrgan');
     for (const e of rtz.readEntries(zip)) {
       const target = path.resolve(dir, e.name);
@@ -257,7 +280,22 @@ async function pumpPreview() {
 }
 
 // ---------------------------------------------------------------- IPC
+const SAVE_KINDS = {
+  'save-rtz': { name: 'RT64 texture pack', extensions: ['rtz'] },
+  'save-o2r': { name: 'Ship port mod', extensions: ['o2r'] },
+  'save-hts': { name: 'GLideN64 texture pack', extensions: ['hts'] },
+};
+// A small picture (PNG, up to 4 MB) as a data URL, for the Recomp mod picture preview.
+function thumbnail(p) {
+  try {
+    if (!p || !/\.png$/i.test(p)) return null;
+    const st = fs.statSync(p);
+    if (!st.isFile() || st.size > 4 * 1048576) return null;
+    return 'data:image/png;base64,' + fs.readFileSync(p).toString('base64');
+  } catch { return null; }
+}
 function registerIpc() {
+  ipcMain.handle('thumbnail', (_e, p) => thumbnail(p));
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));
   ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task }));
@@ -269,8 +307,11 @@ function registerIpc() {
     else if (kind === 'images') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile', 'multiSelections'], filters: [{ name: 'Textures', extensions: ['png', 'dds'] }] });
     else if (kind === 'open-rtz') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'RT64 texture pack', extensions: ['rtz'] }, { name: 'All files', extensions: ['*'] }] });
     else if (kind === 'exe') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'Programs', extensions: process.platform === 'win32' ? ['exe'] : ['*'] }] });
-    else if (kind === 'save-rtz') {
-      const s = await dialog.showSaveDialog(win, { ...base, filters: [{ name: 'RT64 texture pack', extensions: ['rtz'] }] });
+    else if (kind === 'image') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'Picture', extensions: ['png'] }] });
+    else if (kind === 'open-o2r') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'Game archive', extensions: ['o2r', 'otr'] }, { name: 'All files', extensions: ['*'] }] });
+    else if (kind === 'open-hts') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'GLideN64 texture pack', extensions: ['hts', 'htc'] }, { name: 'All files', extensions: ['*'] }] });
+    else if (SAVE_KINDS[kind]) {
+      const s = await dialog.showSaveDialog(win, { ...base, filters: [SAVE_KINDS[kind]] });
       return s.canceled ? null : s.filePath;
     }
     if (!r || r.canceled || !r.filePaths.length) return null;
@@ -281,7 +322,12 @@ function registerIpc() {
   });
   ipcMain.handle('task:run', (_e, { task, params }) => runTask(task, params));
   ipcMain.handle('task:cancel', () => { cancelTask(); return true; });
-  ipcMain.handle('open', (_e, p) => { if (fs.existsSync(p) && fs.statSync(p).isFile()) shell.showItemInFolder(p); else shell.openPath(p); return true; });
+  ipcMain.handle('open', (_e, p) => {
+    if (process.env.HTK_SELFTEST) { (global.opened = global.opened || []).push(p); return true; }   // self-test: note it, don't open windows
+    if (!p || !fs.existsSync(p)) return false;
+    if (fs.statSync(p).isFile()) shell.showItemInFolder(p); else shell.openPath(p);
+    return true;
+  });
   ipcMain.handle('repo', () => { shell.openExternal(REPO_URL); return REPO_URL; });
   ipcMain.handle('shortcuts', () => createShortcuts());
   ipcMain.handle('tool:install', async (_e, name) => { try { return { ok: true, tools: await installTool(name) }; } catch (e) { return { ok: false, error: e.message }; } });
