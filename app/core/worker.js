@@ -91,6 +91,9 @@ const handlers = {
   o2rBuild(job, progress) {
     return require('./o2r').build(job.input, job.base, job.output, { alt: job.alt, compression: job.compression, progress });
   },
+  legacyImport(job, progress) { return require('./legacy').importToRt64(job.input, job.dumpDb, job.output, { progress }); },
+  legacyHts(job, progress) { return require('./legacy').makeHts(job.input, job.output, { progress }); },
+  riceToO2r(job, progress) { return require('./legacy').riceToO2r(job.input, job.base, job.output, { alt: job.alt, compression: job.compression, progress }); },
   check(job, progress) {
     return require('./check').checkPack(job.input, { progress });
   },

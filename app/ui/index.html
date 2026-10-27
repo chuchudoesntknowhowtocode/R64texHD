@@ -464,7 +464,7 @@ const NEW_DEFAULTS = {
   pack: { recomp: false, recompName: '', recompAuthor: '', recompVersion: '1.0.0', recompDescription: '', recompThumb: '', recompToggle: true, recompGame: 'mm' },
   check: { input: '' },
   ports: { mode: 'extract', archive: '', output: '', hdInput: '', base: '', modOutput: '', alt: true, compression: 'store' },
-  legacy: { mode: 'import', input: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
+  legacy: { mode: 'import', input: '', dumpDb: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
 };
 function withDefaults(c) {
   for (const [k, v] of Object.entries(NEW_DEFAULTS)) {
@@ -594,9 +594,10 @@ const pages = {
     let rows, lead, tipText;
     if (m === 'import') {
       lead = 'Bring a classic texture pack (Rice PNG folder, or GLideN64 .hts / .htc) into RT64 and recomps.';
-      tipText = 'Works with packs from Project64, RetroArch, RMG and BizHawk. The result is a normal pack folder: pack it on <b>3 · Pack / Check .rtz</b>.';
-      rows = row('Classic pack', 'A Rice texture folder, or a GLideN64 .hts or .htc file.', pathField('legacy.input', g.input, [['folder', 'Folder…'], ['open-hts', 'File…']], 'Choose a folder or .hts / .htc'))
-        + row('Output folder', 'Gets the textures and an rt64.json that finds them by their Rice IDs.', pathField('legacy.output', g.output, [['folder', 'Browse…']]));
+      tipText = 'RT64 knows textures by its own IDs, so it matches the pack through your <b>RT64 dump</b>: convert it on <b>2 · Convert RT64 Dump</b> with <b>Add Rice IDs</b> on first. The result is a normal pack folder for <b>3 · Pack / Check .rtz</b>.';
+      rows = row('Classic pack', 'A Rice texture folder, or a GLideN64 .hts or .htc file (from Project64, RetroArch, RMG, BizHawk).', pathField('legacy.input', g.input, [['folder', 'Folder…'], ['open-hts', 'File…']], 'Choose a folder or .hts / .htc'))
+        + row('Your converted RT64 dump', 'The folder Convert made, with its rt64.json. Textures you haven’t dumped yet can’t be matched.', pathField('legacy.dumpDb', g.dumpDb || cfg.convert.output, [['folder', 'Browse…']], 'Choose the converted dump folder'))
+        + row('Output folder', 'Gets the matched textures and an rt64.json.', pathField('legacy.output', g.output, [['folder', 'Browse…']]));
     } else if (m === 'hts') {
       lead = 'Turn your HD texture folder into a GLideN64 .hts pack for Project64, RetroArch, RMG and BizHawk.';
       tipText = 'Your textures need Rice IDs. Convert RT64 dumps with <b>Add Rice IDs</b> turned on, or start from a classic pack.';
@@ -605,8 +606,8 @@ const pages = {
         + row('Save as', 'Ends in _HIRESTEXTURES.hts. Goes in the emulator’s cache or hires_texture folder.', pathField('legacy.htsOutput', g.htsOutput, [['save-hts', 'Browse…']]));
     } else {
       lead = 'Turn a classic Rice pack into a mod for 2Ship, Ship of Harkinian and other Ship ports.';
-      tipText = 'Each texture is matched by its Rice ID against the game’s .o2r. Most of a pack usually matches; you’ll get a list of anything that didn’t.';
-      rows = row('Rice pack', 'The classic Rice texture folder.', pathField('legacy.riceInput', g.riceInput, [['folder', 'Browse…']], 'Choose the Rice texture folder'))
+      tipText = 'Each texture is matched by its Rice ID against the game’s .o2r. Most of a pack usually matches; the log lists anything that didn’t. Turn the textures on in game with “Use Alternate Assets” (Tab).';
+      rows = row('Classic pack', 'A Rice texture folder, or a GLideN64 .hts or .htc file.', pathField('legacy.riceInput', g.riceInput, [['folder', 'Folder…'], ['open-hts', 'File…']], 'Choose a folder or .hts / .htc'))
         + row('Game archive', 'The port’s own .o2r, made from your ROM.', pathField('legacy.base', g.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
         + row('Save mod as', 'Put it in the port’s mods folder.', pathField('legacy.modOutput', g.modOutput, [['save-o2r', 'Browse…']]));
     }
@@ -658,6 +659,7 @@ const pages = {
       <p><b>3 · Pack / Check .rtz</b> builds packs the same way RT64’s texture_packer does, adds Recomp mod info, opens packs back up, and checks a pack before you share it.</p>
       <p><b>4 · Ship Mods .o2r</b> gets textures out of Ship port archives and builds HD mods for 2 Ship 2 Harkinian, Ship of Harkinian and other .o2r ports.</p>
       <p><b>5 · Rice / GLideN64</b> brings classic texture packs into RT64 and Ship ports, and makes GLideN64 packs for Project64, RetroArch, RMG and BizHawk.</p>
+      <p>R64texHD is free software under the GNU GPL, version 2 or later. It uses the Rice texture ID formula from GLideN64 and Rice Video.</p>
       <p>Portable: everything stays in the <b>data</b> folder next to the program. Your input folders and packs are only read, never changed.</p>
       <div class="repo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         <div class="rt"><b>GitHub repository</b><span>github.com/chuchudoesntknowhowtocode/R64texHD</span></div>
@@ -722,7 +724,8 @@ function suggest() {
   if (!o.modOutput && o.hdInput) o.modOutput = join(out, baseName(o.hdInput) + '.o2r');
   if (!o.base && o.archive) o.base = o.archive;
   if (!g.output && g.input) g.output = join(out, baseName(g.input).replace(/\.(hts|htc)$/i, '') + '-rt64');
-  if (!g.modOutput && g.riceInput) g.modOutput = join(out, baseName(g.riceInput) + '.o2r');
+  if (!g.modOutput && g.riceInput) g.modOutput = join(out, baseName(g.riceInput).replace(/\.(hts|htc)$/i, '') + '.o2r');
+  if (!g.base && o.archive) g.base = o.archive;
 }
 
 function render() {
@@ -802,7 +805,9 @@ function renderJob() {
       renderChecks(r);
       return;
     }
-    const what = r.sizeMB !== undefined ? `${r.written.toLocaleString()} textures, ${r.sizeMB.toFixed(1)} MB` : `${r.written.toLocaleString()} texture${r.written === 1 ? '' : 's'}`;
+    const count = `${r.written.toLocaleString()} texture${r.written === 1 ? '' : 's'}`;
+    const size = r.sizeMB === undefined ? '' : r.sizeMB >= 1 ? `, ${r.sizeMB.toFixed(1)} MB` : `, ${Math.max(1, Math.round(r.sizeMB * 1024))} KB`;
+    const what = count + size;
     let actions = `<button class="btn" data-open="${esc(r.output)}">Open</button>`;
     if (r.packable && job.task === 'convert') actions += `<button class="btn primary" id="pack-now">Pack into .rtz…</button>`;
     if (r.packable && job.task === 'upscale') actions += r.fromO2r ? `<button class="btn primary" id="go-ship">Build HD mod</button>` : `<button class="btn primary" id="go-pack">Go to Pack</button>`;
@@ -931,7 +936,8 @@ function onPath(key) {
     if (key === 'ports.archive') cfg.ports.output = join(out, baseName(cfg.ports.archive).replace(/\.(o2r|otr)$/i, '') + '-textures');
     if (key === 'ports.hdInput') cfg.ports.modOutput = join(out, baseName(cfg.ports.hdInput) + '.o2r');
     if (key === 'legacy.input') cfg.legacy.output = join(out, baseName(cfg.legacy.input).replace(/\.(hts|htc)$/i, '') + '-rt64');
-    if (key === 'legacy.riceInput') cfg.legacy.modOutput = join(out, baseName(cfg.legacy.riceInput) + '.o2r');
+    if (key === 'legacy.riceInput') cfg.legacy.modOutput = join(out, baseName(cfg.legacy.riceInput).replace(/\.(hts|htc)$/i, '') + '.o2r');
+    if (key === 'legacy.htsName' && cfg.legacy.htsName) cfg.legacy.htsOutput = join(out, cfg.legacy.htsName.trim() + '_HIRESTEXTURES.hts');
   }
   const fixExt = (k, ext) => { const v = getVal(k); if (v && !new RegExp(`\\${ext}$`, 'i').test(v)) setVal(k, v + ext); };
   if (key === 'pack.output') fixExt(key, '.rtz');
@@ -962,8 +968,8 @@ function params(task) {
     case 'fix': return { ...fixParams };
     case 'o2rExtract': return { archive: cfg.ports.archive, output: cfg.ports.output };
     case 'o2rBuild': return { input: cfg.ports.hdInput, base: cfg.ports.base, output: cfg.ports.modOutput, alt: cfg.ports.alt, compression: cfg.ports.compression };
-    case 'legacyImport': return { input: cfg.legacy.input, output: cfg.legacy.output };
-    case 'legacyHts': return { input: cfg.legacy.htsInput, name: cfg.legacy.htsName, output: cfg.legacy.htsOutput };
+    case 'legacyImport': return { input: cfg.legacy.input, dumpDb: cfg.legacy.dumpDb || cfg.convert.output, output: cfg.legacy.output };
+    case 'legacyHts': return { input: cfg.legacy.htsInput, name: cfg.legacy.htsName, output: cfg.legacy.htsOutput || (cfg.legacy.htsName && cfg.outputFolder ? join(cfg.outputFolder, cfg.legacy.htsName.trim() + '_HIRESTEXTURES.hts') : '') };
     case 'riceToO2r': return { input: cfg.legacy.riceInput, base: cfg.legacy.base, output: cfg.legacy.modOutput, alt: cfg.ports.alt };
     default: return { ...cfg.pack };
   }

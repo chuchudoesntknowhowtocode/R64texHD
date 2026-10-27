@@ -33,8 +33,7 @@ module.exports = async ({ app, win }) => {
 
   // A page whose engine comes later answers kindly instead of failing.
   await js(`document.querySelector('nav button[data-page="ports"]').click()`); await wait(300);
-  const soon = await js("window.htk.run('legacyImport', {})");
-  check(soon.ok === false && /next build/.test(soon.error), 'Rice / GLideN64 page says "next build"');
+
 
   // Convert the generated dump, then upscale it with Edges: Auto.
   const runAndWait = async (setup, task) => {
@@ -109,6 +108,52 @@ module.exports = async ({ app, win }) => {
   const t = e && o2r.parseTexture(rtzm.readEntry(modFile, e));
   check(t && t.width === 128 && t.flags === 1 && t.hScale === 8 && t.vScale === 4, 'mod texture: 128×128 RGBA32, alt/ path, scales 8 × 4');
   await wait(300); await shot('run-o2r-build');
+
+  // Step 4: classic packs. A Rice pack made to match mm.o2r goes into a Ship mod; a dump with Rice files
+  // is converted with Rice IDs, a Rice pack is imported through it, and a GLideN64 .hts is made.
+  const core = (m) => require(path.join(__dirname, '..', '..', 'app', 'core', m));
+  const riceM = core('rice'), pngM = core('png');
+  const ricePack = path.join(out, 'rice-pack');
+  fs.mkdirSync(ricePack, { recursive: true });
+  const solid = (w, h, c) => { const d = new Uint8Array(w * h * 4); for (let i = 0; i < w * h; i++) d.set(c, i * 4); return { width: w, height: h, data: d }; };
+  for (const t of o2r.readTextures(arc)) {
+    const r = riceM.riceForTexture(t);
+    fs.writeFileSync(path.join(ricePack, `ZELDA MAJORA'S MASK#${riceM.hex8(r.crc).toUpperCase()}#${r.fmt}#${r.siz}_all.png`), pngM.encodePNG(solid(t.width * 4, t.height * 4, [30, 200, 90, 255])));
+  }
+  await js(`document.querySelector('nav button[data-page="legacy"]').click()`); await wait(300);
+  const rs = await runAndWait(`cfg.legacy.mode = 'ship'; cfg.legacy.riceInput = ${JSON.stringify(ricePack)}; cfg.legacy.base = ${JSON.stringify(arc)};
+    cfg.legacy.modOutput = ${JSON.stringify(path.join(out, 'mods', 'Rice pack.o2r'))}; render();`, 'riceToO2r');
+  check(rs && rs.result && rs.result.written === 3, 'Rice / GLideN64: Rice pack into a Ship mod (3 textures)');
+  await wait(300); await shot('run-rice-ship');
+
+  const rdump = path.join(out, 'dump-rice');
+  fs.mkdirSync(rdump, { recursive: true });
+  const rdram = Buffer.alloc(16 * 8 * 2); for (let i = 0; i < rdram.length; i++) rdram[i] = (i * 37) & 255;
+  const tmem = Buffer.alloc(4096); rdram.copy(tmem);
+  fs.writeFileSync(path.join(rdump, 'cccccccccccccccc.v5.tmem'), tmem);
+  fs.writeFileSync(path.join(rdump, 'cccccccccccccccc.v5.tile.json'), JSON.stringify({ width: 16, height: 8, tlut: 'None',
+    tile: { fmt: 0, siz: 2, line: 4, tmem: 0, cms: 0, cmt: 0, masks: 4, maskt: 3, uls: 0, ult: 0, lrs: 60, lrt: 28 } }));
+  fs.writeFileSync(path.join(rdump, 'cccccccccccccccc.v5.rice.json'), JSON.stringify({ type: 'Tile', tile: { fmt: 0, siz: 2, uls: 0, ult: 0, lrs: 60, lrt: 28 }, texture: { address: 0, fmt: 0, siz: 2, width: 16 } }));
+  fs.writeFileSync(path.join(rdump, 'cccccccccccccccc.v5.rice.rdram'), rdram);
+  const riceId = riceM.riceFromDump(path.join(rdump, 'cccccccccccccccc.v5.tmem'));
+  const convRice = path.join(out, 'dump-rice-converted');
+  await js(`document.querySelector('nav button[data-page="convert"]').click()`); await wait(300);
+  const cr = await runAndWait(`cfg.convert.input = ${JSON.stringify(rdump)}; cfg.convert.output = ${JSON.stringify(convRice)}; cfg.convert.rice = true; cfg.convert.onlyNew = false; render();`, 'convert');
+  await wait(400); await js('closeModal()');
+  check(cr && cr.result && fs.readFileSync(path.join(convRice, 'rt64.json'), 'utf8').includes(riceId), 'Convert with Add Rice IDs writes the Rice ID');
+  const pack2 = path.join(out, 'rice-pack-rt64');
+  fs.mkdirSync(pack2, { recursive: true });
+  fs.writeFileSync(path.join(pack2, `GAME#${riceId.split('#')[0].toUpperCase()}#0#2_all.png`), pngM.encodePNG(solid(64, 32, [220, 40, 40, 255])));
+  await js(`document.querySelector('nav button[data-page="legacy"]').click()`); await wait(300);
+  const im = await runAndWait(`cfg.legacy.mode = 'import'; cfg.legacy.input = ${JSON.stringify(pack2)}; cfg.legacy.dumpDb = ${JSON.stringify(convRice)};
+    cfg.legacy.output = ${JSON.stringify(path.join(out, 'imported'))}; render();`, 'legacyImport');
+  check(im && im.result && im.result.written === 1 && fs.existsSync(path.join(out, 'imported', 'textures', 'cccccccccccccccc.png')), 'Rice / GLideN64: classic pack into RT64 (matched through the dump)');
+  await wait(300); await shot('run-rice-import');
+  const ht = await runAndWait(`cfg.legacy.mode = 'hts'; cfg.legacy.htsInput = ${JSON.stringify(path.join(out, 'imported'))}; cfg.legacy.htsName = 'GAME';
+    cfg.legacy.htsOutput = ${JSON.stringify(path.join(out, 'GAME_HIRESTEXTURES.hts'))}; render();`, 'legacyHts');
+  const hl = ht && ht.result ? riceM.readGlidenPack(path.join(out, 'GAME_HIRESTEXTURES.hts')) : [];
+  check(hl.length === 1 && riceM.riceId(hl[0]) === riceId, 'Rice / GLideN64: GLideN64 .hts made with the right Rice ID');
+  await wait(300); await shot('run-rice-hts');
 
   fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n');
   app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);

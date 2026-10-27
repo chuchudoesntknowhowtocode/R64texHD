@@ -194,6 +194,31 @@ const listPngs = (dir) => {
   return out.sort();
 };
 
+// Writes a mod from [{ t: base texture, img, label }]. Returns { written, resized, same }.
+function writeMod(pairs, outFile, { alt = true, compression = 'store', progress = () => {}, cancelled = () => false, offset = 0, total = pairs.length } = {}) {
+  const part = outFile + '.part';
+  fs.mkdirSync(path.dirname(path.resolve(outFile)), { recursive: true });
+  const zip = new rtz.ZipWriter(part);
+  const resized = [], same = [];
+  let written = 0;
+  try {
+    pairs.forEach(({ t, img, label }, i) => {
+      if (cancelled()) throw Object.assign(new Error('Cancelled'), { cancelled: true });
+      const image = typeof img === 'function' ? img() : img;
+      const r = hdResource({ ...t, data: null }, image);
+      if (r.resized) resized.push(`${label || t.name} (${image.width}×${image.height} → ${t.width * r.kx}×${t.height * r.ky})`);
+      if (r.kx === 1 && r.ky === 1) same.push(label || t.name);
+      const { payload, method } = rtz.compress(r.buf, compression === 'deflate' ? 'deflate' : 'store', 6);
+      zip.add((alt ? 'alt/' : '') + t.name, payload, method, zlib.crc32(r.buf), r.buf.length, Date.now());
+      written++;
+      progress(offset + i + 1, offset + total, `Adding ${t.name}`);
+    });
+    zip.close();
+    fs.renameSync(part, outFile);
+  } catch (e) { zip.abort(); fs.rmSync(part, { force: true }); throw e; }
+  return { written, resized, same, bytesOut: fs.statSync(outFile).size };
+}
+
 // Build an HD mod: each PNG in hdDir replaces the texture at the same path in the base archive.
 function build(hdDir, baseFile, outFile, { alt = true, compression = 'store', progress = () => {}, cancelled = () => false } = {}) {
   const pngs = listPngs(hdDir).filter((f) => f !== INFO_FILE);
@@ -201,37 +226,35 @@ function build(hdDir, baseFile, outFile, { alt = true, compression = 'store', pr
   const base = listTextures(baseFile, { progress: (d, t) => progress(d, t * 2, 'Reading the game archive'), cancelled });
   const byName = new Map(), byLower = new Map();
   for (const t of base) { byName.set(t.name, t); byLower.set(t.name.toLowerCase(), t); }
-  const fd = fs.openSync(baseFile, 'r');
-  const part = outFile + '.part';
-  fs.mkdirSync(path.dirname(path.resolve(outFile)), { recursive: true });
-  const zip = new rtz.ZipWriter(part);
-  const unmatched = [], resized = [], same = [], done = new Set();
-  let written = 0, bytesIn = 0;
+  const unmatched = [], pairs = [], done = new Set();
+  for (const rel of pngs) {
+    const key = rel.replace(/\.png$/i, '').replace(/^alt\//i, '');
+    const t = byName.get(key) || byLower.get(key.toLowerCase());
+    if (!t) { unmatched.push(rel); continue; }
+    if (done.has(t.name)) continue;                                  // alt/x.png and x.png: the first wins
+    done.add(t.name);
+    pairs.push({ t, label: rel, img: () => png.decodePNG(fs.readFileSync(path.join(hdDir, rel))) });
+  }
+  if (!pairs.length) throw new Error('None of the PNGs match a texture in the game archive. Keep the folders and names you got from “Get textures”.');
+  const r = writeMod(pairs, outFile, { alt, compression, progress, cancelled, offset: base.length, total: base.length + pairs.length });
+  return { file: outFile, written: r.written, unmatched, resized: r.resized, same: r.same, game: gameOf(baseFile), bytesOut: r.bytesOut };
+}
+
+// Every texture with its pixel data (for matching by content, e.g. Rice IDs).
+function readTextures(file, { progress = () => {}, cancelled = () => false } = {}) {
+  const entries = openArchive(file);
+  const fd = fs.openSync(file, 'r'), out = [];
   try {
-    pngs.forEach((rel, i) => {
+    entries.forEach((e, i) => {
       if (cancelled()) throw Object.assign(new Error('Cancelled'), { cancelled: true });
-      const key = rel.replace(/\.png$/i, '').replace(/^alt\//i, '');
-      const t = byName.get(key) || byLower.get(key.toLowerCase());
-      if (!t) { unmatched.push(rel); return; }
-      if (done.has(t.name)) return;                                  // alt/x.png and x.png: the first wins
-      done.add(t.name);
-      const img = png.decodePNG(fs.readFileSync(path.join(hdDir, rel)));
-      const r = hdResource({ ...t, data: null }, img);
-      if (r.resized) resized.push(`${rel} (${img.width}×${img.height} → ${t.width * r.kx}×${t.height * r.ky})`);
-      if (r.kx === 1 && r.ky === 1) same.push(rel);
-      const name = (alt ? 'alt/' : '') + t.name;
-      const { payload, method } = rtz.compress(r.buf, compression === 'deflate' ? 'deflate' : 'store', 6);
-      zip.add(name, payload, method, zlib.crc32(r.buf), r.buf.length, Date.now());
-      written++; bytesIn += r.buf.length;
-      progress(base.length + i, base.length + pngs.length, `Adding ${t.name}`);
+      if (i % 200 === 0) progress(i, entries.length, `Reading ${e.name}`);
+      if (e.usize < HEADER + 16 || e.usize > 64 * 1048576) return;
+      let t;
+      try { t = parseTexture(rtz.readEntry(file, e, fd)); } catch { return; }
+      if (t) out.push({ ...t, name: e.name });
     });
-    if (!written) throw new Error('None of the PNGs match a texture in the game archive. Keep the folders and names you got from “Get textures”.');
-    zip.close();
-    fs.renameSync(part, outFile);
-  } catch (e) {
-    zip.abort(); fs.rmSync(part, { force: true }); throw e;
   } finally { fs.closeSync(fd); }
-  return { file: outFile, written, unmatched, resized, same, game: gameOf(baseFile), bytesOut: fs.statSync(outFile).size };
+  return out;
 }
 
 // Quick look for the status card: game name and entry count (no decompressing).
@@ -240,4 +263,4 @@ function inspect(file) {
   return { game: gameOf(file), files: entries.length, size: fs.statSync(file).size };
 }
 
-module.exports = { TYPES, OTEX, LOAD_AS_RAW, INFO_FILE, parseTexture, decodeTexture, encodePixels, resource, hdResource, listTextures, extract, build, inspect, gameOf, isMpq, listPngs };
+module.exports = { TYPES, OTEX, LOAD_AS_RAW, INFO_FILE, parseTexture, decodeTexture, encodePixels, resource, hdResource, listTextures, readTextures, extract, build, writeMod, inspect, gameOf, isMpq, listPngs };

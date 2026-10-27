@@ -1,5 +1,6 @@
 'use strict';
 // HD Texture Toolkit: Electron main process (window, settings, native dialogs, tasks, tools).
+// R64texHD - Copyright (C) 2026 R64texHD contributors. GPL-2.0-or-later (see LICENSE).
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu, nativeTheme } = require('electron');
 const fs = require('fs');
 const os = require('os');
@@ -55,7 +56,7 @@ const DEFAULTS = {
   unpack: { input: '', output: '', keepCache: false },
   check: { input: '' },
   ports: { mode: 'extract', archive: '', output: '', hdInput: '', base: '', modOutput: '', alt: true, compression: 'store' },
-  legacy: { mode: 'import', input: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
+  legacy: { mode: 'import', input: '', dumpDb: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
 };
 
 function loadSettings() {
@@ -144,7 +145,8 @@ async function runTask(task, params) {
   send('task:started', { task });
   const t = tools();
   const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask,
-    o2rExtract: tasks.o2rExtractTask, o2rBuild: tasks.o2rBuildTask }[task];
+    o2rExtract: tasks.o2rExtractTask, o2rBuild: tasks.o2rBuildTask,
+    legacyImport: tasks.legacyImportTask, legacyHts: tasks.legacyHtsTask, riceToO2r: tasks.riceToO2rTask }[task];
   if (!fn) { running = null; return { ok: false, error: 'This part arrives in the next build. Hang tight!' }; }
   (async () => {
     try {

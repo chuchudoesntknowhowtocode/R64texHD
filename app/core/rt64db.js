@@ -72,7 +72,7 @@ class Database {
   add(hash, p, rice = '') {
     hash = hash.toLowerCase();
     const found = this.textures.find((t) => t.hashes.rt64.toLowerCase() === hash);
-    if (found) found.path = fwd(p);
+    if (found) { found.path = fwd(p); if (rice) found.hashes.rice = rice; }
     else this.textures.push({ path: fwd(p), hashes: { rt64: hash, rice } });
   }
 

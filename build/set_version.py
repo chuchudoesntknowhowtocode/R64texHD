@@ -13,7 +13,7 @@ VALUES = {
     'FileDescription': 'R64texHD',          # Task Manager's process name
     'FileVersion': APP_VERSION,
     'InternalName': 'R64texHD.exe',
-    'LegalCopyright': 'R64texHD contributors, MIT',
+    'LegalCopyright': 'R64texHD contributors, GPL-2.0+',
     'OriginalFilename': 'R64texHD.exe',
     'ProductName': 'R64texHD',
     'ProductVersion': APP_VERSION,

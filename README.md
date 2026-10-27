@@ -64,10 +64,19 @@ packs along.
   flip them with "Use Alternate Assets" (Tab). Put the `.o2r` in the port's `mods` folder.
 - Older MPQ `.otr` archives aren't supported; ports make `.o2r` now.
 
-**5 · Rice / GLideN64** *(coming in the next build)*
-- Bring classic Rice PNG folders and GLideN64 `.hts` / `.htc` packs into RT64,
-  make GLideN64 packs for Project64, RetroArch, RMG and BizHawk, and turn Rice
-  packs into Ship port mods.
+**5 · Rice / GLideN64** (new)
+- **Rice IDs**: Convert RT64 Dump can add each texture's Rice ID to `rt64.json`
+  ("Add Rice IDs"), worked out from the `.rice` files RT64 dumps, the same way RT64's
+  own `texture_hasher --rice` does. That is what links RT64 to classic packs.
+- **Use in RT64**: brings a classic pack (a Rice PNG folder, or a GLideN64 `.hts` /
+  `.htc`) into RT64 and recomps, matched through your converted dump. The result is a
+  normal pack folder (`textures/<hash>.png` + `rt64.json`) to upscale, pack and check.
+- **Make GLideN64**: turns a folder with Rice IDs (in `rt64.json`, or Rice-named PNGs)
+  into a GLideN64 `.hts` pack for Project64, RetroArch, RMG and BizHawk ("Texture Hires
+  File Storage").
+- **Use in a Ship port**: matches a classic pack to the textures in a Ship port's `.o2r`
+  by Rice ID and builds an HD mod (with the in-game switch).
+- Classic pack files can be several GB: `.hts` packs are read a texture at a time.
 
 **Settings**
 - Helper tools (texconv for BC7, Real-ESRGAN for AI) download with one click and
@@ -132,22 +141,25 @@ app/
   ui/pixel-icons.js  the pixel-art status buttons
   core/            png, dds, bc (block codecs), upscale, tmem (RT64 dumps), tiling (Edges: Auto),
                    rt64db (rt64.json), rtz (packs), recomp (mod.json), check (Check a pack), o2r (Ship ports),
+                   rice + legacy (Rice IDs, GLideN64 packs, classic packs; GPL),
                    tasks + worker (parallel jobs)
 build/             packaging scripts; ui-preview/ makes UI screenshots and runs the app self-test
-tests/             automated tests: node --test tests/core.test.js tests/check.test.js tests/o2r.test.js
+tests/             automated tests: node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js
 docs/              README.txt shipped in the release, screenshots
 ```
 
 ## Testing
 
 ```
-node --test tests/core.test.js tests/check.test.js tests/o2r.test.js
+node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js
 ```
 
 Needs Node 22.15 or newer (the same Node that Electron 38 uses). The tests cover
 the image formats, mipmaps (fences far away, odd sizes), RT64 dump tiling and
 Edges: Auto, Convert's "Only new", `.rtz` pack / unpack, Recomp mod info,
-Check a pack and the Make them DDS fix, Ship `.o2r` textures and mods, and the AI options.
+Check a pack and the Make them DDS fix, Ship `.o2r` textures and mods, Rice IDs (checked
+against RT64 `texture_hasher`'s own C++, see `build/rice-check`), GLideN64 `.hts` / `.htc`,
+the three classic pack modes, and the AI options.
 
 ## Why was this made?
 
@@ -170,6 +182,9 @@ useful.
 
 ## Licence
 
-MIT, see [LICENSE](LICENSE). Parts are ported from RT64 and bcdec (both MIT);
-see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The R64 icon and header
-artwork were supplied by the project author.
+GPL-2.0-or-later, see [LICENSE](LICENSE). From v0.7.1.1 R64texHD is GPL because the Rice /
+GLideN64 support (page 5) uses the Rice texture ID formula from GLideN64 and Rice Video
+(GPL), as RT64's own `texture_hasher` does. Earlier versions were MIT. Parts are ported
+from RT64 and bcdec (both MIT, which can be used in GPL software); see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The R64 icon, splash and header artwork
+were supplied by the project author.

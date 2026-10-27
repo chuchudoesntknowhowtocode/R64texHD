@@ -186,10 +186,21 @@ function inspect(kind, value) {
     return n ? { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} PNG textures${fromShip ? ' (from Get textures)' : ''}\n${p}` }
       : { state: 'error', title: 'No PNG textures here', text: `Ship mods are built from PNG: upscale with Output format PNG.\n${p}` };
   }
-  // Pages whose engine arrives in a later build: show the input, say what's coming.
-  const SOON = { legacyImport: 'Rice / GLideN64 support',
-    legacyHts: 'Rice / GLideN64 support', riceToO2r: 'Rice / GLideN64 support' };
-  if (SOON[kind]) return { state: 'idle', title: `${SOON[kind]} arrives in the next build`, text: p };
+  if (kind === 'legacyImport' || kind === 'riceToO2r') {
+    try {
+      const r = require('./legacy').inspectPack(p);
+      return r.textures ? { state: 'ready', title: 'Ready', text: `${r.kind}${r.textures > 0 ? `: ${r.textures.toLocaleString()} textures` : ''}\n${p}` }
+        : { state: 'error', title: 'No classic textures here', text: `No Rice-named PNGs (like GAME#1A2B3C4D#0#2_all.png).\n${p}` };
+    } catch (e) { return { state: 'error', title: 'Can’t read this pack', text: `${e.message}\n${p}` }; }
+  }
+  if (kind === 'legacyHts') {
+    if (!st.isDirectory()) return { state: 'error', title: 'Not a folder', text: p };
+    let withRice = 0;
+    try { withRice = Database.load(path.join(p, DATABASE)).textures.filter((t) => t.hashes.rice).length; } catch { /* no rt64.json */ }
+    const named = require('./rice').readClassicPack(p).length;
+    return withRice || named ? { state: 'ready', title: 'Ready', text: `${(withRice + named).toLocaleString()} textures with Rice IDs\n${p}` }
+      : { state: 'error', title: 'No Rice IDs here', text: `Convert your RT64 dump with Add Rice IDs on, or use Rice-named PNGs.\n${p}` };
+  }
   return { state: 'idle', title: '', text: '' };
 }
 
@@ -365,7 +376,11 @@ async function convertTask(p, ctx, tools) {
   let db = new Database();
   if (p.onlyNew && fs.existsSync(dbFile)) { try { db = Database.load(dbFile); } catch { db = new Database(); } }
   db.config.hashVersion = version;
-  fresh.forEach((it, i) => { if (res.results[i]) db.add(it.hash, `${it.rel}.${p.format}`); });
+  // Rice IDs (from the .rice.* files RT64 dumps next to each texture) let classic packs be matched up.
+  let riceCount = 0;
+  const riceOf = (it) => { if (p.rice === false) return ''; try { const r = require('./rice').riceFromDump(it.src); if (r) riceCount++; return r || ''; } catch { return ''; } };
+  fresh.forEach((it, i) => { if (res.results[i]) db.add(it.hash, `${it.rel}.${p.format}`, riceOf(it)); });
+  if (p.rice !== false) ctx.log(riceCount ? `Added Rice IDs for ${riceCount.toLocaleString()} texture(s).` : 'No Rice IDs: this dump has no .rice files (dump again with a newer RT64).');
   db.save(dbFile);
   // Remember how each texture repeats, for Upscale's Edges: Auto.
   if (p.wrapInfo !== false) {
@@ -457,6 +472,52 @@ async function o2rBuildTask(p, ctx) {
   return { title: 'Built', written: r.written, failed: 0, output: r.file, sizeMB: r.bytesOut / 1048576, seconds: (Date.now() - t0) / 1000 };
 }
 
+// ---------------------------------------------------------------- 5) classic packs (Rice / GLideN64)
+async function runOne(kind, job, ctx, cleanup) {
+  const pool = new Pool(1);
+  ctx.onCancel(() => pool.close());
+  try { return await pool.run(kind, job, (d, t, m) => ctx.progress(d, t, m)); }
+  finally { await pool.close(); if (ctx.cancelled()) { cleanup(); throw new Cancelled(); } }
+}
+
+async function legacyImportTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose the classic pack (a Rice folder, or a .hts / .htc file).');
+  if (!p.dumpDb || !fs.existsSync(p.dumpDb)) throw new Error('Choose your converted RT64 dump (made with Add Rice IDs on).');
+  if (!p.output) throw new Error('Choose the output folder.');
+  const r = await runOne('legacyImport', { input: p.input, dumpDb: p.dumpDb, output: p.output }, ctx, () => cleanupParts(p.output));
+  ctx.log(`${r.matched.toLocaleString()} of the pack’s ${r.textures.toLocaleString()} textures match textures in your dump (${r.dumpTextures.toLocaleString()} with Rice IDs).`);
+  if (r.matched < r.textures) ctx.log('The rest weren’t in your dump: play more of the game with RT64 dumping on, convert again, then import again.');
+  return { title: 'Imported', written: r.matched, failed: 0, output: p.output, packable: r.matched > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
+async function legacyHtsTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose your texture folder.');
+  const name = String(p.name || '').trim();
+  if (!name) throw new Error('Type the game name (the name in the ROM header, like THE LEGEND OF ZELDA).');
+  const out = p.output || path.join(path.dirname(p.input), `${name}_HIRESTEXTURES.hts`);
+  const r = await runOne('legacyHts', { input: p.input, output: out }, ctx, () => fs.rmSync(out + '.part', { force: true }));
+  ctx.log(`GLideN64 pack: ${r.textures.toLocaleString()} texture(s)${r.fromDb ? `, ${r.fromDb.toLocaleString()} from rt64.json` : ''}${r.fromNames ? `, ${r.fromNames.toLocaleString()} from Rice file names` : ''}.`);
+  ctx.log('In GLideN64, turn on hi-res textures and “Texture Hires File Storage”, and put the file in its cache folder.');
+  return { title: 'Made', written: r.textures, failed: 0, output: out, sizeMB: fs.statSync(out).size / 1048576, seconds: (Date.now() - t0) / 1000 };
+}
+
+async function riceToO2rTask(p, ctx) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose the classic pack (a Rice folder, or a .hts / .htc file).');
+  if (!p.base || !fs.existsSync(p.base)) throw new Error('Choose the game’s own .o2r archive.');
+  if (!p.output || !/\.o2r$/i.test(p.output)) throw new Error('Choose where to save the mod (a name ending in .o2r).');
+  if (path.resolve(p.output).toLowerCase() === path.resolve(p.base).toLowerCase()) throw new Error('Save the mod as a new file, not over the game archive.');
+  const r = await runOne('riceToO2r', { input: p.input, base: p.base, output: p.output, alt: p.alt !== false, compression: p.compression || 'store' }, ctx,
+    () => fs.rmSync(p.output + '.part', { force: true }));
+  ctx.log(`${r.game} mod: ${r.matched.toLocaleString()} of the pack’s ${r.packTextures.toLocaleString()} textures matched, ${r.written.toLocaleString()} game texture(s) replaced.`);
+  if (r.unmatched.length) ctx.log(`${r.unmatched.length.toLocaleString()} didn’t match (often textures the port draws differently), e.g. ${r.unmatched.slice(0, 3).join(', ')}`);
+  if (r.resized.length) ctx.log(`${r.resized.length.toLocaleString()} weren’t a whole multiple of the original size and were fitted.`);
+  ctx.log('Put the .o2r in the port’s mods folder.');
+  return { title: 'Built', written: r.written, failed: 0, output: p.output, sizeMB: r.bytesOut / 1048576, seconds: (Date.now() - t0) / 1000 };
+}
+
 // ---------------------------------------------------------------- 3b) check a pack, and its fixes
 async function checkTask(p, ctx) {
   const t0 = Date.now();
@@ -537,4 +598,4 @@ async function preview(req, tools) {
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };

@@ -67,9 +67,16 @@ THE PAGES (sidebar)
    - Build HD mod: makes an .o2r for the port's mods folder. With the in-game
      switch on, players turn it on and off with "Use Alternate Assets" (Tab).
 
-5  Rice / GLideN64         (coming in the next build)
-   Classic Rice and GLideN64 packs into RT64 and Ship ports, and GLideN64
-   packs for Project64, RetroArch, RMG and BizHawk.
+5  Rice / GLideN64
+   - Use in RT64: a classic pack (Rice PNG folder, or GLideN64 .hts / .htc)
+     into an RT64 pack folder. It is matched through your RT64 dump, so
+     convert the dump first with "Add Rice IDs" on.
+   - Make GLideN64: a .hts pack for Project64, RetroArch, RMG and BizHawk
+     from textures with Rice IDs.
+   - Use in Ship port: a classic pack into a Ship port .o2r mod.
+
+R64texHD is free software under the GNU General Public License, version 2
+or later (see LICENSE.R64texHD.txt).
 
 OPTIONAL TOOLS (Settings, offered at startup until downloaded)
    texconv     - Microsoft DirectXTex, for BC7 DDS output (1 MB download).
