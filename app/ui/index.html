@@ -63,6 +63,12 @@ nav.locked button { pointer-events: none; opacity: .45; }
 .card .bar { margin-top: 10px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.35); overflow: hidden; }
 .card .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--orange), var(--orange-hi)); transition: width .25s; }
 .card .act { flex: none; display: flex; gap: 8px; }
+/* Status circles: a darker ring of their own colour, everywhere they appear. */
+.card .dot, .checks .c i, nav button .badge { box-sizing: border-box; border: 2px solid var(--ring, rgba(0,0,0,.45)); }
+.card .dot { --ring: #6b3200; } .card.idle .dot { --ring: #343d5e; } .card.error .dot { --ring: #9e2b2b; } .card.done .dot { --ring: #1d7a45; }
+.card:not(.idle):not(.error):not(.done) .dot { --ring: #000; }
+.checks .c.ok i { --ring: #1d7a45; } .checks .c.warn i { --ring: #a57a12; } .checks .c.bad i { --ring: #9e2b2b; }
+nav button .badge { --ring: #8a4300; border-width: 1.5px; width: 9px; height: 9px; }
 /* Orange cards (ready, working, done, notices) use the same bright orange as the menu, with dark text. */
 .card:not(.idle):not(.error) { color: var(--ink); }
 .card:not(.idle):not(.error) .p { color: rgba(26,18,6,.82); }
