@@ -1,4 +1,4 @@
-![R64texHD: RT64, 2 Ship and Majora's Mask over a retro sunset](docs/title.png)
+![R64texHD](docs/title.png)
 
 # R64texHD - Reimagine Every Pixel
 
