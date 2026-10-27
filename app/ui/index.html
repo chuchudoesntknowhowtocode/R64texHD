@@ -42,8 +42,6 @@ nav button:hover { background: var(--field); }
 nav button.active { background: var(--orange); color: var(--ink); box-shadow: 0 2px 10px rgba(255,141,122,.25); }
 nav button.active .n { background: rgba(43,11,40,.18); color: var(--ink); }
 nav button:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 2px; }
-nav button .new { margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: .6px; padding: 2px 6px; border-radius: 5px; background: rgba(233,80,138,.18); color: #ffa9c4; }
-nav button.active .new { background: rgba(43,11,40,.18); color: var(--ink); }
 nav .spacer { flex: 1; }
 nav.locked button { pointer-events: none; opacity: .45; }
 
@@ -250,7 +248,6 @@ h1 { text-shadow: 3px 3px 0 #000; }
 .section, nav .grp { text-shadow: 1px 1px 0 #000; letter-spacing: 1.2px; }
 nav button { white-space: nowrap; }
 nav button .n { border-radius: 0; }
-nav button .new { border-radius: 0; }
 .go { text-shadow: 1px 1px 0 rgba(255,255,255,.35); }
 .ver { text-shadow: 1px 1px 0 #000; }
 
@@ -345,7 +342,6 @@ nav button.active, .seg button.on, .seg.modes button.on, .btn.primary, .card:not
   box-shadow: var(--silver-edge) !important; filter: none;
 }
 nav button.active .n { background: rgba(42,45,56,.35); color: #fff; }
-nav button.active .new { background: rgba(42,45,56,.35); color: #fff; }
 /* the shine: a bright pixel streak that sweeps across on hover (and now and then on the Run button) */
 nav button.active::after, .seg button.on::after, .btn.primary::after, .go:not(.cancel)::after {
   content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 28%; z-index: -1; pointer-events: none;
@@ -412,9 +408,9 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
       <button data-page="convert"><span class="n">2</span>Convert RT64 Dump</button>
       <button data-page="pack"><span class="n">3</span>Pack / Check .rtz</button>
       <div class="grp">Ship Ports</div>
-      <button data-page="ports"><span class="n">4</span>Ship Mods .o2r<span class="new">NEW</span></button>
+      <button data-page="ports"><span class="n">4</span>Ship Mods .o2r</button>
       <div class="grp">Classic Packs</div>
-      <button data-page="legacy"><span class="n">5</span>Rice / GLideN64<span class="new">NEW</span></button>
+      <button data-page="legacy"><span class="n">5</span>Rice / GLideN64</button>
       <div class="spacer"></div>
       <button data-page="settings">Settings<span class="badge" id="tools-badge" hidden title="A helper tool isn’t downloaded yet"></span></button>
       <button data-page="about">About</button>
