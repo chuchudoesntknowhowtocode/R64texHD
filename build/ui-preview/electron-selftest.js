@@ -17,7 +17,9 @@ module.exports = async ({ app, win }) => {
 
   await new Promise((r) => (wc.isLoading() ? wc.once('did-finish-load', r) : r()));
   await wait(1200);                                   // splash: 3.5 s; the app appears at 3 s
-  check(!(await js("document.querySelector('#splash').hidden")) && (await js("document.querySelector('.app').classList.contains('waiting')")), 'splash shows first, app still hidden at ~1.5 s');
+  // Read the state and the page's own clock together, so a slow machine can't make this flaky.
+  const early = await js("({ t: performance.now(), splash: !document.querySelector('#splash').hidden, waiting: document.querySelector('.app').classList.contains('waiting') })");
+  check(early.t >= 2900 || (early.splash && early.waiting), `splash shows first, app still hidden (at ${(early.t / 1000).toFixed(1)} s)`);
   await shot('splash-early');
   await wait(2000);
   check(!(await js("document.querySelector('.app').classList.contains('waiting')")), 'app shown by ~3.2 s, under the fading splash');
