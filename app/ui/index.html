@@ -258,7 +258,16 @@ nav button .new { border-radius: 0; }
 .go { --step: 6px; }
 
 /* panels: a hard 2px pixel frame */
-nav, .page { box-shadow: inset 0 0 0 2px #222c52, inset 0 -6px 0 rgba(0,0,0,.18); }
+/* Pane frames sit in a 6 px border outside the scrolling area, so scrolled text always stops a few
+   pixels short of the frame instead of sliding over it. The 2 px frame line is drawn in that border. */
+nav, .page { --frame: #222c52; border: 6px solid transparent; box-shadow: none; background-color: var(--panel); background-origin: border-box; background-clip: border-box;
+  background-image: linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)), linear-gradient(var(--frame), var(--frame)),
+    linear-gradient(var(--frame), var(--frame)), linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,.18));
+  background-size: 100% 2px, 100% 2px, 2px 100%, 2px 100%, 100% 6px; background-repeat: no-repeat;
+  background-position: left top, left bottom, left top, right top, left bottom; }
+.page { padding: 16px 20px 14px; }
+nav { padding: 4px; }
+.preview { top: -16px; }
 .preview, .box, .checks, .log { box-shadow: inset 0 0 0 2px #222c52; border: 0; }
 .preview { box-shadow: inset 0 0 0 2px #2a3563; }
 .row + .row { border-top: 2px dotted #222c52; }
