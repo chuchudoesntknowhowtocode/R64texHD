@@ -233,31 +233,23 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 @media (prefers-reduced-motion: reduce) { .phrase, .phrase::before, .phrase::after, #splash img { animation-duration: .01s; } .phrase { opacity: 1; } }
 
 /* ================================================================ 8-bit layer
-   Pixel font for titles, menu and buttons; square "stepped" corners; bevelled buttons;
-   chunky progress bar; pixel status buttons (pixel-icons.js); faint scanlines.            */
-@font-face { font-family: "Press Start 2P"; src: url("fonts/PressStart2P.woff2") format("woff2"); font-display: block; }
-:root { --pixel: "Press Start 2P", "Courier New", monospace; --r: 0px; --step: 4px;
+   Square "stepped" corners, bevelled buttons, chunky progress bar, pixel status buttons
+   (pixel-icons.js) and scanlines on the header art. Text stays in the regular font so it
+   is sharp at every size; titles get hard pixel drop shadows instead.                     */
+:root { --r: 0px; --step: 4px;
   --notch: polygon(0 var(--step), var(--step) var(--step), var(--step) 0, calc(100% - var(--step)) 0, calc(100% - var(--step)) var(--step), 100% var(--step),
     100% calc(100% - var(--step)), calc(100% - var(--step)) calc(100% - var(--step)), calc(100% - var(--step)) 100%, var(--step) 100%, var(--step) calc(100% - var(--step)), 0 calc(100% - var(--step))); }
 .px-icon { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
 
-/* pixel font */
-h1 { font-family: var(--pixel); font-size: 19px; font-weight: 400; letter-spacing: 0; line-height: 1.35; text-shadow: 3px 3px 0 #000, 0 0 16px rgba(11,16,34,.9); }
-.page h2 { font-family: var(--pixel); font-size: 15px; font-weight: 400; letter-spacing: 0; line-height: 1.5; color: #fff; text-shadow: 2px 2px 0 #000; }
-nav .grp, .section { font-family: var(--pixel); font-size: 8px; font-weight: 400; letter-spacing: .5px; line-height: 1.6; }
-nav .grp { margin-top: 14px; color: #6d78a3; }
-.section { margin-top: 26px; text-shadow: 1px 1px 0 #000; }
-nav button { font-family: var(--pixel); font-size: 9px; white-space: nowrap; font-weight: 400; line-height: 1.5; letter-spacing: 0; padding: 12px 12px; }
-nav button .n { font-family: var(--pixel); font-size: 9px; border-radius: 0; width: 22px; height: 22px; }
-nav button .new { font-family: var(--pixel); font-size: 7px; font-weight: 400; border-radius: 0; padding: 3px 4px; letter-spacing: 0; }
-.card .t { font-family: var(--pixel); font-size: 11px; font-weight: 400; line-height: 1.6; letter-spacing: 0; }
-.go, .foot-btn { font-family: var(--pixel); font-weight: 400; letter-spacing: 0; }
-.go { font-size: 14px; }
-.foot-btn { font-size: 11px; }
-.seg.modes button { font-family: var(--pixel); font-size: 8px; line-height: 1.6; }
-.dialog h3 { font-family: var(--pixel); font-size: 13px; font-weight: 400; line-height: 1.6; }
-.toast { font-family: var(--pixel); font-size: 10px; }
-.ver { font-family: var(--pixel); font-size: 9px; font-weight: 400; letter-spacing: 0; text-shadow: 2px 2px 0 #000; }
+/* retro text: regular font, hard 1-2px drop shadows (sharp, no blur) */
+h1 { text-shadow: 3px 3px 0 #000; }
+.page h2 { text-shadow: 2px 2px 0 #000; letter-spacing: .4px; }
+.section, nav .grp { text-shadow: 1px 1px 0 #000; letter-spacing: 1.2px; }
+nav button { white-space: nowrap; }
+nav button .n { border-radius: 0; }
+nav button .new { border-radius: 0; }
+.go { text-shadow: 1px 1px 0 rgba(255,255,255,.35); }
+.ver { text-shadow: 1px 1px 0 #000; }
 
 /* square, stepped corners everywhere */
 .card, .preview, nav, .page, .btn, .seg button, .seg.modes, .path input, .text, .go, .foot-btn, .checks, .tip, .box, .dialog, .toast,
@@ -294,10 +286,10 @@ nav, .page { box-shadow: inset 0 0 0 2px #222c52, inset 0 -6px 0 rgba(0,0,0,.18)
 .card .dot { width: 32px; height: 32px; border: 0 !important; border-radius: 0; background: none !important; box-shadow: none !important; }
 .card.running .dot { animation: px-blink 1s steps(1) infinite; }
 @keyframes px-blink { 50% { opacity: .35; } }
-.checks .c i { width: 22px; height: 22px; border: 0 !important; background: none !important; margin-top: -2px; }
+.checks .c i { width: 32px; height: 32px; border: 0 !important; background: none !important; margin: -6px 0 -6px -4px; }
 nav button .badge { width: 16px; height: 16px; border: 0 !important; background: none !important; box-shadow: none !important; border-radius: 0; }
-.tool-state { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-family: var(--pixel); font-size: 8px; line-height: 1.6; }
-.tool-state svg { width: 20px; height: 20px; flex: none; }
+.tool-state { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12.5px; font-weight: 700; }
+.tool-state svg { width: 16px; height: 16px; flex: none; }
 .tool-state.have { color: var(--good); } .tool-state.missing { color: #ff7a6e; }
 
 /* chunky, segmented progress bar */
@@ -309,13 +301,14 @@ nav button .badge { width: 16px; height: 16px; border: 0 !important; background:
 ::-webkit-scrollbar-thumb { border-radius: 0; background: #2f3a6b; border: 3px solid var(--panel); }
 ::-webkit-scrollbar-thumb:hover { background: #42508c; }
 .tip { border: 0; box-shadow: inset 0 0 0 2px rgba(51,230,255,.3); }
-.tip .i { border-radius: 0; font-family: var(--pixel); font-size: 9px; font-weight: 400; }
+.tip .i { border-radius: 0; }
 .chip { font-size: 12px; }
 .pv-view { border: 0; box-shadow: inset 0 0 0 2px #222c52; background-size: 12px 12px; }
 
-/* faint CRT scanlines over the whole window */
-.app::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9;
-  background: repeating-linear-gradient(180deg, rgba(0,0,0,.07) 0 1px, transparent 1px 3px); mix-blend-mode: multiply; }
+/* faint CRT scanlines on the header art only, so text is never softened */
+header::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: repeating-linear-gradient(180deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); }
+.hdr-text, .ver { z-index: 3; }
 </style>
 </head>
 <body>
