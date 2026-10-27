@@ -56,7 +56,7 @@ packs along.
 
 ![Check a pack: problems first, with a one-click fix](docs/screenshots/check-a-pack.png)
 
-**4 · Ship Mods .o2r** (new)
+**4 · Ship Mods .o2r**
 - For the PC ports built on libultraship: 2 Ship 2 Harkinian, Ship of Harkinian,
   Starship and other `.o2r` ports.
 - **Get textures**: every texture in the game's `.o2r` (made by the port from your ROM)
@@ -72,7 +72,7 @@ packs along.
 
 ![Building a Ship port HD mod](docs/screenshots/ship-mods-o2r.png)
 
-**5 · Rice / GLideN64** (new)
+**5 · Rice / GLideN64**
 - **Rice IDs**: Convert RT64 Dump can add each texture's Rice ID to `rt64.json`
   ("Add Rice IDs"), worked out from the `.rice` files RT64 dumps, the same way RT64's
   own `texture_hasher --rice` does. That is what links RT64 to classic packs.
