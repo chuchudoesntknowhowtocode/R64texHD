@@ -323,6 +323,44 @@ header::after { content: ""; position: absolute; inset: 0; pointer-events: none;
 .hdr-text, .ver { z-index: 3; }
 .welcome-art { display: block; width: 100%; height: auto; max-height: 230px; object-fit: cover; margin: 0 0 18px; image-rendering: pixelated;
   clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--line); }
+
+/* ================================================================ silver pixel buttons
+   Polished-metal plates in the style of a pixel-art menu bar: diagonal light streaks on brushed
+   silver, a bright inner rim, a dark pixel outline, chunky bevels, and a shine that sweeps across.
+   Used for the selected / main buttons (menu item, chosen options, primary buttons, Run). */
+:root {
+  /* brushed silver, mid-grey like the reference, with hard-edged (pixel) light streaks */
+  --silver: linear-gradient(104deg,
+    #8b8f9d 0%, #9ea2af 10%, #b3b6c2 16%, #c9ccd5 19%, #e9ebf0 21%, #c2c5cf 23%, #a4a8b5 28%,
+    #969aa8 36%, #aeb1bd 44%, #d5d8df 49%, #f6f7fa 51%, #d5d8df 53%, #a9adb9 58%,
+    #979ba9 66%, #a8acb8 74%, #cfd2da 80%, #f0f1f5 82.5%, #c0c3cd 85%, #9a9eab 92%, #8a8e9c 100%);
+  --silver-edge: inset 0 0 0 2px #23252f, inset 0 0 0 4px #eef0f5, inset 0 0 0 5px #7b7f8e,
+                 inset 0 6px 0 0 rgba(255,255,255,.35), inset 0 -6px 0 0 rgba(40,42,54,.28);
+  --silver-text: 1px 1px 0 #2f3240, 2px 2px 0 rgba(28,30,40,.55), -1px 0 0 rgba(28,30,40,.35);
+}
+nav button.active, .seg button.on, .seg.modes button.on, .btn.primary, .card:not(.idle):not(.error) .btn.primary, .go:not(.cancel) {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: var(--silver) !important; background-size: 220% 100% !important; background-position: 0% 0 !important;
+  color: #ffffff !important; text-shadow: var(--silver-text) !important;
+  box-shadow: var(--silver-edge) !important; filter: none;
+}
+nav button.active .n { background: rgba(42,45,56,.35); color: #fff; }
+nav button.active .new { background: rgba(42,45,56,.35); color: #fff; }
+/* the shine: a bright pixel streak that sweeps across on hover (and now and then on the Run button) */
+nav button.active::after, .seg button.on::after, .btn.primary::after, .go:not(.cancel)::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -40%; width: 28%; z-index: -1; pointer-events: none;
+  background: linear-gradient(104deg, transparent 0, rgba(255,255,255,0) 20%, rgba(255,255,255,.85) 46%, #fff 50%, rgba(255,255,255,.85) 54%, rgba(255,255,255,0) 80%, transparent 100%);
+  transform: skewX(-18deg); opacity: 0; }
+nav button.active:hover::after, .seg button.on:hover::after, .btn.primary:hover::after, .go:not(.cancel):hover::after { animation: silver-sweep .7s steps(10) 1; }
+.go:not(.cancel)::after { animation: silver-sweep-pause 6s steps(60) 3.5s infinite; }
+@keyframes silver-sweep { 0% { left: -40%; opacity: 1; } 100% { left: 115%; opacity: 1; } }
+@keyframes silver-sweep-pause { 0% { left: -40%; opacity: 1; } 16% { left: 115%; opacity: 1; } 17%, 100% { left: 115%; opacity: 0; } }
+nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.cancel):hover { background-position: 30% 0 !important; }
+.btn.primary:active, .go:not(.cancel):active, .seg button.on:active {
+  transform: translateY(1px); box-shadow: inset 0 0 0 2px #2a2d38, inset 0 0 0 4px #c9ccd6, inset 0 0 0 5px #6e7282, inset 0 6px 0 0 rgba(40,42,54,.3) !important; }
+.go:not(.cancel) { font-size: 17px; }
+.btn.primary:disabled { filter: grayscale(.3) brightness(.85); }
+@media (prefers-reduced-motion: reduce) { nav button.active::after, .seg button.on::after, .btn.primary::after, .go::after { animation: none !important; } }
 </style>
 </head>
 <body>
