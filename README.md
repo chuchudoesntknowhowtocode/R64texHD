@@ -1,4 +1,4 @@
-![R64texHD](docs/title.png)
+![R64texHD](docs/r64texhd-title.png)
 
 # R64texHD - Reimagine Every Pixel
 
