@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:">
-<title>R64texHD - HD Texture Toolkit - RT64 Support v0.4.20</title>
+<title>R64texHD - HD Texture Toolkit for N64</title>
 <style>
 :root {
   --bg: #0b1022; --panel: #111833; --panel-2: #0e152d; --field: #18213f; --field-hover: #202b50; --line: #1d2747;
   --text: #f1f3f9; --muted: #8f9abb; --orange: #ff8a1c; --orange-hi: #ffa043; --ink: #1a1206;
-  --card: #6a330f; --card-line: #8b4716; --good: #3fcf7a; --bad: #ff6464; --r: 12px;
+  --card: #6a330f; --card-line: #8b4716; --good: #3fcf7a; --warn: #ffc44d; --bad: #ff6464; --r: 12px;
+  --pink: #ff3fb4; --cyan: #33e6ff; --violet: #9a5cff;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); overflow: hidden;
@@ -17,35 +18,39 @@ button, input { font: inherit; color: inherit; }
 input { user-select: text; }
 .app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
 
-header { position: relative; height: 192px; padding: 0 28px; overflow: hidden; display: flex; align-items: center;
+header { position: relative; height: 176px; padding: 0 28px; overflow: hidden; display: flex; align-items: center;
   background: linear-gradient(90deg, #0b1022 0%, #140c30 38%, #2a1252 70%, #3b1868 100%); }
 header::after { content: ""; position: absolute; inset: auto 0 0 0; height: 34px; background: linear-gradient(transparent, var(--bg)); z-index: 1; pointer-events: none; }
-/* Header artwork: the R64 scene sits on the right and fades into the dark background on the left. */
 .hdr-art { position: absolute; top: 0; height: 100%; width: auto; z-index: 0; pointer-events: none;
   right: clamp(-135px, calc(100vw - 1340px), 0px);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.55) 9%, #000 22%);
-          mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.55) 9%, #000 22%); }
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.55) 9%, #000 22%); mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.55) 9%, #000 22%); }
 .hdr-text { position: relative; z-index: 2; }
 h1 { margin: 0; white-space: nowrap; font-size: 27px; font-weight: 800; letter-spacing: .3px; text-shadow: 0 2px 0 rgba(0,0,0,.6), 0 0 18px rgba(11,16,34,.9); }
+h1 .ver { font-size: 13px; font-weight: 700; color: var(--muted); margin-left: 10px; letter-spacing: .4px; }
+.sub { margin-top: 12px; color: var(--orange); font-size: 13.5px; font-weight: 600; max-width: 560px; line-height: 1.5; text-shadow: 0 1px 0 rgba(0,0,0,.6), 0 0 14px rgba(11,16,34,.95); }
 .sub span { white-space: nowrap; }
-.sub { margin-top: 12px; color: var(--orange); font-size: 13.5px; font-weight: 600; letter-spacing: .1px; max-width: 520px; line-height: 1.5; text-shadow: 0 1px 0 rgba(0,0,0,.6), 0 0 14px rgba(11,16,34,.95); }
 
 main { display: grid; grid-template-columns: 244px minmax(0, 1fr); gap: 22px; padding: 0 18px; min-height: 0; position: relative; z-index: 1; }
-nav { background: var(--panel); border-radius: var(--r); padding: 10px; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
-nav button { all: unset; cursor: pointer; padding: 12px 14px; border-radius: 8px; font-weight: 600; display: flex; gap: 12px; align-items: center; }
+nav { background: var(--panel); border-radius: var(--r); padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
+nav .grp { margin: 10px 14px 2px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #5f6a90; }
+nav .grp:first-child { margin-top: 4px; }
+nav button { all: unset; cursor: pointer; padding: 11px 14px; border-radius: 8px; font-weight: 600; display: flex; gap: 12px; align-items: center; }
 nav button .n { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 12px; background: var(--field); color: var(--muted); flex: none; }
 nav button:hover { background: var(--field); }
 nav button.active { background: var(--orange); color: var(--ink); box-shadow: 0 2px 10px rgba(255,138,28,.25); }
 nav button.active .n { background: rgba(26,18,6,.18); color: var(--ink); }
 nav button:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 2px; }
+nav button .new { margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: .6px; padding: 2px 6px; border-radius: 5px; background: rgba(255,63,180,.18); color: #ff8fd3; }
+nav button.active .new { background: rgba(26,18,6,.18); color: var(--ink); }
 nav .spacer { flex: 1; }
 nav.locked button { pointer-events: none; opacity: .45; }
 
 .page { background: var(--panel); border-radius: var(--r); padding: 22px 26px 18px; overflow: auto; min-height: 0; }
 .page h2 { margin: 0; font-size: 19px; font-weight: 700; }
-.lead { margin: 12px 0 22px; color: var(--muted); }
+.lead { margin: 10px 0 20px; color: var(--muted); max-width: 760px; }
+.section { margin: 22px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; color: var(--orange); }
 
-.card { display: flex; align-items: center; gap: 20px; padding: 18px 22px; border-radius: var(--r); background: var(--card); border: 1px solid var(--card-line); margin-bottom: 24px; min-height: 76px; }
+.card { display: flex; align-items: center; gap: 20px; padding: 18px 22px; border-radius: var(--r); background: var(--card); border: 1px solid var(--card-line); margin-bottom: 22px; min-height: 76px; }
 .card .dot { width: 24px; height: 24px; border-radius: 50%; background: var(--orange); flex: none; box-shadow: 0 0 0 4px rgba(255,138,28,.12); }
 .card.idle { background: #1a2140; border-color: #253058; } .card.idle .dot { background: #56628a; box-shadow: none; }
 .card.error { background: #4a1820; border-color: #6d2430; } .card.error .dot { background: var(--bad); }
@@ -60,16 +65,21 @@ nav.locked button { pointer-events: none; opacity: .45; }
 .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px; align-items: center; padding: 10px 0 12px; }
 .row + .row { border-top: 1px solid var(--line); }
 .row .l b { display: block; font-weight: 600; }
-.row .l small { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.row .l small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.45; }
 .row[hidden] { display: none; }
 .seg { display: flex; gap: 8px; }
 .seg button { flex: 1; min-width: 0; padding: 7px 8px; border: 0; border-radius: 7px; background: var(--field); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .seg button:hover { background: var(--field-hover); }
 .seg button.on { background: var(--orange); color: var(--ink); font-weight: 600; }
 .seg button:disabled { opacity: .4; cursor: not-allowed; }
+.seg.modes { background: var(--panel-2); padding: 5px; border-radius: 10px; border: 1px solid var(--line); }
+.seg.modes button { padding: 9px 8px; background: transparent; }
+.seg.modes button:hover { background: var(--field); }
+.seg.modes button.on { background: var(--orange); }
 .path { display: flex; gap: 8px; }
-.path input { flex: 1; min-width: 0; padding: 7px 12px; border: 1px solid transparent; border-radius: 7px; background: var(--field); }
-.path input:focus { border-color: #3a4776; outline: none; }
+.path input, .text { flex: 1; min-width: 0; width: 100%; padding: 7px 12px; border: 1px solid transparent; border-radius: 7px; background: var(--field); }
+.path input:focus, .text:focus { border-color: #3a4776; outline: none; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .btn { padding: 7px 16px; border: 0; border-radius: 7px; background: var(--field); cursor: pointer; white-space: nowrap; }
 .btn:hover { background: var(--field-hover); }
 .btn.primary { background: var(--orange); color: var(--ink); font-weight: 600; }
@@ -87,13 +97,40 @@ nav button.active .badge { background: var(--ink); box-shadow: none; }
   font: 12px/1.5 "Cascadia Mono", Consolas, monospace; color: #c2c9df; max-height: 150px; overflow: auto; white-space: pre-wrap; user-select: text; }
 .log:empty { display: none; }
 
+/* tip strip: one friendly line about how this page fits in */
+.tip { display: flex; gap: 12px; align-items: flex-start; margin: -6px 0 20px; padding: 11px 14px; border-radius: 10px; background: rgba(51,230,255,.06); border: 1px solid rgba(51,230,255,.2); color: #bfeaf3; font-size: 13px; }
+.tip b { color: #e6fbff; }
+.tip .i { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; background: rgba(51,230,255,.18); color: var(--cyan); }
+
+/* recomp info box */
+.box { margin-top: 6px; padding: 4px 16px 6px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--line); }
+.box[hidden] { display: none; }
+.thumb { display: flex; gap: 10px; align-items: center; }
+.thumb .sq { width: 64px; height: 64px; border-radius: 8px; flex: none; border: 1px dashed #34417a; display: grid; place-items: center; color: var(--muted); font-size: 11px; overflow: hidden; }
+.thumb .sq img { width: 100%; height: 100%; object-fit: cover; }
+
+/* check results */
+.checks { margin: 0 0 18px; border-radius: 10px; border: 1px solid var(--line); overflow: hidden; }
+.checks .c { display: flex; gap: 12px; align-items: flex-start; padding: 11px 14px; background: var(--panel-2); }
+.checks .c + .c { border-top: 1px solid var(--line); }
+.checks .c i { flex: none; width: 18px; height: 18px; border-radius: 50%; margin-top: 1px; font-style: normal; font-size: 11px; font-weight: 900; display: grid; place-items: center; color: var(--ink); }
+.checks .c.ok i { background: var(--good); } .checks .c.warn i { background: var(--warn); } .checks .c.bad i { background: var(--bad); }
+.checks .c b { display: block; font-weight: 600; }
+.checks .c span { display: block; margin-top: 3px; color: var(--muted); font-size: 12.5px; }
+.checks .c .fix { margin-left: auto; flex: none; }
+
+/* game chips (ports page) */
+.games { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { padding: 5px 11px; border-radius: 20px; background: var(--field); font-size: 12.5px; color: var(--muted); }
+.chip.on { background: rgba(255,138,28,.16); color: var(--orange-hi); box-shadow: inset 0 0 0 1px rgba(255,138,28,.45); }
+
 footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16px; }
 .hints { flex: 1; color: var(--muted); font-size: 12px; }
 .hints div:first-child span { margin-right: 22px; }
 .hints div + div { margin-top: 8px; }
 .foot-btn { width: 130px; height: 50px; border: 0; border-radius: 12px; background: var(--field); font-size: 14.5px; cursor: pointer; }
 .foot-btn:hover { background: var(--field-hover); }
-.go { width: 214px; height: 58px; border: 0; border-radius: 30px; cursor: pointer; font-size: 17px; font-weight: 800; letter-spacing: .6px; color: var(--ink);
+.go { min-width: 214px; padding: 0 26px; height: 58px; border: 0; border-radius: 30px; cursor: pointer; font-size: 17px; font-weight: 800; letter-spacing: .6px; color: var(--ink);
   background: linear-gradient(180deg, var(--orange-hi), var(--orange)); box-shadow: 0 0 0 3px #2a1606, 0 0 0 5px rgba(255,138,28,.55), 0 6px 22px rgba(255,138,28,.25); }
 .go:hover { filter: brightness(1.06); }
 .go:active { transform: translateY(1px); }
@@ -127,8 +164,7 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .pv-view.z1 { display: block; overflow: auto; }
 .pv-view.z1 canvas { display: block; margin: 0 auto; }
 .pv-view canvas.px { image-rendering: pixelated; }
-.pv-busy { position: absolute; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 8px; background: rgba(11,16,34,.88); border: 1px solid #2a3460;
-  padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+.pv-busy { position: absolute; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 8px; background: rgba(11,16,34,.88); border: 1px solid #2a3460; padding: 6px 12px; border-radius: 8px; font-size: 12px; }
 .pv-busy[hidden] { display: none; }
 .pv-busy i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--orange); border-right-color: transparent; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -137,27 +173,81 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .pv-empty { height: 90px; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: #222c52; border: 1px solid #34417a; padding: 10px 18px; border-radius: 10px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
 .toast.show { opacity: 1; }
-.about p { color: var(--muted); }
-.repo { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding: 16px 20px; border-radius: var(--r); background: var(--card-2, #151c38); border: 1px solid #253058; }
+.about p { color: var(--muted); max-width: 820px; }
+.about p b { color: var(--text); }
+.repo { display: flex; align-items: center; gap: 16px; margin-top: 26px; padding: 16px 20px; border-radius: var(--r); background: #151c38; border: 1px solid #253058; }
 .repo svg { width: 30px; height: 30px; flex: none; fill: var(--text); }
 .repo .rt { flex: 1; min-width: 0; } .repo .rt b { display: block; } .repo .rt span { color: var(--muted); font-size: 13px; word-break: break-all; }
-@media (max-width: 1240px) { h1 { font-size: 21px; } .sub { font-size: 12.5px; max-width: 400px; } }
+@media (max-width: 1240px) { h1 { font-size: 21px; } .sub { font-size: 12.5px; max-width: 420px; } }
+
+/* ---------------------------------------------------------------- splash (2.5 s: fade in, hold, fade out) */
+#splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; cursor: pointer;
+  background: radial-gradient(ellipse at 50% 45%, #1c0c3a 0%, #0b0618 55%, #05030c 100%);
+  animation: splash-life 2.5s ease-in-out forwards; }
+#splash[hidden] { display: none; }
+#splash .inner { display: flex; flex-direction: column; align-items: center; width: min(92vw, 980px); }
+#splash img { width: 100%; height: auto; filter: drop-shadow(0 0 30px rgba(255,63,180,.35));
+  animation: splash-logo 2.5s cubic-bezier(.2,.8,.2,1) forwards; }
+#splash .grid { position: absolute; inset: 55% 0 0 0; pointer-events: none; opacity: .35;
+  background-image: linear-gradient(rgba(255,63,180,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(51,230,255,.4) 1px, transparent 1px);
+  background-size: 60px 30px; transform: perspective(380px) rotateX(62deg); transform-origin: top; mask-image: linear-gradient(transparent, #000 40%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 40%, transparent); }
+.phrase { position: relative; margin-top: -6px; padding: 0 20px; text-align: center; font-weight: 900; font-style: italic;
+  font-size: clamp(22px, 3vw, 38px); letter-spacing: .5px; text-transform: uppercase; line-height: 1.15;
+  font-family: "Segoe UI Black", "Segoe UI", system-ui, sans-serif;
+  color: #fff; background: linear-gradient(90deg, var(--cyan), #fff 30%, #ffe45c 50%, #fff 70%, var(--pink)); background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(255,63,180,.85)) drop-shadow(0 0 24px rgba(154,92,255,.6));
+  opacity: 0; animation: phrase-in 2.5s cubic-bezier(.2,.9,.25,1) forwards, phrase-shine 1.6s linear .5s infinite; }
+/* chromatic glitch copies behind the text */
+.phrase::before, .phrase::after { content: attr(data-text); position: absolute; inset: 0; padding: 0 20px; -webkit-text-fill-color: currentColor; background: none; pointer-events: none; mix-blend-mode: screen; opacity: .8; }
+.phrase::before { color: var(--cyan); animation: glitch-a 2.5s steps(1) forwards; }
+.phrase::after { color: var(--pink); animation: glitch-b 2.5s steps(1) forwards; }
+.phrase-sub { margin-top: 14px; font-size: 12px; font-weight: 700; letter-spacing: 4px; color: rgba(255,255,255,.55); text-transform: uppercase; opacity: 0; animation: phrase-sub 2.5s ease forwards; }
+@keyframes splash-life { 0% { opacity: 0; } 22% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+@keyframes splash-logo { 0% { transform: scale(.92); filter: drop-shadow(0 0 0 rgba(255,63,180,0)) brightness(.6); } 30% { transform: scale(1); filter: drop-shadow(0 0 34px rgba(255,63,180,.45)) brightness(1.08); } 100% { transform: scale(1.03); } }
+@keyframes phrase-in {
+  0%, 18% { opacity: 0; transform: translateY(14px) scale(1.25) skewX(-8deg); letter-spacing: 10px; filter: blur(8px); }
+  32% { opacity: 1; transform: translateY(0) scale(1) skewX(-8deg); letter-spacing: .5px; filter: drop-shadow(0 0 10px rgba(255,63,180,.85)) drop-shadow(0 0 24px rgba(154,92,255,.6)); }
+  36% { transform: translateY(0) scale(1.06) skewX(-8deg); }
+  40%, 100% { opacity: 1; transform: translateY(0) scale(1) skewX(-8deg); } }
+@keyframes phrase-shine { to { background-position: -220% 0; } }
+@keyframes glitch-a { 0%, 30% { transform: translate(0); opacity: 0; } 31% { transform: translate(-4px, 1px); opacity: .9; } 34% { transform: translate(3px, -1px); } 37% { transform: translate(-2px, 0); } 40% { transform: translate(0); opacity: 0; }
+  62% { transform: translate(-3px, 0); opacity: .8; } 64% { transform: translate(0); opacity: 0; } 100% { opacity: 0; } }
+@keyframes glitch-b { 0%, 30% { transform: translate(0); opacity: 0; } 31% { transform: translate(4px, -1px); opacity: .9; } 34% { transform: translate(-3px, 1px); } 37% { transform: translate(2px, 0); } 40% { transform: translate(0); opacity: 0; }
+  62% { transform: translate(3px, 0); opacity: .8; } 64% { transform: translate(0); opacity: 0; } 100% { opacity: 0; } }
+@keyframes phrase-sub { 0%, 34% { opacity: 0; } 46%, 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .phrase, .phrase::before, .phrase::after, #splash img { animation-duration: .01s; } .phrase { opacity: 1; } }
 </style>
 </head>
 <body>
+<div id="splash" hidden title="Click to skip">
+  <div class="grid"></div>
+  <div class="inner">
+    <img src="splash.png" alt="R64texHD">
+    <div class="phrase" id="phrase"></div>
+    <div class="phrase-sub" id="phrase-sub"></div>
+  </div>
+</div>
+
 <div class="app">
   <header>
     <div class="hdr-text">
-      <h1>R64texHD - Reimagine Every Pixel</h1>
-      <div class="sub"><span>Upscale .dds / .png textures -</span> <span>Convert RT64 Texture Dump -</span> <span>Pack/Extract .rtz texture packs</span></div>
+      <h1>R64texHD - Reimagine Every Pixel<span class="ver" id="ver"></span></h1>
+      <div class="sub"><span>HD textures for N64 games ·</span> <span>RT64 &amp; recomps ·</span> <span>Ship ports ·</span> <span>classic packs</span></div>
     </div>
     <img class="hdr-art" src="header-art.jpg" alt="" aria-hidden="true">
   </header>
   <main>
     <nav id="nav">
+      <div class="grp">Make it HD</div>
       <button data-page="upscale"><span class="n">1</span>Upscale Textures</button>
+      <div class="grp">RT64 · Recomps</div>
       <button data-page="convert"><span class="n">2</span>Convert RT64 Dump</button>
-      <button data-page="pack"><span class="n">3</span>Pack / Unpack .rtz</button>
+      <button data-page="pack"><span class="n">3</span>Pack / Check .rtz</button>
+      <div class="grp">Ship Ports</div>
+      <button data-page="ports"><span class="n">4</span>Ship Mods .o2r<span class="new">NEW</span></button>
+      <div class="grp">Classic Packs</div>
+      <button data-page="legacy"><span class="n">5</span>Rice / GLideN64<span class="new">NEW</span></button>
       <div class="spacer"></div>
       <button data-page="settings">Settings<span class="badge" id="tools-badge" hidden title="Optional tools not downloaded"></span></button>
       <button data-page="about">About</button>
@@ -182,21 +272,60 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 'use strict';
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const sep = () => (S.platform === 'win32' ? '\\' : '/');
-const join = (dir, name) => (dir ? dir.replace(/[\\/]+$/, '') + sep() + name : '');
+const join = (dir, name) => (dir ? dir.replace(/[\\/]+$/, '') + '\\' + name : '');
 const baseName = (p) => (p || '').replace(/[\\/]+$/, '').split(/[\\/]/).pop();
 let S = null, cfg = null, page = 'upscale', job = { running: false, task: '', log: [], result: null, error: null, done: 0, total: 0, message: '' };
 let statusCache = {}, packAfter = null;
 
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400); }
 
+// ---------------------------------------------------------------- splash
+// One phrase per launch, picked at random. "Keep it clean" in Settings leaves out the spicy ones.
+const PHRASES = {
+  'Absolutely disrespectful': [
+    'Your Textures Look Like Ass. Fix Them.', '64 Bits. 4K Attitude. Zero Mercy.', 'Putting the ‘HD’ in ‘Holy Shit, That’s N64?’',
+    'Those Textures Aged Like Milk.', 'Your Childhood Called. Its Graphics Are Embarrassing.', 'Blurry as Hell. Fixed as Fuck.',
+    'Same Game. Less Fugly.', 'The N64 Deserves Better Than That Pixelated Bullshit.', 'Turning Texture Crimes into Pixel Crimes of Passion.',
+    'Your ROM Has Seen Some Shit. We’re Here to Help.'],
+  'N64 roast session': [
+    'Expansion Pak for Your Eyeballs.', 'More Pixels Than Nintendo Ever Intended.', 'Making Muddy Textures Eat Their Vegetables.',
+    'Your Favourite Childhood Game Has Had a Fucking Glow-Up.', 'Fourteen Polygons. One Hell of a Makeover.', 'Rendering Nostalgia. Destroying Blur.',
+    'Because Even Mario Deserves Better Skin.', 'The Polygon Count Can Stay. The Ugly Can’t.', 'We Can’t Fix the Framerate. We Can Fix Those Textures.',
+    'Nintendo 64 Graphics? More Like Nintendo 64K.'],
+  'Unhinged gamer energy': [
+    'ROMs Don’t Remaster Themselves, Bitch.', 'Dump ROMs. Upscale Textures. Commit Pixel Crimes.', 'Vibe Coded. Texture Pilled.',
+    'No Talent. All Texture.', 'Built Different. Runs on Nostalgia.', 'Fuck the Blur. Respect the Cartridge.',
+    'Your Emulator Called. It Wants Better Assets.', 'Making Pixels So Sharp They Need a Warning Label.', 'HD Texture Packs for Games That Refuse to Die.',
+    'We Put the ‘Hell Yeah’ in High Resolution.'],
+};
+const SPICY = /\b(ass|shit|fuck\w*|bullshit|bitch|hell|fugly)\b/i;
+function pickPhrase(clean) {
+  const all = Object.entries(PHRASES).flatMap(([set, list]) => list.map((text) => ({ set, text })));
+  const pool = clean ? all.filter((p) => !SPICY.test(p.text)) : all;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function showSplash() {
+  const sp = $('#splash');
+  if (cfg.splash === false) return;
+  const p = window.__phrase || pickPhrase(cfg.cleanPhrases === true);
+  $('#phrase').textContent = p.text; $('#phrase').dataset.text = p.text;
+  $('#phrase-sub').textContent = `R64texHD v${S.version}`;
+  sp.hidden = false;
+  const done = () => { sp.hidden = true; };
+  sp.addEventListener('animationend', (e) => { if (e.target === sp) done(); });
+  sp.addEventListener('click', done);
+}
+
 // ---------------------------------------------------------------- controls
-const seg = (key, options, value, disabled = []) => `<div class="seg" data-key="${key}">` + options.map(([v, label]) =>
+const seg = (key, options, value, disabled = [], cls = '') => `<div class="seg ${cls}" data-key="${key}">` + options.map(([v, label]) =>
   `<button data-v="${esc(v)}" class="${String(value) === String(v) ? 'on' : ''}" ${disabled.includes(v) ? 'disabled' : ''}>${label}</button>`).join('') + '</div>';
 const row = (title, desc, control, show = true) => `<div class="row" ${show ? '' : 'hidden'}><div class="l"><b>${title}</b><small>${desc}</small></div><div>${control}</div></div>`;
 const pathField = (key, value, buttons, placeholder = '') => `<div class="path"><input data-path="${key}" value="${esc(Array.isArray(value) ? value.join(' ; ') : value)}" placeholder="${esc(placeholder)}" spellcheck="false">` +
   buttons.map(([kind, label]) => `<button class="btn" data-browse="${kind}" data-for="${key}">${label}</button>`).join('') + '</div>';
+const textField = (key, value, placeholder = '') => `<input class="text" data-path="${key}" value="${esc(value)}" placeholder="${esc(placeholder)}" spellcheck="false">`;
 const card = () => `<div class="card idle" id="status"><div class="dot"></div><div class="body"><div class="t"></div><div class="p"></div><div class="bar" hidden><i></i></div></div><div class="act"></div></div>`;
+const tip = (html) => `<div class="tip"><span class="i">i</span><div>${html}</div></div>`;
+const section = (t) => `<div class="section">${t}</div>`;
 const DDS_OPTS = () => [['auto', 'Auto'], ['bc7', 'BC7'], ['bc3', 'BC3'], ['bc1', 'BC1'], ['rgba8', 'None']];
 
 function getVal(key) { return key.split('.').reduce((o, k) => (o == null ? o : o[k]), cfg); }
@@ -210,68 +339,162 @@ function setVal(key, v) {
   o[last] = v;
 }
 
+// Settings added in 0.7: filled in here so older settings files keep working.
+const NEW_DEFAULTS = {
+  splash: true, cleanPhrases: false, aiGpu: 'auto', aiTile: 'auto',
+  upscale: { keepCoverage: true },
+  convert: { wrapInfo: true, rice: true, onlyNew: false },
+  pack: { recomp: false, recompName: '', recompAuthor: '', recompVersion: '1.0.0', recompDescription: '', recompThumb: '', recompToggle: true },
+  check: { input: '' },
+  ports: { mode: 'extract', archive: '', output: '', hdInput: '', base: '', modOutput: '', alt: true, compression: 'store' },
+  legacy: { mode: 'import', input: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
+};
+function withDefaults(c) {
+  for (const [k, v] of Object.entries(NEW_DEFAULTS)) {
+    if (v && typeof v === 'object') c[k] = { ...v, ...(c[k] || {}) };
+    else if (c[k] === undefined) c[k] = v;
+  }
+  if (!['pack', 'unpack', 'check'].includes(c.pack.mode)) c.pack.mode = 'pack';
+  return c;
+}
+
 // ---------------------------------------------------------------- pages
 const pages = {
   setup() {
     return `<h2>Welcome</h2><p class="lead">Two folders to set up first. You can change them later in Settings.</p>
-      ${row('RT64 texture dump folder', 'Where RT64 saves texture dumps (RT64 debugger, F1 > Textures > Start dumping textures). Skip it if you do not use RT64 dumps.',
+      ${row('RT64 texture dump folder', 'Where RT64 saves texture dumps (press F1 in game › Textures › Start dumping textures). Skip it if you don’t use RT64.',
         pathField('dumpFolder', cfg.dumpFolder, [['folder', 'Browse…']], 'Optional'))}
-      ${row('Output folder', 'Where upscaled textures, converted dumps and .rtz packs are saved by default.',
+      ${row('Output folder', 'Where your HD textures and packs are saved by default.',
         pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']], 'Choose a folder'))}
-      ${S.platform === 'win32' ? row('Desktop shortcut', 'Optional. The toolkit is portable: nothing is installed or written to AppData.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`) : ''}
-      ${row('Settings location', 'Settings, downloads and temporary files stay in this folder, next to the program.', `<div class="tool">${esc(S.dataDir)}</div>`)}`;
+      ${row('Desktop shortcut', 'Optional. R64texHD is portable: nothing is installed.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)}
+      ${row('Settings location', 'Settings, downloads and temporary files stay next to the program.', `<div class="tool">${esc(S.dataDir)}</div>`)}`;
   },
   upscale() {
     const u = cfg.upscale, dds = u.format === 'dds' || u.format === 'same';
     const sharpOk = u.method === 'standard' || u.method === 'ai';
-    return `<h2>Upscale Textures</h2><p class="lead">Raise the resolution of PNG and DDS textures: a whole folder (subfolders kept) or picked files.</p>
+    return `<h2>Upscale Textures</h2><p class="lead">Make N64 textures bigger and sharper. Pick a folder (subfolders are kept) or a few files.</p>
       ${card()}
       ${previewPanel()}
       ${row('Input', 'A folder of textures, or one or more PNG / DDS files.', pathField('upscale.inputs', u.inputs, [['folder', 'Folder…'], ['images', 'Files…']], 'Choose a folder or files'))}
-      ${row('Include subfolders', 'Upscale every texture below the folder, keeping the same folder layout.', seg('upscale.subfolders', [['true', 'Yes'], ['false', 'No']], String(u.subfolders)))}
-      ${row('Method', 'Standard enlarges 2× at a time and sharpens after each step. Smooth is one soft resize. Pixel art keeps hard pixels. AI uses Real-ESRGAN (Settings).',
+      ${row('Include subfolders', 'Upscale everything inside the folder, keeping the same layout.', seg('upscale.subfolders', [['true', 'Yes'], ['false', 'No']], String(u.subfolders)))}
+      ${row('Method', 'Standard grows in 2× steps and sharpens as it goes. Smooth is one soft resize. Pixel art keeps blocky pixels. AI uses Real-ESRGAN.',
         seg('upscale.method', [['standard', 'Standard'], ['smooth', 'Smooth'], ['pixel', 'Pixel art'], ['ai', 'AI']], u.method, S.tools.realesrgan ? [] : ['ai']))}
-      ${row('Size', `How much bigger. Fit scales the longest side to a set size. Nothing grows past ${cfg.maxSize} px.`,
+      ${row('Size', `How much bigger. Fit sets the longest side. Nothing goes past ${cfg.maxSize} px.`,
         seg('upscale.size', [['2', '2×'], ['3', '3×'], ['4', '4×'], ['6', '6×'], ['8', '8×'], ['fit', 'Fit']], u.size))}
       ${row('Longest side', 'Target size when Size is Fit.', seg('upscale.fit', [['512', '512'], ['1024', '1024'], ['2048', '2048'], ['4096', '4096']], u.fit), u.size === 'fit')}
-      ${row('Sharpness', 'How much detail is brought back after each step; it grows as the texture gets bigger.',
+      ${row('Sharpness', 'How much detail comes back after each step.',
         seg('upscale.sharpness', [['off', 'Off'], ['soft', 'Soft'], ['normal', 'Normal'], ['strong', 'Strong'], ['extra', 'Extra']], u.sharpness), sharpOk)}
-      ${row('Edges', 'Tile for textures that repeat (floors, walls) so seams stay invisible. Mirror for mirrored tiling.',
-        seg('upscale.edges', [['clamp', 'Normal'], ['wrap', 'Tile'], ['mirror', 'Mirror']], u.edges), u.method !== 'pixel')}
-      ${row('Cut-out edges', 'Hard keeps on/off transparency (leaves, fences, text) crisp.', seg('upscale.hardAlpha', [['true', 'Hard'], ['false', 'Smooth']], String(u.hardAlpha)), u.method !== 'pixel')}
-      ${row('Output format', 'Same keeps each file’s format.', seg('upscale.format', [['same', 'Same as input'], ['png', 'PNG'], ['dds', 'DDS']], u.format))}
-      ${row('DDS compression', 'For DDS output. Auto: BC1 opaque / BC3 transparent. BC7 is sharpest (needs texconv). None is uncompressed.',
+      ${row('Edges', 'Auto uses each texture’s own setting from the RT64 dump, so floors and walls stay seamless. Or set one for everything.',
+        seg('upscale.edges', [['auto', 'Auto'], ['clamp', 'Normal'], ['wrap', 'Tile'], ['mirror', 'Mirror']], u.edges), u.method !== 'pixel')}
+      ${row('Cut-out edges', 'Hard keeps see-through bits (leaves, fences, text) crisp.', seg('upscale.hardAlpha', [['true', 'Hard'], ['false', 'Smooth']], String(u.hardAlpha)), u.method !== 'pixel')}
+      ${row('Output format', 'Same keeps each file’s format. DDS loads fastest in game.', seg('upscale.format', [['same', 'Same as input'], ['png', 'PNG'], ['dds', 'DDS']], u.format))}
+      ${row('DDS compression', 'Auto picks BC1 or BC3. BC7 is sharpest (needs texconv). None is uncompressed.',
         seg('upscale.ddsFormat', DDS_OPTS(), u.ddsFormat, S.tools.texconv ? [] : ['bc7']), dds)}
+      ${row('Fences far away', 'Keeps fences, grass and leaves from fading out in the distance.', seg('upscale.keepCoverage', [['true', 'Keep them'], ['false', 'Off']], String(u.keepCoverage)), dds)}
       ${row('Output folder', 'Where the upscaled textures go.', pathField('upscale.output', u.output, [['folder', 'Browse…']]))}
-      ${row('Existing files', 'Skip lets you continue an interrupted run.', seg('upscale.existing', [['overwrite', 'Overwrite'], ['skip', 'Skip']], u.existing))}
-      ${row('Other files', 'Copy files that are not textures (rt64.json, readme…) into the output too.', seg('upscale.copyOther', [['true', 'Copy'], ['false', 'Leave']], String(u.copyOther)))}
+      ${row('Existing files', 'Skip lets you pick up where you left off.', seg('upscale.existing', [['overwrite', 'Overwrite'], ['skip', 'Skip']], u.existing))}
+      ${row('Other files', 'Copy non-texture files (rt64.json, readme…) along too.', seg('upscale.copyOther', [['true', 'Copy'], ['false', 'Leave']], String(u.copyOther)))}
       <div class="log" id="log"></div>`;
   },
   convert() {
     const c = cfg.convert;
-    return `<h2>Convert RT64 Dump</h2><p class="lead">Turn an RT64 texture dump into PNG or DDS textures with a ready-made rt64.json. When it finishes you can pack it into an .rtz.</p>
+    return `<h2>Convert RT64 Dump</h2><p class="lead">Turn an RT64 texture dump into PNG or DDS textures, with a ready-made rt64.json. Works for RT64 in emulators and for recomps.</p>
       ${card()}
-      ${row('Dump folder', 'The folder RT64 dumped into: it holds .tmem and .tile.json files.', pathField('convert.input', c.input || cfg.dumpFolder, [['folder', 'Browse…']], 'Choose the RT64 texture dump folder'))}
-      ${row('Output format', 'PNG is lossless and easy to edit. DDS loads fastest in game.', seg('convert.format', [['png', 'PNG'], ['dds', 'DDS']], c.format))}
-      ${row('DDS compression', 'Auto: BC1 opaque / BC3 transparent. BC7 needs texconv. None is uncompressed.', seg('convert.ddsFormat', DDS_OPTS(), c.ddsFormat, S.tools.texconv ? [] : ['bc7']), c.format === 'dds')}
+      ${row('Dump folder', 'The folder RT64 dumped into. It has .tmem and .tile.json files.', pathField('convert.input', c.input || cfg.dumpFolder, [['folder', 'Browse…']], 'Choose the RT64 texture dump folder'))}
+      ${row('Output format', 'PNG is easy to edit. DDS loads fastest in game.', seg('convert.format', [['png', 'PNG'], ['dds', 'DDS']], c.format))}
+      ${row('DDS compression', 'Auto picks BC1 or BC3. BC7 needs texconv.', seg('convert.ddsFormat', DDS_OPTS(), c.ddsFormat, S.tools.texconv ? [] : ['bc7']), c.format === 'dds')}
       ${row('Output folder', 'Gets a textures folder and rt64.json.', pathField('convert.output', c.output, [['folder', 'Browse…']]))}
+      ${section('Extras')}
+      ${row('Remember tiling', 'Saves how each texture repeats, so Upscale can keep it seamless (Edges: Auto).', seg('convert.wrapInfo', [['true', 'Yes'], ['false', 'No']], String(c.wrapInfo)))}
+      ${row('Add Rice IDs', 'Also writes the older Rice ID for each texture, so packs made for other emulators can be matched up.', seg('convert.rice', [['true', 'Yes'], ['false', 'No']], String(c.rice)))}
+      ${row('Only new textures', 'Skips textures already in the output folder. Great after you play further and dump more.', seg('convert.onlyNew', [['false', 'Convert all'], ['true', 'Only new']], String(c.onlyNew)))}
       <div class="log" id="log"></div>`;
   },
   pack() {
-    const p = cfg.pack, u = cfg.unpack, unpacking = p.mode === 'unpack';
-    const rows = unpacking
-      ? row('Texture pack', 'The .rtz file to open.', pathField('unpack.input', u.input, [['open-rtz', 'Browse…']], 'Choose an .rtz pack'))
-        + row('Output folder', 'Choose the folder the pack is unpacked into.', pathField('unpack.output', u.output, [['folder', 'Browse…']]))
-        + row('Low-mip cache', 'Leave it out if you plan to edit the textures (it would be out of date); packing rebuilds it.', seg('unpack.keepCache', [['false', 'Leave out'], ['true', 'Keep']], String(u.keepCache)))
-      : row('Texture folder', 'The pack folder. Uses its rt64.json, or makes one from hash-named PNG / DDS files.', pathField('pack.input', p.input, [['folder', 'Browse…']], 'Choose the folder to pack'))
-        + row('Save .rtz as', 'Choose where the pack file goes.', pathField('pack.output', p.output, [['save-rtz', 'Browse…']]))
+    const p = cfg.pack, u = cfg.unpack, k = cfg.check, mode = p.mode;
+    const modes = seg('pack.mode', [['pack', 'Pack → .rtz'], ['unpack', 'Unpack .rtz'], ['check', 'Check a pack']], mode, [], 'modes');
+    let rows = '';
+    if (mode === 'unpack') {
+      rows = row('Texture pack', 'The .rtz file to open.', pathField('unpack.input', u.input, [['open-rtz', 'Browse…']], 'Choose an .rtz pack'))
+        + row('Output folder', 'Where the pack is unpacked.', pathField('unpack.output', u.output, [['folder', 'Browse…']]))
+        + row('Low-mip cache', 'Leave it out if you’re going to edit textures. Packing builds a fresh one.', seg('unpack.keepCache', [['false', 'Leave out'], ['true', 'Keep']], String(u.keepCache)));
+    } else if (mode === 'check') {
+      rows = row('Pack to check', 'An .rtz file or a pack folder. Nothing is changed, it just looks.', pathField('check.input', k.input, [['folder', 'Folder…'], ['open-rtz', '.rtz…']], 'Choose an .rtz or a pack folder'))
+        + `<div id="checks"></div>`;
+    } else {
+      const r = cfg.pack;
+      rows = row('Texture folder', 'Your pack folder. Uses its rt64.json, or makes one from hash-named files.', pathField('pack.input', p.input, [['folder', 'Browse…']], 'Choose the folder to pack'))
+        + row('Save .rtz as', 'Where the pack file goes.', pathField('pack.output', p.output, [['save-rtz', 'Browse…']]))
         + row('Compression', 'Zstandard matches RT64’s own packer. Deflate opens in any zip tool.', seg('pack.compression', [['zstd', 'Zstandard'], ['deflate', 'Deflate'], ['store', 'Store']], p.compression))
-        + row('Compression level', 'Max is the smallest file and the slowest.', seg('pack.level', [['fast', 'Fast'], ['balanced', 'Balanced'], ['max', 'Max']], p.level), p.compression !== 'store')
-        + row('Low-mip cache', 'Small previews of DDS textures shown while the full ones stream in. Recommended.', seg('pack.lowMipCache', [['true', 'Build'], ['false', 'Skip']], String(p.lowMipCache)));
-    return `<h2>Pack / Unpack .rtz</h2><p class="lead">Pack a DDS / PNG texture folder into a single .rtz file, or unpack an .rtz back into a folder of textures and rt64.json.</p>
+        + row('Compression level', 'Max is smallest but slowest.', seg('pack.level', [['fast', 'Fast'], ['balanced', 'Balanced'], ['max', 'Max']], p.level), p.compression !== 'store')
+        + row('Low-mip cache', 'Small previews shown while full textures load in. Recommended.', seg('pack.lowMipCache', [['true', 'Build'], ['false', 'Skip']], String(p.lowMipCache)))
+        + section('Recomp mod info')
+        + row('Show in the Recomp mod menu', 'Gives your pack a name, author and picture in Zelda 64: Recompiled and other recomps.', seg('pack.recomp', [['true', 'Add info'], ['false', 'No']], String(r.recomp)))
+        + `<div class="box" ${r.recomp ? '' : 'hidden'}>`
+        + row('Name', 'What players see in the mod list.', textField('pack.recompName', r.recompName, 'My HD Texture Pack'))
+        + row('Author and version', 'Your name, and a version like 1.0.0.', `<div class="pair">${textField('pack.recompAuthor', r.recompAuthor, 'Your name')}${textField('pack.recompVersion', r.recompVersion, '1.0.0')}</div>`)
+        + row('Description', 'One line about the pack.', textField('pack.recompDescription', r.recompDescription, 'Sharper textures for the whole game'))
+        + row('Picture', 'A square PNG shown next to the name.', `<div class="thumb"><div class="sq">${r.recompThumb ? `<img alt="" id="thumb-img" data-src="${esc(r.recompThumb)}">` : 'none'}</div>${pathField('pack.recompThumb', r.recompThumb, [['image', 'Browse…']], 'Optional')}</div>`)
+        + row('On / off switch', 'Adds a switch in the mod menu so players can turn your textures off and on.', seg('pack.recompToggle', [['true', 'Add switch'], ['false', 'No']], String(r.recompToggle)))
+        + `</div>`;
+    }
+    const lead = { pack: 'Bundle a texture folder into one .rtz file. RT64 emulators and recomps load it directly.',
+      unpack: 'Open an .rtz back into a folder of textures and rt64.json, ready to edit, upscale or repack.',
+      check: 'Look over a pack before you share it. It points out anything that could cause pop-in, missing textures or wasted memory.' }[mode];
+    return `<h2>Pack / Check .rtz</h2><p class="lead">${lead}</p>
       ${card()}
-      ${row('Mode', unpacking ? 'Open an .rtz pack into a folder, ready to edit, upscale or repack.' : 'Bundle a texture pack folder into one .rtz file the game loads directly.',
-        seg('pack.mode', [['pack', 'Pack folder → .rtz'], ['unpack', 'Unpack .rtz → folder']], p.mode))}
+      ${row('What to do', '', modes)}
+      ${rows}
+      <div class="log" id="log"></div>`;
+  },
+  ports() {
+    const o = cfg.ports, extract = o.mode === 'extract';
+    const modes = seg('ports.mode', [['extract', 'Get textures from a game'], ['build', 'Build an HD mod']], o.mode, [], 'modes');
+    const arc = baseName(extract ? o.archive : o.base).toLowerCase();
+    const games = `<div class="games">${[['2 Ship 2 Harkinian', /^mm/], ['Ship of Harkinian', /^oot|^mq/], ['Starship', /^sf64/], ['Other .o2r ports', null]]
+      .map(([g, re]) => `<span class="chip ${re && re.test(arc) ? 'on' : ''}">${g}</span>`).join('')}</div>`;
+    const rows = extract
+      ? row('Game archive', 'The .o2r or .otr the port made from your ROM (for example mm.o2r in the 2Ship folder).', pathField('ports.archive', o.archive, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
+        + row('Output folder', 'Gets every texture as a PNG, in the same folders as inside the game.', pathField('ports.output', o.output, [['folder', 'Browse…']]))
+      : row('HD texture folder', 'Your upscaled PNGs, in the same folders you got them from.', pathField('ports.hdInput', o.hdInput, [['folder', 'Browse…']], 'Choose your HD texture folder'))
+        + row('Game archive', 'The game’s own .o2r, used to match each texture and check its size.', pathField('ports.base', o.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
+        + row('Save mod as', 'Put it in the port’s mods folder. File names set the load order.', pathField('ports.modOutput', o.modOutput, [['save-o2r', 'Browse…']]))
+        + row('In-game switch', 'Players can flip your textures on and off with “Use Alternate Assets” (Tab key).', seg('ports.alt', [['true', 'Add switch'], ['false', 'Always on']], String(o.alt)))
+        + row('Compression', 'Store loads fastest and avoids stutter. Deflate makes a smaller file.', seg('ports.compression', [['store', 'Store'], ['deflate', 'Deflate']], o.compression));
+    return `<h2>Ship Mods .o2r</h2><p class="lead">HD textures for the PC ports built from N64 decomps: 2 Ship 2 Harkinian, Ship of Harkinian, Starship and friends.</p>
+      ${tip(extract ? 'Step 1 of 3. Get the textures out, then <b>1 · Upscale</b> the folder, then come back and <b>Build an HD mod</b>.' : 'Step 3 of 3. Turn your upscaled folder into a mod the port loads from its <b>mods</b> folder.')}
+      ${card()}
+      ${row('What to do', '', modes)}
+      ${row('Works with', 'Ports that use .o2r / .otr archives.', games)}
+      ${rows}
+      <div class="log" id="log"></div>`;
+  },
+  legacy() {
+    const g = cfg.legacy, m = g.mode;
+    const modes = seg('legacy.mode', [['import', 'Use in RT64'], ['hts', 'Make GLideN64'], ['ship', 'Use in a Ship port']], m, [], 'modes');
+    let rows, lead, tipText;
+    if (m === 'import') {
+      lead = 'Bring a classic texture pack (Rice PNG folder, or GLideN64 .hts / .htc) into RT64 and recomps.';
+      tipText = 'Works with packs from Project64, RetroArch, RMG and BizHawk. The result is a normal pack folder: pack it on <b>3 · Pack / Check .rtz</b>.';
+      rows = row('Classic pack', 'A Rice texture folder, or a GLideN64 .hts or .htc file.', pathField('legacy.input', g.input, [['folder', 'Folder…'], ['open-hts', 'File…']], 'Choose a folder or .hts / .htc'))
+        + row('Output folder', 'Gets the textures and an rt64.json that finds them by their Rice IDs.', pathField('legacy.output', g.output, [['folder', 'Browse…']]));
+    } else if (m === 'hts') {
+      lead = 'Turn your HD texture folder into a GLideN64 .hts pack for Project64, RetroArch, RMG and BizHawk.';
+      tipText = 'Your textures need Rice IDs. Convert RT64 dumps with <b>Add Rice IDs</b> turned on, or start from a classic pack.';
+      rows = row('Texture folder', 'HD textures with Rice IDs in their names, or a folder with rt64.json.', pathField('legacy.htsInput', g.htsInput, [['folder', 'Browse…']], 'Choose your texture folder'))
+        + row('Game name', 'The name GLideN64 looks for. It’s the name in the ROM header, like THE LEGEND OF ZELDA.', textField('legacy.htsName', g.htsName, 'THE LEGEND OF ZELDA'))
+        + row('Save as', 'Ends in _HIRESTEXTURES.hts. Goes in the emulator’s cache or hires_texture folder.', pathField('legacy.htsOutput', g.htsOutput, [['save-hts', 'Browse…']]));
+    } else {
+      lead = 'Turn a classic Rice pack into a mod for 2Ship, Ship of Harkinian and other Ship ports.';
+      tipText = 'Each texture is matched by its Rice ID against the game’s .o2r. Most of a pack usually matches; you’ll get a list of anything that didn’t.';
+      rows = row('Rice pack', 'The classic Rice texture folder.', pathField('legacy.riceInput', g.riceInput, [['folder', 'Browse…']], 'Choose the Rice texture folder'))
+        + row('Game archive', 'The port’s own .o2r, made from your ROM.', pathField('legacy.base', g.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
+        + row('Save mod as', 'Put it in the port’s mods folder.', pathField('legacy.modOutput', g.modOutput, [['save-o2r', 'Browse…']]));
+    }
+    return `<h2>Rice / GLideN64 Packs</h2><p class="lead">${lead}</p>
+      ${tip(tipText)}
+      ${card()}
+      ${row('What to do', '', modes)}
       ${rows}
       <div class="log" id="log"></div>`;
   },
@@ -280,47 +503,56 @@ const pages = {
     const tool = (name, path, label, size) => `<div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}<button class="btn" data-browse="exe" data-for="${name}">Locate…</button></div><div class="tool" id="tool-${name}"></div>`;
     const miss = missingTools();
     const notice = !toolNotice ? '' : miss.length
-      ? `<div class="card notice"><div class="dot"></div><div class="body"><div class="t">Download the optional tools</div>
-          <div class="p">These tools haven't been downloaded to this copy of R64texHD yet:</div>
+      ? `<div class="card notice"><div class="dot"></div><div class="body"><div class="t">Download the helper tools</div>
+          <div class="p">These haven’t been downloaded to this copy of R64texHD yet:</div>
           <ul>${miss.map((n) => `<li><b>${TOOL_INFO[n].label}</b>: ${TOOL_INFO[n].use}</li>`).join('')}</ul>
           <div class="p">They go in the portable data folder. Everything else works without them.</div>
           <div class="tool" id="tool-all"></div></div>
-          <div class="act"><button class="btn primary" id="dl-all">Download ${miss.length > 1 ? 'both' : TOOL_INFO[miss[0]].label} (${miss.map((n) => TOOL_INFO[n].size).join(' + ')})</button><button class="btn" id="skip-tools">Not now</button></div></div>`
-      : `<div class="card done"><div class="dot"></div><div class="body"><div class="t">All tools are ready</div><div class="p">BC7 DDS output and the AI upscale method are now available.</div></div><div class="act"><button class="btn primary" id="skip-tools">Start ▶</button></div></div>`;
-    return `<h2>Settings</h2><p class="lead">Default folders, performance and optional tools.</p>
+          <div class="act"><button class="btn primary" id="dl-all">Download ${miss.length > 1 ? 'all' : TOOL_INFO[miss[0]].label} (${miss.map((n) => TOOL_INFO[n].size).join(' + ')})</button><button class="btn" id="skip-tools">Not now</button></div></div>`
+      : `<div class="card done"><div class="dot"></div><div class="body"><div class="t">All tools are ready</div><div class="p">BC7 DDS output and AI upscaling are available.</div></div><div class="act"><button class="btn primary" id="skip-tools">Start ▶</button></div></div>`;
+    return `<h2>Settings</h2><p class="lead">Default folders, helper tools and how R64texHD looks and runs.</p>
       ${notice}
+      ${section('Folders')}
       ${row('RT64 texture dump folder', 'Default for Convert RT64 Dump.', pathField('dumpFolder', cfg.dumpFolder, [['folder', 'Browse…']]))}
       ${row('Output folder', 'Default place for new output.', pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']]))}
+      ${section('Helper tools')}
+      ${row('texconv (BC7)', 'From Microsoft. Makes sharp BC7 DDS textures and keeps far-away fences visible.', tool('texconv', t.texconv, 'texconv', TOOL_INFO.texconv.size))}
+      ${row('Real-ESRGAN (AI)', 'For the AI upscale method. Needs a graphics card with Vulkan.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', TOOL_INFO.realesrgan.size))}
+      ${row('Check tools at startup', 'If a tool is missing, R64texHD opens here so you can download it.', seg('checkTools', [['true', 'On'], ['false', 'Off']], String(cfg.checkTools !== false)))}
+      ${section('AI upscaling')}
+      ${row('AI model', 'General suits most textures. Art suits drawn or cartoon textures.', seg('realesrganModel', [['realesrgan-x4plus', 'General'], ['realesrgan-x4plus-anime', 'Art'], ['realesr-animevideov3', 'Fast art']], cfg.realesrganModel))}
+      ${row('Graphics card', 'Which GPU the AI uses. Auto picks the best one.', seg('aiGpu', [['auto', 'Auto'], ['0', 'GPU 1'], ['1', 'GPU 2']], cfg.aiGpu))}
+      ${row('GPU memory use', 'Pick Low if AI upscaling crashes or your graphics card has little memory.', seg('aiTile', [['auto', 'Auto'], ['256', 'Medium'], ['128', 'Low']], cfg.aiTile))}
+      ${section('Performance')}
       ${row('Worker threads', `Textures are processed in parallel (${S.cpus} CPU threads).`, seg('workers', [['auto', 'Auto'], ['half', 'Half'], ['one', 'One']], cfg.workers))}
-      ${row('Largest texture', 'Upscaling never goes past this size on the longest side.', seg('maxSize', [['2048', '2048'], ['4096', '4096'], ['8192', '8192']], cfg.maxSize))}
-      ${row('texconv (BC7)', 'Microsoft DirectXTex texconv.exe, for BC7 DDS output.', tool('texconv', t.texconv, 'texconv', '1 MB'))}
-      ${row('Real-ESRGAN (AI)', 'realesrgan-ncnn-vulkan, for the AI upscale method. Needs a Vulkan-capable GPU.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', '45 MB'))}
-      ${row('Check tools at startup', 'If texconv or Real-ESRGAN is missing, R64texHD opens on this page so you can download them.', seg('checkTools', [['true', 'On'], ['false', 'Off']], String(cfg.checkTools !== false)))}
-      ${row('AI model', 'General suits most textures; Art suits drawn or cartoon textures.', seg('realesrganModel', [['realesrgan-x4plus', 'General'], ['realesrgan-x4plus-anime', 'Art / anime']], cfg.realesrganModel))}
-      ${S.platform === 'win32' ? row('Desktop shortcut', 'Optional shortcut to this portable copy.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`) : ''}
-      ${row('Portable data', 'Settings, downloaded tools and temporary files. Nothing goes to AppData.', `<div class="path"><div class="tool" style="flex:1">${esc(S.dataDir)}</div><button class="btn" data-open="${esc(S.dataDir)}">Open</button></div>`)}`;
+      ${row('Largest texture', 'Upscaling never goes past this size.', seg('maxSize', [['2048', '2048'], ['4096', '4096'], ['8192', '8192']], cfg.maxSize))}
+      ${section('Look and feel')}
+      ${row('Splash screen', 'The intro with a random catchphrase when R64texHD opens.', seg('splash', [['true', 'On'], ['false', 'Off']], String(cfg.splash !== false)))}
+      ${row('Catchphrases', 'Keep it clean leaves out the swearing ones.', seg('cleanPhrases', [['false', 'Full send'], ['true', 'Keep it clean']], String(cfg.cleanPhrases === true)))}
+      ${row('Desktop shortcut', 'Optional shortcut to this portable copy.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)}
+      ${row('Portable data', 'Settings, tools and temporary files. Nothing goes in AppData.', `<div class="path"><div class="tool" style="flex:1">${esc(S.dataDir)}</div><button class="btn" data-open="${esc(S.dataDir)}">Open</button></div>`)}`;
   },
   about() {
     return `<h2>About</h2><div class="about">
-      <p><b>R64texHD v${esc(S.version)}</b> · Reimagine Every Pixel · HD Texture Toolkit - RT64 Support</p>
-      <p><b>1 · Upscale Textures</b> enlarges PNG and DDS textures. Standard mode works in 2× steps and sharpens after each step, clamps every step to the original pixels (no halos) and keeps tiling textures seamless.</p>
-      <p><b>2 · Convert RT64 Dump</b> decodes RT64 texture dumps with a port of RT64's own texture decoder, so the images match what RT64 hashes.</p>
-      <p><b>3 · Pack / Unpack .rtz</b> packs a texture folder in the same layout as RT64's texture_packer (zstd, rt64.json, low-mip cache), or unpacks any .rtz (zstd, deflate or stored) back into a folder.</p>
-      <p>Portable: settings, downloaded tools and temporary files are kept in the <b>data</b> folder next to the program. Nothing is written to AppData or the registry.</p>
-      <p>Input folders are only read, never changed. Optional tools: Microsoft texconv (BC7) and Real-ESRGAN (AI).</p>
+      <p><b>R64texHD v${esc(S.version)}</b> · Reimagine Every Pixel · HD textures for N64 games</p>
+      <p><b>1 · Upscale Textures</b> makes textures bigger and sharper, keeps tiling textures seamless and see-through edges crisp.</p>
+      <p><b>2 · Convert RT64 Dump</b> turns RT64 dumps into PNG or DDS with an rt64.json, using a port of RT64’s own decoder so images match exactly.</p>
+      <p><b>3 · Pack / Check .rtz</b> builds packs the same way RT64’s texture_packer does, adds Recomp mod info, opens packs back up, and checks a pack before you share it.</p>
+      <p><b>4 · Ship Mods .o2r</b> gets textures out of Ship port archives and builds HD mods for 2 Ship 2 Harkinian, Ship of Harkinian and other .o2r ports.</p>
+      <p><b>5 · Rice / GLideN64</b> brings classic texture packs into RT64 and Ship ports, and makes GLideN64 packs for Project64, RetroArch, RMG and BizHawk.</p>
+      <p>Portable: everything stays in the <b>data</b> folder next to the program. Your input folders and packs are only read, never changed.</p>
       <div class="repo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         <div class="rt"><b>GitHub repository</b><span>github.com/chuchudoesntknowhowtocode/R64texHD</span></div>
         <button class="btn primary" id="open-repo">Open on GitHub</button></div></div>`;
   },
 };
-// Optional tools: checked at startup, offered on the Settings page.
+// Helper tools: checked at startup, offered on the Settings page. New tools go in this list.
 const TOOL_INFO = {
-  texconv: { label: 'texconv', size: '1 MB', use: 'BC7 compression for DDS output' },
-  realesrgan: { label: 'Real-ESRGAN', size: '45 MB', use: 'the AI upscale method' },
+  texconv: { label: 'texconv', size: '1 MB', use: 'sharp BC7 DDS textures' },
+  realesrgan: { label: 'Real-ESRGAN', size: '45 MB', use: 'AI upscaling' },
 };
 const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !S.tools[n]);
 let toolNotice = false, afterTools = 'upscale';
-// Startup check: open Settings when a tool is missing (unless turned off).
 function toolsLanding(next) {
   afterTools = next;
   if (cfg.checkTools !== false && missingTools().length) { toolNotice = true; return 'settings'; }
@@ -334,31 +566,44 @@ async function installAll() {
     const status = $('#tool-all');
     if (status) status.textContent = `Downloading ${TOOL_INFO[name].label}…`;
     const r = await window.htk.installTool(name);
-    if (!r.ok) {
-      render();
-      const el = $('#tool-all'); if (el) el.textContent = `${TOOL_INFO[name].label} download failed: ${r.error}`;
-      return;
-    }
+    if (!r.ok) { render(); const el = $('#tool-all'); if (el) el.textContent = `${TOOL_INFO[name].label} download failed: ${r.error}`; return; }
     S.tools = r.tools;
   }
   toast('Tools installed'); render();
 }
 
-// The Pack / Unpack page runs either task, chosen by its Mode switch.
-const taskOf = (pg) => (pg === 'pack' && cfg.pack.mode === 'unpack' ? 'unpack' : pg);
-const pageOf = (task) => (task === 'unpack' ? 'pack' : task);
-const RUN_LABEL = { upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK ▶', unpack: 'UNPACK ▶', setup: 'CONTINUE ▶' };
+// Each page runs one task, picked by its "What to do" switch.
+function taskOf(pg) {
+  if (pg === 'pack') return { pack: 'pack', unpack: 'unpack', check: 'check' }[cfg.pack.mode];
+  if (pg === 'ports') return cfg.ports.mode === 'build' ? 'o2rBuild' : 'o2rExtract';
+  if (pg === 'legacy') return { import: 'legacyImport', hts: 'legacyHts', ship: 'riceToO2r' }[cfg.legacy.mode];
+  return pg;
+}
+const TASK_PAGE = { unpack: ['pack', 'unpack'], check: ['pack', 'check'], pack: ['pack', 'pack'], o2rExtract: ['ports', 'extract'], o2rBuild: ['ports', 'build'],
+  legacyImport: ['legacy', 'import'], legacyHts: ['legacy', 'hts'], riceToO2r: ['legacy', 'ship'] };
+const pageOf = (task) => (TASK_PAGE[task] ? TASK_PAGE[task][0] : task);
+const RUN_LABEL = { upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK ▶', unpack: 'UNPACK ▶', check: 'CHECK ▶', setup: 'CONTINUE ▶',
+  o2rExtract: 'GET TEXTURES ▶', o2rBuild: 'BUILD MOD ▶', legacyImport: 'IMPORT ▶', legacyHts: 'MAKE .HTS ▶', riceToO2r: 'BUILD MOD ▶' };
+const RUN_VERB = { upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking', check: 'Checking', o2rExtract: 'Getting textures', o2rBuild: 'Building mod',
+  legacyImport: 'Importing', legacyHts: 'Making .hts', riceToO2r: 'Matching textures' };
+const IDLE_TEXT = { upscale: 'Choose a folder or files to upscale', convert: 'Choose your RT64 texture dump folder', pack: 'Choose the texture folder to pack',
+  unpack: 'Choose the .rtz pack to unpack', check: 'Choose a pack to check', o2rExtract: 'Choose the game’s .o2r archive', o2rBuild: 'Choose your HD texture folder',
+  legacyImport: 'Choose a classic texture pack', legacyHts: 'Choose your texture folder', riceToO2r: 'Choose the Rice texture folder' };
 
 // ---------------------------------------------------------------- render
 function suggest() {
   const out = cfg.outputFolder;
   if (!out) return;
-  const u = cfg.upscale, c = cfg.convert, p = cfg.pack;
+  const u = cfg.upscale, c = cfg.convert, p = cfg.pack, o = cfg.ports, g = cfg.legacy;
   const firstIn = Array.isArray(u.inputs) ? u.inputs[0] : u.inputs;
   if (!u.output && firstIn) u.output = join(out, baseName(u.inputs.length > 1 ? firstIn.replace(/[\\/][^\\/]*$/, '') : firstIn).replace(/\.(png|dds)$/i, '') + '-upscaled');
   if (!c.output) c.output = join(out, (baseName(c.input || cfg.dumpFolder) || 'rt64-dump') + '-textures');
   if (!p.output && p.input) p.output = join(out, baseName(p.input) + '.rtz');
   if (!cfg.unpack.output && cfg.unpack.input) cfg.unpack.output = join(out, baseName(cfg.unpack.input).replace(/\.rtz$/i, '') + '-unpacked');
+  if (!o.output && o.archive) o.output = join(out, baseName(o.archive).replace(/\.(o2r|otr)$/i, '') + '-textures');
+  if (!o.modOutput && o.hdInput) o.modOutput = join(out, baseName(o.hdInput) + '.o2r');
+  if (!g.output && g.input) g.output = join(out, baseName(g.input).replace(/\.(hts|htc)$/i, '') + '-rt64');
+  if (!g.modOutput && g.riceInput) g.modOutput = join(out, baseName(g.riceInput) + '.o2r');
 }
 
 function render() {
@@ -375,21 +620,23 @@ function render() {
   renderJob();
   refreshStatus();
   if (page === 'upscale') afterRenderPreview();
+  const th = $('#thumb-img');
+  if (th) window.htk.thumbnail(th.dataset.src).then((url) => { if (url && th.isConnected) th.src = url; });
 }
 
 function inputFor() {
-  if (page === 'upscale') return ['upscale', cfg.upscale.inputs];
-  if (page === 'convert') return ['convert', cfg.convert.input || cfg.dumpFolder];
-  if (page === 'pack') return cfg.pack.mode === 'unpack' ? ['unpack', cfg.unpack.input] : ['pack', cfg.pack.input];
-  return [null, null];
+  const t = taskOf(page);
+  const v = { upscale: cfg.upscale.inputs, convert: cfg.convert.input || cfg.dumpFolder, pack: cfg.pack.input, unpack: cfg.unpack.input, check: cfg.check.input,
+    o2rExtract: cfg.ports.archive, o2rBuild: cfg.ports.hdInput, legacyImport: cfg.legacy.input, legacyHts: cfg.legacy.htsInput, riceToO2r: cfg.legacy.riceInput }[t];
+  return v === undefined ? [null, null] : [t, v];
 }
 
 async function refreshStatus() {
   if (!$('#status')) return;
   if (job.task === taskOf(page) && (job.running || job.result || job.error)) return renderJob();
   const [kind, value] = inputFor();
+  if (!value || (Array.isArray(value) && !value.length)) return setCard('idle', IDLE_TEXT[taskOf(page)], 'Use Browse… or paste a path.');
   const key = kind + '|' + JSON.stringify(value);
-  if (!value || (Array.isArray(value) && !value.length)) return setCard('idle', { upscale: 'Choose a folder or files to upscale', convert: 'Choose your RT64 texture dump folder', pack: 'Choose the texture folder to pack', unpack: 'Choose the .rtz pack to unpack' }[taskOf(page)], 'Use Browse… or paste a path.');
   if (!statusCache[key]) { setCard('idle', 'Checking…', ''); statusCache[key] = await window.htk.inspect(kind, value); }
   if (inputFor()[0] !== kind) return;
   const s = statusCache[key];
@@ -407,6 +654,13 @@ function setCard(state, title, text, progress, actions) {
   $('.act', c).innerHTML = actions || '';
 }
 
+function renderChecks(r) {
+  const el = $('#checks'); if (!el) return;
+  if (!r || !r.checks) { el.innerHTML = ''; return; }
+  const icon = { ok: '✓', warn: '!', bad: '✕' };
+  el.innerHTML = `<div class="checks">${r.checks.map((c) => `<div class="c ${c.level}"><i>${icon[c.level]}</i><div><b>${esc(c.title)}</b>${c.text ? `<span>${esc(c.text)}</span>` : ''}</div>${c.fix ? `<button class="btn fix" data-fix="${esc(c.fix)}">${esc(c.fixLabel || 'Fix it')}</button>` : ''}</div>`).join('')}</div>`;
+}
+
 function renderJob() {
   const go = $('#go');
   if (page === 'setup') { go.textContent = RUN_LABEL.setup; go.classList.remove('cancel'); return; }
@@ -418,16 +672,24 @@ function renderJob() {
   if (!$('#status')) return;
   if (job.running) {
     const count = job.total ? `${job.done.toLocaleString()} / ${job.total.toLocaleString()}` : '';
-    setCard('running', `${{ upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking' }[job.task]}… ${count}`, job.message || 'Starting…', job.total ? job.done / job.total : 0);
+    setCard('running', `${RUN_VERB[job.task]}… ${count}`, job.message || 'Starting…', job.total ? job.done / job.total : 0);
   } else if (job.result) {
     const r = job.result;
-    const what = r.title === 'Packed' ? `${r.written.toLocaleString()} textures, ${r.sizeMB.toFixed(1)} MB` : `${r.written.toLocaleString()} texture${r.written === 1 ? '' : 's'}`;
+    if (job.task === 'check') {
+      const bad = r.checks.filter((c) => c.level === 'bad').length, warn = r.checks.filter((c) => c.level === 'warn').length;
+      setCard(bad ? 'error' : 'done', bad ? `${bad} problem${bad === 1 ? '' : 's'} to fix${warn ? `, ${warn} to look at` : ''}` : warn ? `Looks good, ${warn} thing${warn === 1 ? '' : 's'} to look at` : 'All good. Ready to share!', r.summary || '', undefined,
+        `<button class="btn" data-open="${esc(r.output)}">Open</button>`);
+      renderChecks(r);
+      return;
+    }
+    const what = r.sizeMB !== undefined ? `${r.written.toLocaleString()} textures, ${r.sizeMB.toFixed(1)} MB` : `${r.written.toLocaleString()} texture${r.written === 1 ? '' : 's'}`;
     let actions = `<button class="btn" data-open="${esc(r.output)}">Open</button>`;
     if (r.packable && job.task === 'convert') actions += `<button class="btn primary" id="pack-now">Pack into .rtz…</button>`;
-    if (r.packable && job.task === 'upscale') actions += `<button class="btn primary" id="go-pack">Go to Pack / Unpack</button>`;
-    setCard('done', `${r.title} ${what}${r.failed ? ` (${r.failed} failed, see below)` : ''} in ${r.seconds.toFixed(1)} s`, r.output, undefined, actions);
+    if (r.packable && job.task === 'upscale') actions += `<button class="btn primary" id="go-pack">Go to Pack</button>`;
+    if (r.upscalable) actions += `<button class="btn primary" id="go-upscale">Upscale these</button>`;
+    setCard('done', `${r.title} ${what}${r.failed ? ` (${r.failed} failed, see below)` : ''} in ${r.seconds.toFixed(1)} s`, r.note ? `${r.output}\n${r.note}` : r.output, undefined, actions);
   } else if (job.error) {
-    setCard('error', job.error === 'Cancelled' ? 'Cancelled' : 'Could not finish', job.error === 'Cancelled' ? 'Stopped. Files already finished were kept; nothing was left half-written.' : job.error);
+    setCard('error', job.error === 'Cancelled' ? 'Cancelled' : 'Could not finish', job.error === 'Cancelled' ? 'Stopped. Finished files were kept; nothing was left half-written.' : job.error);
   }
 }
 
@@ -437,38 +699,34 @@ function closeModal() { $('#modal').hidden = true; }
 
 function askPack(result) {
   packAfter = result.output;
-  modal(`<h3>Pack into an .rtz file?</h3><p>${result.written.toLocaleString()} textures and rt64.json are in<br><b>${esc(result.output)}</b>.<br><br>Pack them into a single .rtz file the game can load directly?</p>
+  modal(`<h3>Pack into an .rtz file?</h3><p>${result.written.toLocaleString()} textures and rt64.json are in<br><b>${esc(result.output)}</b>.<br><br>Pack them into a single .rtz file the game can load?</p>
     <div class="buttons"><button class="btn" id="m-no">Not now</button><button class="btn primary" id="m-yes">Pack into .rtz…</button></div>`);
   $('#m-yes').focus();
 }
-
-// After an upscale: offer to continue in 3 · Pack to .rtz with the upscaled folder filled in.
-function askGoPack(result) {
+// After an upscale: offer the next step for where these textures came from.
+function askNext(result) {
   packAfter = result.output;
-  modal(`<h3>Pack the upscaled textures?</h3><p>${result.written.toLocaleString()} upscaled texture${result.written === 1 ? ' is' : 's are'} in<br><b>${esc(result.output)}</b>.<br><br>Go to <b>3 · Pack / Unpack .rtz</b> to pack them into an .rtz file?</p>
-    <div class="buttons"><button class="btn" id="m-no">Not now</button><button class="btn primary" id="m-go-pack">Go to Pack / Unpack</button></div>`);
-  $('#m-go-pack').focus();
+  const toShip = result.fromO2r;
+  modal(`<h3>${toShip ? 'Build the HD mod?' : 'Pack the upscaled textures?'}</h3><p>${result.written.toLocaleString()} upscaled texture${result.written === 1 ? ' is' : 's are'} in<br><b>${esc(result.output)}</b>.<br><br>
+    ${toShip ? 'Go to <b>4 · Ship Mods .o2r</b> to turn them into a mod?' : 'Go to <b>3 · Pack / Check .rtz</b> to pack them into an .rtz file?'}</p>
+    <div class="buttons"><button class="btn" id="m-no">Not now</button><button class="btn primary" id="${toShip ? 'm-go-ship' : 'm-go-pack'}">${toShip ? 'Go to Ship Mods' : 'Go to Pack'}</button></div>`);
 }
-
-function goToPack(folder) {
+function goTo(pg, mode, fill) {
   closeModal();
-  cfg.pack.mode = 'pack';
-  cfg.pack.input = folder;
-  cfg.pack.output = join(cfg.outputFolder || folder.replace(/[\\/][^\\/]*$/, ''), baseName(folder) + '.rtz');
-  page = 'pack'; cfg.page = page; statusCache = {};
+  if (pg === 'pack') { cfg.pack.mode = mode; Object.assign(cfg.pack, fill); }
+  if (pg === 'ports') { cfg.ports.mode = mode; Object.assign(cfg.ports, fill); }
+  if (pg === 'upscale') Object.assign(cfg.upscale, fill);
+  page = pg; cfg.page = page; statusCache = {};
   job = { running: false, task: '', log: [], result: null, error: null, done: 0, total: 0, message: '' };
   render();
-  toast('Ready to pack: check the options, then press PACK');
 }
-
 async function packConverted(folder) {
   closeModal();
   const out = await window.htk.dialog({ kind: 'save-rtz', title: 'Save the .rtz pack as', defaultPath: join(cfg.outputFolder || folder.replace(/[\\/][^\\/]*$/, ''), baseName(folder) + '.rtz') });
   if (!out) return;
   cfg.pack.mode = 'pack'; cfg.pack.input = folder; cfg.pack.output = out;
   page = 'pack'; cfg.page = page; statusCache = {};
-  render();
-  start('pack');
+  render(); start('pack');
 }
 
 // ---------------------------------------------------------------- events
@@ -480,7 +738,7 @@ document.addEventListener('click', async (e) => {
     savePreviewScroll();
     PV.zoom = pz.dataset.pvzoom;
     document.querySelectorAll('[data-pvzoom]').forEach((b) => b.classList.toggle('on', b === pz));
-    if (PV.zoom !== 'fit' && PV.shown) {          // start zoomed views centred on the texture
+    if (PV.zoom !== 'fit' && PV.shown) {
       const v = $('#pv-view-u'), k = PV.zoom === '2' ? 2 : 1;
       PV.scroll = { x: Math.max(0, (PV.shown.up.width * k - v.clientWidth) / 2), y: Math.max(0, (PV.shown.up.height * k - v.clientHeight) / 2) };
     }
@@ -498,29 +756,34 @@ document.addEventListener('click', async (e) => {
   const br = e.target.closest('[data-browse]');
   if (br) {
     const key = br.dataset.for, kind = br.dataset.browse;
-    const titles = { folder: 'Choose a folder', images: 'Choose textures', 'save-rtz': 'Save the .rtz pack as', 'open-rtz': 'Choose an .rtz pack', exe: 'Locate the program' };
+    const titles = { folder: 'Choose a folder', images: 'Choose textures', image: 'Choose a picture', 'save-rtz': 'Save the .rtz pack as', 'open-rtz': 'Choose an .rtz pack',
+      'open-o2r': 'Choose the game archive', 'save-o2r': 'Save the mod as', 'open-hts': 'Choose a GLideN64 pack', 'save-hts': 'Save the GLideN64 pack as', exe: 'Locate the program' };
     let current = getVal(key); if (Array.isArray(current)) current = current[0];
     const r = await window.htk.dialog({ kind, title: titles[kind], defaultPath: current || undefined });
     if (r) {
       if (key === 'upscale.inputs') cfg.upscale.inputs = Array.isArray(r) ? r : [r];
       else setVal(key, r);
       onPath(key);
-      if (key === 'texconv' || key === 'realesrgan') { await window.htk.saveSettings(cfg); S = await window.htk.state(); }
+      if (TOOL_INFO[key]) { await window.htk.saveSettings(cfg); S = await window.htk.state(); }
       render();
     }
     return;
   }
   const open = e.target.closest('[data-open]');
   if (open) { window.htk.open(open.dataset.open); return; }
-  if (e.target.id === 'pack-now') { packConverted(job.result.output); return; }
-  if (e.target.id === 'go-pack') { goToPack(job.result.output); return; }
-  if (e.target.id === 'm-go-pack') { goToPack(packAfter); return; }
-  if (e.target.id === 'm-yes') { packConverted(packAfter); return; }
-  if (e.target.id === 'm-no') { closeModal(); return; }
-  if (e.target.id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }
-  if (e.target.id === 'open-repo') { window.htk.openRepo(); return; }
-  if (e.target.id === 'dl-all') { installAll(); return; }
-  if (e.target.id === 'skip-tools') { toolNotice = false; page = afterTools; cfg.page = page; render(); return; }
+  const fix = e.target.closest('[data-fix]');
+  if (fix) { const r = await window.htk.fix(fix.dataset.fix, cfg.check.input); toast(r && r.ok ? 'Fixed' : (r && r.error) || 'Could not fix'); statusCache = {}; start('check'); return; }
+  const id = e.target.id;
+  if (id === 'pack-now') { packConverted(job.result.output); return; }
+  if (id === 'go-pack' || id === 'm-go-pack') { goTo('pack', 'pack', { input: id === 'go-pack' ? job.result.output : packAfter, output: '' }); return; }
+  if (id === 'm-go-ship') { goTo('ports', 'build', { hdInput: packAfter, modOutput: '' }); return; }
+  if (id === 'go-upscale') { goTo('upscale', null, { inputs: [job.result.output], output: '', edges: 'auto' }); return; }
+  if (id === 'm-yes') { packConverted(packAfter); return; }
+  if (id === 'm-no') { closeModal(); return; }
+  if (id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }
+  if (id === 'open-repo') { window.htk.openRepo(); return; }
+  if (id === 'dl-all') { installAll(); return; }
+  if (id === 'skip-tools') { toolNotice = false; page = afterTools; cfg.page = page; render(); return; }
   const inst = e.target.closest('[data-install]');
   if (inst) {
     inst.disabled = true; inst.textContent = 'Downloading…';
@@ -530,17 +793,27 @@ document.addEventListener('click', async (e) => {
   }
 });
 
+// A new input suggests a matching output name.
 function onPath(key) {
   const out = cfg.outputFolder;
-  if (key === 'upscale.inputs' && out) {
-    const first = cfg.upscale.inputs[0] || '';
-    const name = cfg.upscale.inputs.length > 1 ? baseName(first.replace(/[\\/][^\\/]*$/, '')) : baseName(first).replace(/\.(png|dds)$/i, '');
-    cfg.upscale.output = join(out, name + '-upscaled');
+  if (out) {
+    if (key === 'upscale.inputs') {
+      const first = cfg.upscale.inputs[0] || '';
+      const name = cfg.upscale.inputs.length > 1 ? baseName(first.replace(/[\\/][^\\/]*$/, '')) : baseName(first).replace(/\.(png|dds)$/i, '');
+      cfg.upscale.output = join(out, name + '-upscaled');
+    }
+    if (key === 'convert.input') cfg.convert.output = join(out, baseName(cfg.convert.input) + '-textures');
+    if (key === 'pack.input') cfg.pack.output = join(out, baseName(cfg.pack.input) + '.rtz');
+    if (key === 'unpack.input') cfg.unpack.output = join(out, baseName(cfg.unpack.input).replace(/\.rtz$/i, '') + '-unpacked');
+    if (key === 'ports.archive') cfg.ports.output = join(out, baseName(cfg.ports.archive).replace(/\.(o2r|otr)$/i, '') + '-textures');
+    if (key === 'ports.hdInput') cfg.ports.modOutput = join(out, baseName(cfg.ports.hdInput) + '.o2r');
+    if (key === 'legacy.input') cfg.legacy.output = join(out, baseName(cfg.legacy.input).replace(/\.(hts|htc)$/i, '') + '-rt64');
+    if (key === 'legacy.riceInput') cfg.legacy.modOutput = join(out, baseName(cfg.legacy.riceInput) + '.o2r');
   }
-  if (key === 'convert.input' && out) cfg.convert.output = join(out, baseName(cfg.convert.input) + '-textures');
-  if (key === 'pack.input' && out) cfg.pack.output = join(out, baseName(cfg.pack.input) + '.rtz');
-  if (key === 'unpack.input' && out) cfg.unpack.output = join(out, baseName(cfg.unpack.input).replace(/\.rtz$/i, '') + '-unpacked');
-  if (key === 'pack.output' && cfg.pack.output && !/\.rtz$/i.test(cfg.pack.output)) cfg.pack.output += '.rtz';
+  const fixExt = (k, ext) => { const v = getVal(k); if (v && !new RegExp(`\\${ext}$`, 'i').test(v)) setVal(k, v + ext); };
+  if (key === 'pack.output') fixExt(key, '.rtz');
+  if (key === 'ports.modOutput' || key === 'legacy.modOutput') fixExt(key, '.o2r');
+  if (key === 'legacy.htsOutput') fixExt(key, '.hts');
   clearFinished();
 }
 
@@ -558,10 +831,18 @@ document.addEventListener('change', (e) => {
 async function save(quiet) { await window.htk.saveSettings(cfg); if (!quiet) toast('Settings saved'); }
 
 function params(task) {
-  if (task === 'upscale') return { ...cfg.upscale };
-  if (task === 'convert') return { ...cfg.convert, input: cfg.convert.input || cfg.dumpFolder };
-  if (task === 'unpack') return { ...cfg.unpack };
-  return { ...cfg.pack };
+  switch (task) {
+    case 'upscale': return { ...cfg.upscale };
+    case 'convert': return { ...cfg.convert, input: cfg.convert.input || cfg.dumpFolder };
+    case 'unpack': return { ...cfg.unpack };
+    case 'check': return { ...cfg.check };
+    case 'o2rExtract': return { archive: cfg.ports.archive, output: cfg.ports.output };
+    case 'o2rBuild': return { input: cfg.ports.hdInput, base: cfg.ports.base, output: cfg.ports.modOutput, alt: cfg.ports.alt, compression: cfg.ports.compression };
+    case 'legacyImport': return { input: cfg.legacy.input, output: cfg.legacy.output };
+    case 'legacyHts': return { input: cfg.legacy.htsInput, name: cfg.legacy.htsName, output: cfg.legacy.htsOutput };
+    case 'riceToO2r': return { input: cfg.legacy.riceInput, base: cfg.legacy.base, output: cfg.legacy.modOutput, alt: cfg.ports.alt };
+    default: return { ...cfg.pack };
+  }
 }
 
 async function start(task) {
@@ -578,7 +859,8 @@ async function go() {
     cfg.firstRunDone = true; await save(true); page = toolsLanding('upscale'); cfg.page = 'upscale'; render(); return;
   }
   if (job.running) { await window.htk.cancel(); toast('Cancelling…'); return; }
-  if (pages[page] && RUN_LABEL[page]) start(taskOf(page));
+  const t = taskOf(page);
+  if (pages[page] && RUN_LABEL[t]) start(t);
 }
 
 window.htk.onStarted(() => {});
@@ -590,16 +872,19 @@ window.htk.onDone((d) => {
   else {
     job.result = d.result;
     const r = d.result;
-    job.log.push(`${r.title} ${r.written} texture(s)${r.failed ? `, ${r.failed} failed` : ''} in ${r.seconds.toFixed(1)} s → ${r.output}`);
+    if (r.written !== undefined) job.log.push(`${r.title} ${r.written} texture(s)${r.failed ? `, ${r.failed} failed` : ''} in ${r.seconds.toFixed(1)} s → ${r.output}`);
   }
   statusCache = {};
   if (job.task !== taskOf(page)) {
+    const tp = TASK_PAGE[job.task];
     page = pageOf(job.task); cfg.page = page;
-    if (page === 'pack') cfg.pack.mode = job.task;
+    if (tp && page === 'pack') cfg.pack.mode = tp[1];
+    if (tp && page === 'ports') cfg.ports.mode = tp[1];
+    if (tp && page === 'legacy') cfg.legacy.mode = tp[1];
   }
   render();
   if (d.task === 'convert' && d.result && d.result.packable) askPack(d.result);
-  if (d.task === 'upscale' && d.result && d.result.packable) askGoPack(d.result);
+  if (d.task === 'upscale' && d.result && d.result.packable) askNext(d.result);
 });
 window.htk.onToolProgress((p) => {
   const amount = p.total ? `${Math.round(p.got * 100 / p.total)}%` : `${(p.got / 1048576).toFixed(1)} MB`;
@@ -611,12 +896,12 @@ $('#go').addEventListener('click', go);
 $('#save').addEventListener('click', () => save(false));
 $('#quit').addEventListener('click', async () => { if (job.running && !confirm('A process is running. Cancel it and quit?')) return; await save(true); window.htk.quit(); });
 document.addEventListener('keydown', (e) => {
+  if (!$('#splash').hidden) { $('#splash').hidden = true; return; }
   if (!$('#modal').hidden) { if (e.key === 'Escape') closeModal(); return; }
   if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(false); }
   else if (e.key === 'Escape') $('#quit').click();
   else if (e.key === 'Enter' && !e.target.closest('input, button')) { e.preventDefault(); go(); }
 });
-
 
 // ---------------------------------------------------------------- live preview (1 · Upscale)
 const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new Map(), shown: null, shownKey: '', pendingKey: '',
@@ -625,7 +910,7 @@ const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new M
 function previewParams() {
   const u = cfg.upscale;
   return { src: PV.src, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, edges: u.edges, hardAlpha: u.hardAlpha,
-    format: u.format, ddsFormat: u.ddsFormat, maxSize: cfg.maxSize, model: cfg.realesrganModel };
+    format: u.format, ddsFormat: u.ddsFormat, keepCoverage: u.keepCoverage, maxSize: cfg.maxSize, model: cfg.realesrganModel };
 }
 const previewKey = () => JSON.stringify(previewParams());
 
@@ -636,19 +921,16 @@ function previewPanel() {
         <button class="btn pv-step" data-pvstep="1" title="Next texture">▶</button></div>
       <div class="seg pv-zoom"><button data-pvzoom="fit" class="${PV.zoom === 'fit' ? 'on' : ''}">Fit</button><button data-pvzoom="1" class="${PV.zoom === '1' ? 'on' : ''}">1:1</button><button data-pvzoom="2" class="${PV.zoom === '2' ? 'on' : ''}">2:1</button></div></div>`;
   const inputs = cfg.upscale.inputs || [];
-  if (!inputs.length) return `<div class="preview"><div class="pv-head"><b>Preview</b></div><div class="pv-empty">Choose a folder or files and a side-by-side preview appears here.</div></div>`;
+  if (!inputs.length) return `<div class="preview"><div class="pv-head"><b>Preview</b></div><div class="pv-empty">Choose a folder or files and a side-by-side preview shows up here.</div></div>`;
   return `<div class="preview" id="preview">${head}
     <div class="pv-panes">
       <div class="pv-pane"><div class="pv-cap" id="pv-cap-o"><b>Original</b></div><div class="pv-view" id="pv-view-o"><canvas id="pv-o"></canvas></div></div>
       <div class="pv-pane"><div class="pv-cap" id="pv-cap-u"><b>Upscaled</b></div><div class="pv-view" id="pv-view-u"><canvas id="pv-u"></canvas>
-        <div class="pv-busy" id="pv-busy" hidden><i></i>Generating preview…</div></div></div>
+        <div class="pv-busy" id="pv-busy" hidden><i></i>Making preview…</div></div></div>
     </div></div>`;
 }
 
-function savePreviewScroll() {
-  const v = $('#pv-view-u');
-  if (v) PV.scroll = { x: v.scrollLeft, y: v.scrollTop };
-}
+function savePreviewScroll() { const v = $('#pv-view-u'); if (v) PV.scroll = { x: v.scrollLeft, y: v.scrollTop }; }
 
 async function afterRenderPreview() {
   if (!$('#preview')) return;
@@ -662,9 +944,7 @@ async function afterRenderPreview() {
     if (!PV.list.some((i) => i.src === PV.src)) PV.src = PV.list.length ? PV.list[0].src : '';
     PV.shown = null; PV.shownKey = '';
   }
-  fillPreviewPicker();
-  drawPreview();
-  schedulePreview();
+  fillPreviewPicker(); drawPreview(); schedulePreview();
 }
 
 function fillPreviewPicker() {
@@ -688,7 +968,7 @@ function schedulePreview() {
     const req = previewParams();
     const r = await window.htk.preview(req);
     if (r.superseded) return;
-    if (JSON.stringify(req) !== PV.pendingKey) return; // settings moved on; a newer request is coming
+    if (JSON.stringify(req) !== PV.pendingKey) return;
     PV.pendingKey = '';
     if (r.error) { PV.error = r.error; PV.shown = null; PV.shownKey = ''; drawPreview(); return; }
     PV.error = '';
@@ -725,7 +1005,6 @@ function drawPreview() {
   paint(co, r.orig); paint(cu, r.up);
   const fit = PV.zoom === 'fit';
   [vo, vu].forEach((v) => v.classList.toggle('z1', !fit));
-  // Both sides are shown at the same size, so the same spot lines up in each pane.
   const zoomK = PV.zoom === '2' ? 2 : 1;
   let w = r.up.width * zoomK, h = r.up.height * zoomK;
   if (fit) {
@@ -734,12 +1013,12 @@ function drawPreview() {
     w = Math.max(1, Math.round(w * k)); h = Math.max(1, Math.round(h * k));
   }
   for (const c of [co, cu]) { c.style.width = w + 'px'; c.style.height = h + 'px'; }
-  co.classList.toggle('px', true);                    // the original always shows its real pixels
-  cu.classList.toggle('px', w >= r.up.width);          // smooth when the upscaled image is shrunk to fit
+  co.classList.toggle('px', true);
+  cu.classList.toggle('px', w >= r.up.width);
   if (!fit) { vu.scrollLeft = vo.scrollLeft = PV.scroll.x; vu.scrollTop = vo.scrollTop = PV.scroll.y; }
   const item = PV.list.find((i) => i.src === PV.src);
   const ext = item ? item.rel.split('.').pop().toUpperCase() : '';
-  $('#pv-cap-o').innerHTML = `<b>Original</b> · ${r.orig.width}×${r.orig.height} · ${ext}`;
+  $('#pv-cap-o').innerHTML = `<b>Original</b> · ${r.orig.width}×${r.orig.height} · ${ext}${r.edges ? ` · edges: ${esc(r.edges)}` : ''}`;
   const u = cfg.upscale;
   const how = { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', ai: 'AI' }[u.method] + ' ' + (u.size === 'fit' ? `fit ${u.fit}` : u.size + '×')
     + ((u.method === 'standard' || u.method === 'ai') ? `, ${u.sharpness}` : '');
@@ -764,12 +1043,13 @@ window.addEventListener('resize', () => { if (page === 'upscale') drawPreview();
 
 (async function init() {
   S = await window.htk.state();
-  cfg = S.settings;
+  cfg = withDefaults(S.settings);
+  $('#ver').textContent = 'v' + S.version;
   if (!Array.isArray(cfg.upscale.inputs)) cfg.upscale.inputs = cfg.upscale.inputs ? [cfg.upscale.inputs] : [];
   if (cfg.page === 'unpack') { cfg.page = 'pack'; cfg.pack.mode = 'unpack'; }
-  if (!cfg.pack.mode) cfg.pack.mode = 'pack';
   page = !cfg.firstRunDone ? 'setup' : toolsLanding(pages[cfg.page] && cfg.page !== 'setup' ? cfg.page : 'upscale');
   render();
+  showSplash();
 })();
 </script>
 </body>
