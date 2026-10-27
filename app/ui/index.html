@@ -490,8 +490,6 @@ const pages = {
   setup() {
     return `<img class="welcome-art" src="welcome.png" alt="RT64, 2 Ship and Majora's Mask over a retro sunset">
       <h2>Welcome</h2><p class="lead">Lions and Tigers and Textures, oh my!</p>
-      ${row('RT64 texture dump folder', 'Where RT64 saves texture dumps (press F1 in game › Textures › Start dumping textures). Skip it if you don’t use RT64.',
-        pathField('dumpFolder', cfg.dumpFolder, [['folder', 'Browse…']], 'Optional'))}
       ${row('Output folder', 'Where your HD textures and packs are saved by default.',
         pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']], 'Choose a folder'))}
       ${row('Desktop shortcut', 'Optional. R64texHD is portable: nothing is installed.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)}
