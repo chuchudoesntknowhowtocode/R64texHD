@@ -1023,6 +1023,8 @@ window.htk.onDone((d) => {
     if (tp && page === 'legacy') cfg.legacy.mode = tp[1];
   }
   render();
+  // After a convert: show the converted textures (the "textures" folder inside the output) in Explorer.
+  if (d.task === 'convert' && d.result && d.result.written > 0) window.htk.open(join(d.result.output, 'textures'));
   if (d.task === 'convert' && d.result && d.result.packable) askPack(d.result);
   // A fix makes a new pack: check that one straight away.
   if (d.task === 'fix' && d.result) { cfg.check.input = d.result.output; toast(`Saved as ${baseName(d.result.output)}`); start('check'); }

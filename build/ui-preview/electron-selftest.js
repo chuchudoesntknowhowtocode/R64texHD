@@ -65,6 +65,8 @@ module.exports = async ({ app, win }) => {
   const c = await runAndWait(`cfg.convert.input = ${dump}; cfg.convert.output = ${conv}; cfg.convert.format = 'png'; cfg.convert.wrapInfo = true; render();`, 'convert');
   check(c && c.result && c.result.written === 2, 'Convert RT64 Dump: 2 textures');
   check(fs.existsSync(path.join(out, 'converted', 'r64texhd-tiling.json')), 'tiling file written');
+  await wait(300);
+  check((global.opened || []).some((p) => path.resolve(p.replace(/\\/g, '/')) === path.resolve(out, 'converted', 'textures')), 'after Convert the converted textures folder opens');
   await wait(400); await js("closeModal()"); await shot('run-convert-done');
 
   await js(`document.querySelector('nav button[data-page="upscale"]').click()`); await wait(300);

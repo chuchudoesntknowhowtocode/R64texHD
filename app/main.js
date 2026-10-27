@@ -322,7 +322,12 @@ function registerIpc() {
   });
   ipcMain.handle('task:run', (_e, { task, params }) => runTask(task, params));
   ipcMain.handle('task:cancel', () => { cancelTask(); return true; });
-  ipcMain.handle('open', (_e, p) => { if (fs.existsSync(p) && fs.statSync(p).isFile()) shell.showItemInFolder(p); else shell.openPath(p); return true; });
+  ipcMain.handle('open', (_e, p) => {
+    if (process.env.HTK_SELFTEST) { (global.opened = global.opened || []).push(p); return true; }   // self-test: note it, don't open windows
+    if (!p || !fs.existsSync(p)) return false;
+    if (fs.statSync(p).isFile()) shell.showItemInFolder(p); else shell.openPath(p);
+    return true;
+  });
   ipcMain.handle('repo', () => { shell.openExternal(REPO_URL); return REPO_URL; });
   ipcMain.handle('shortcuts', () => createShortcuts());
   ipcMain.handle('tool:install', async (_e, name) => { try { return { ok: true, tools: await installTool(name) }; } catch (e) { return { ok: false, error: e.message }; } });
