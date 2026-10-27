@@ -1,4 +1,4 @@
-![R64texHD](docs/banner.jpg)
+![R64texHD: RT64, 2 Ship and Majora's Mask over a retro sunset](docs/title.png)
 
 # R64texHD - Reimagine Every Pixel
 
@@ -9,7 +9,7 @@ RT64 dumps and Ship port archives, upscales them, and packs them back up for
 RT64 emulators, recomps and Ship ports. It also brings classic Rice / GLideN64
 packs along.
 
-![Upscale with live preview](docs/screenshots/upscale-preview.png)
+![R64texHD splash screen](docs/screenshots/splash.png)
 
 ## Features
 
@@ -27,6 +27,8 @@ packs along.
   with full mip chains (odd sizes included).
 - **Live side-by-side preview** that re-renders whenever a setting changes.
 
+![Upscale Textures with the live side-by-side preview](docs/screenshots/upscale.png)
+
 **2 · Convert RT64 Dump**
 - Turns RT64 texture dumps (`<hash>.v<N>.tmem` + `.tile.json`, from RT64's debugger:
   F1 › Textures › Start dumping textures) into PNG or DDS plus a ready-made `rt64.json`.
@@ -34,6 +36,8 @@ packs along.
 - **Remember tiling** (new): saves how each texture repeats for Edges: Auto.
 - **Only new textures** (new): play further, dump more, and convert just the new ones;
   `rt64.json` is updated, not replaced.
+
+![Convert RT64 Dump with its extras](docs/screenshots/convert-rt64-dump.png)
 
 **3 · Pack / Check .rtz**
 - Pack a DDS / PNG texture folder into an `.rtz` in the same layout as RT64's
@@ -50,6 +54,10 @@ packs along.
   in a fixed copy of the pack, `<name>-fixed.rtz`, then checks it again. The original stays as it was.
 - Unpack any `.rtz` back into a folder of textures and `rt64.json` (Recomp info included).
 
+![Packing an .rtz with Recomp mod info](docs/screenshots/pack-recomp-info.png)
+
+![Check a pack: problems first, with a one-click fix](docs/screenshots/check-a-pack.png)
+
 **4 · Ship Mods .o2r** (new)
 - For the PC ports built on libultraship: 2 Ship 2 Harkinian, Ship of Harkinian,
   Starship and other `.o2r` ports.
@@ -63,6 +71,8 @@ packs along.
   multiple are fitted. With **In-game switch** the textures sit under `alt/`, so players
   flip them with "Use Alternate Assets" (Tab). Put the `.o2r` in the port's `mods` folder.
 - Older MPQ `.otr` archives aren't supported; ports make `.o2r` now.
+
+![Building a Ship port HD mod](docs/screenshots/ship-mods-o2r.png)
 
 **5 · Rice / GLideN64** (new)
 - **Rice IDs**: Convert RT64 Dump can add each texture's Rice ID to `rt64.json`
@@ -78,11 +88,17 @@ packs along.
   by Rice ID and builds an HD mod (with the in-game switch).
 - Classic pack files can be several GB: `.hts` packs are read a texture at a time.
 
+![Bringing a classic pack into RT64](docs/screenshots/rice-gliden64.png)
+
 **Settings**
 - Helper tools (texconv for BC7, Real-ESRGAN for AI) download with one click and
   are checked against a fixed checksum. R64texHD checks for them at startup.
 - AI options: model, graphics card and GPU memory use.
 - Splash screen and catchphrases on or off, or "Keep it clean".
+
+![Settings: helper tools, AI options and more](docs/screenshots/settings.png)
+
+![First-run welcome page](docs/screenshots/welcome.png)
 
 **Portable:** nothing is installed. Settings, downloaded tools and temporary files
 stay in a `data` folder next to `R64texHD.exe`, never in AppData.
@@ -143,7 +159,8 @@ app/
                    rt64db (rt64.json), rtz (packs), recomp (mod.json), check (Check a pack), o2r (Ship ports),
                    rice + legacy (Rice IDs, GLideN64 packs, classic packs; GPL),
                    tasks + worker (parallel jobs)
-build/             packaging scripts; ui-preview/ makes UI screenshots and runs the app self-test
+build/             packaging scripts; ui-preview/ makes UI screenshots (docs-shots.py for the README)
+                   and runs the app self-test
 tests/             automated tests: node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js
 docs/              README.txt shipped in the release, screenshots
 ```
