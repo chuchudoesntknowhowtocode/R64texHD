@@ -192,7 +192,7 @@ function scan(folder, { progress = () => {}, limit = 20000 } = {}) {
     if (!h) { skipped++; return; }
     const lib = libraryGame(h.gameCode);
     roms.push({ path: f, rel: path.relative(root, f).split(path.sep).join('/'), folder: path.relative(root, path.dirname(f)).split(path.sep).join('/'), file: path.basename(f), ...h,
-      libKey: lib ? gameKey(h.gameCode) : '', libTitle: lib ? lib.title : '' });
+      libKey: lib ? gameKey(h.gameCode) : '', libTitle: lib ? lib.title : '', libArt: lib ? lib.art : '' });
   });
   // Folder by folder (ROMs right in the chosen folder first), then by file name.
   const cmp = (x, y) => x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });

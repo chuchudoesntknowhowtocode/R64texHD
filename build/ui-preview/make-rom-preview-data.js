@@ -55,7 +55,7 @@ for (const [file, title, code, mb, cic] of RETAIL) {
   h.fill(0x20, 0x20, 0x34); h.write(title, 0x20, 'latin1'); h.write(code, 0x3b, 'latin1');
   const hd = rom.parseHeader(h), lib = rom.libraryGame(code), p = WIN + '\\' + file, size = mb * 1048576;
   const format = file.endsWith('.v64') ? 'v64' : 'z64';
-  list.push({ path: p, rel: file, folder: '', file, format, size, ...hd, libKey: lib ? code.slice(0, 3) : '', libTitle: lib ? lib.title : '' });
+  list.push({ path: p, rel: file, folder: '', file, format, size, ...hd, libKey: lib ? code.slice(0, 3) : '', libTitle: lib ? lib.title : '', libArt: lib ? lib.art : '' });
   info[p] = { path: p, file, folder: WIN, inner: '', fileSize: size, format, formatName: format === 'v64' ? 'Byte-swapped (.v64)' : 'Big-endian (.z64)',
     romSize: size, mbit: mb * 8, ...hd, crc1Hex: '(preview)', crc2Hex: '', libultraVersion: '2.0K', entryHex: '80000400', clockHex: '0000000F', piHex: '80371240',
     cic, cicNote: '', bootCrc: '(preview)', checksum: 'Not checked (preview data)', checksumOk: null, crc32: '(preview)', md5: '(preview)', sha1: '(preview)',

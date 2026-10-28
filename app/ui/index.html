@@ -412,7 +412,16 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
 .romx { display: grid; grid-template-columns: minmax(200px, 32%) minmax(0, 1fr); gap: 14px; margin-top: 12px; }
 .rx-right { display: flex; flex-direction: column; gap: 6px; height: var(--rom-h, 300px); min-width: 0; }
 .rx-right .path input { background: rgba(24, 14, 38, .62); }
-.rx-count { font-size: 12.5px; color: var(--muted); padding: 0 2px 2px; text-shadow: 1px 1px 0 #000; }
+.rx-count { font-size: 12.5px; color: var(--muted); padding: 6px 12px 4px; text-shadow: 1px 1px 0 #000; }   /* lines up with the text in the fields */
+/* Browse… on ROM Tools glows white. The glow sits on a wrapper: the button's notched corners would clip it. */
+.glow { display: flex; filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 5px #fff) drop-shadow(0 0 9px rgba(255,255,255,.6)); }
+/* Scan progress: pixel blocks in the footer's colours. */
+.rx-prog { margin: 0 12px 4px; height: 12px; flex: none; background: #1a0f29; box-shadow: inset 0 0 0 2px #3b2657; clip-path: var(--notch); --step: 2px; position: relative; }
+.rx-prog[hidden] { display: none; }
+.rx-prog i { position: absolute; left: 2px; top: 2px; bottom: 2px; width: calc((100% - 4px) * var(--p, 0)); transition: width .2s steps(4);
+  background: linear-gradient(90deg, #d52c78, #a01c6c 45%, #670c5e 70%, #fcb494) 0 0 / calc(100% / max(var(--p, 0), .001)) 100%;
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px); mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px); }
+.rx-prog i::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.35) 0 2px, transparent 2px); }
 .rx-count b { color: var(--text, #fff); } .rx-count span { opacity: .8; } .rx-count.bad { color: var(--orange); }
 .rom-items { background: var(--panel-2); box-shadow: inset 0 0 0 2px #2c1b46; clip-path: var(--notch); overflow: auto;
   margin-top: calc(-1 * var(--rx-lift, 0px)); height: calc(var(--rom-h, 300px) + var(--rx-lift, 0px)); }
@@ -421,12 +430,18 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
 .rom-items { padding: 6px; }
 .rom-folder { padding: 8px 8px 4px; font-size: 11px; font-weight: 700; letter-spacing: .6px; color: var(--orange); text-transform: uppercase; word-break: break-all; }
 .rom-count { padding: 4px 8px; font-size: 11.5px; color: var(--muted); }
-.rom-item { display: block; width: 100%; text-align: left; border: 0; background: transparent; padding: 7px 10px; cursor: pointer; clip-path: var(--notch); --step: 2px; }
+.rom-item { position: relative; overflow: hidden; display: block; width: 100%; text-align: left; border: 0; background: transparent; padding: 7px 10px; cursor: pointer; clip-path: var(--notch); --step: 2px; }
 .rom-item b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rom-item span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--muted); }
 .rom-item:hover { background: var(--field); }
 .rom-item.on { background: linear-gradient(104deg, #3a3d49, #4a4e5b 50%, #3a3d49); box-shadow: inset 0 0 0 2px #e0b04c, inset 0 0 0 3px #15161c, inset 0 0 0 4px #8d919d; }
 .rom-item.on b { color: #fff; text-shadow: 1px 1px 0 #15161c; } .rom-item.on span { color: #c9ccd6; }
+.rom-item > b, .rom-item > span { position: relative; z-index: 1; }
+.rom-item.on b, .rom-item.on span { text-shadow: 1px 1px 0 #000, 0 0 6px #000; }
+/* Top 40% of the box (art height = 250% of the row), right-aligned, soft fade from the left. */
+.rom-item .rom-art { position: absolute; right: 3px; top: 3px; bottom: 3px; width: 58%; pointer-events: none; opacity: .9;
+  background: no-repeat right top / auto 250%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.25) 10%, #000 70%); mask-image: linear-gradient(90deg, transparent 0, rgba(0,0,0,.25) 10%, #000 70%); }
 .rom-detail { padding: 14px 18px 18px; }
 .rom-empty { padding: 18px 10px; color: var(--muted); font-size: 13px; text-align: center; }
 .rom-empty.big { height: 100%; display: grid; place-content: center; justify-items: center; gap: 10px; }
@@ -799,8 +814,9 @@ const pages = {
       <div class="romx">
         <div class="rom-items" id="rom-items"></div>
         <div class="rx-right">
-          <div class="rom-folderpick" title="Subfolders are searched too: .z64, .v64, .n64 and .zip">${pathField('roms.folder', r.folder, [['folder', 'Browse…']], 'Where are your N64 ROMs?')}</div>
+          <div class="rom-folderpick" title="Subfolders are searched too: .z64, .v64, .n64 and .zip">${pathField('roms.folder', r.folder, [['folder', 'Browse…']], 'Where are your N64 ROMs?').replace(/(<button[^]*?<\/button>)/, '<span class="glow">$1</span>')}</div>
           <div class="rx-count" id="rx-count"></div>
+          <div class="rx-prog" id="rx-prog" hidden><i></i></div>
           <div class="rom-detail" id="rom-detail"></div>
         </div>
       </div>
@@ -1176,7 +1192,7 @@ window.htk.onLog((t) => { job.log.push(t); if (job.task === taskOf(page)) render
 window.htk.onProgress((p) => {
   job.done = p.done; job.total = p.total; if (p.message) job.message = p.message;
   if (job.task === taskOf(page)) renderJob();
-  if (job.task === 'roms' && page === 'roms') drawRomCount(`Looking for ROMs… ${p.done.toLocaleString()} of ${p.total.toLocaleString()} files`);
+  if (job.task === 'roms' && page === 'roms') drawRomCount();
 });
 window.htk.onDone((d) => {
   job.running = false;
@@ -1239,9 +1255,15 @@ function askRomFolder() {
 }
 // "ROM: 37 out of 303 (NTSC) titles found" under the folder, or the scan's progress.
 function drawRomCount(progress) {
-  const el = $('#rx-count'); if (!el) return;
+  const el = $('#rx-count'), bar = $('#rx-prog'); if (!el) return;
   el.classList.toggle('bad', !!ROMS.error);
-  if (job.running && job.task === 'roms') { el.textContent = progress || 'Looking for ROMs…'; return; }
+  const scanning = job.running && job.task === 'roms';
+  bar.hidden = !scanning;                                // only while scanning; no report afterwards
+  if (scanning) {
+    bar.style.setProperty('--p', job.total ? Math.min(1, job.done / job.total) : 0);
+    el.textContent = job.total ? `Looking for ROMs… ${job.done.toLocaleString()} of ${job.total.toLocaleString()} files` : 'Looking for ROMs…';
+    return;
+  }
   if (ROMS.error) { el.textContent = ROMS.error; return; }
   if (!cfg.roms.folder) { el.textContent = 'Choose the folder with your N64 ROMs.'; return; }
   if (!ROMS.list.length) { el.textContent = ROMS.folder === cfg.roms.folder ? 'No N64 ROMs found in this folder.' : 'Press SCAN to look for ROMs.'; return; }
@@ -1297,14 +1319,20 @@ function fillRomList() {
   let html = '', last = null;
   for (const r of shown) {
     if (r.folder !== last) { last = r.folder; html += `<div class="rom-folder">▸ ${esc(r.folder || '(top folder)')}</div>`; }
-    html += `<button class="rom-item ${r.path === ROMS.selected ? 'on' : ''}" data-rom="${esc(r.path)}" title="${esc(r.rel)}">
+    html += `<button class="rom-item ${r.path === ROMS.selected ? 'on' : ''}" data-rom="${esc(r.path)}" data-art="${esc(r.libArt || '')}" title="${esc(r.rel)}">${r.path === ROMS.selected ? rowArt(r.libArt) : ''}
       <b>${esc(r.title)}</b><span>${r.libKey ? '' : '<i class="nolib" title="Not in the N64 library">?</i>'}${r.gameCode ? `${esc(r.gameCode)} · ${esc(REGION_SHORT[r.regionCode] || r.regionCode || '?')}` : 'Homebrew'} · ${esc(r.format)}${/\.zip$/i.test(r.file) ? ' · zip' : ''}</span></button>`;
   }
   box.innerHTML = (q ? `<div class="rom-count">${shown.length.toLocaleString()} of ${ROMS.list.length.toLocaleString()}</div>` : '') + (html || '<div class="rom-empty">Nothing matches.</div>');
 }
+// The selected row shows the top 40% of its box art on the right, fading in from the left.
+const rowArt = (art) => (art ? `<i class="rom-art" style="background-image:url(&quot;${artUrl(art)}&quot;)"></i>` : '');
 async function selectRom(file) {
   ROMS.selected = file; ROMS.info = null; ROMS.loading = file;
-  document.querySelectorAll('.rom-item').forEach((b) => b.classList.toggle('on', b.dataset.rom === file));
+  document.querySelectorAll('.rom-item').forEach((b) => {
+    const on = b.dataset.rom === file; b.classList.toggle('on', on);
+    const a = $('.rom-art', b); if (a && !on) a.remove();
+    if (on && !a) b.insertAdjacentHTML('afterbegin', rowArt(b.dataset.art));
+  });
   drawRomDetail();
   const info = await window.htk.romInfo(file);
   if (ROMS.loading !== file) return;                 // another ROM was picked meanwhile

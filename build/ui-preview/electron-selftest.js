@@ -220,6 +220,9 @@ module.exports = async ({ app, win }) => {
     check(art && /Paper%20Mario/.test(art[0]) && art[1] > 0, 'ROM Tools: box art shows (Japanese ROM, US box)');
     check(/paper-styled visuals/.test(await js("document.querySelector('#rx-desc').innerText")), 'ROM Tools: game description shows');
     check(/Paper%20Mario/.test(await js("document.querySelector('#rx-ghost').style.backgroundImage")), 'ROM Tools: faded box art behind the details');
+    check(/Paper%20Mario/.test(await js("(document.querySelector('.rom-item.on .rom-art') || {}).outerHTML || ''")) && (await js("document.querySelectorAll('.rom-art').length")) === 1, 'ROM Tools: the selected row shows its box art (and only that row)');
+    check(await js("document.querySelector('#rx-prog').hidden"), 'ROM Tools: no progress bar once the scan is done');
+    check(await js("getComputedStyle(document.querySelector('.rom-folderpick .glow')).filter.includes('drop-shadow')"), 'ROM Tools: Browse… glows');
     await js("document.querySelector('#rom-search').value = 'paper'; document.querySelector('#rom-search').dispatchEvent(new Event('input', { bubbles: true }))"); await wait(200);
     check((await js("[...document.querySelectorAll('.rom-item b')].map((b) => b.textContent).join()")) === 'PAPERMARIO', 'ROM Tools: search filters the list');
     await js("document.querySelector('#rom-search').value = ''; document.querySelector('#rom-search').dispatchEvent(new Event('input', { bubbles: true }))");
