@@ -145,11 +145,19 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .pixfade { flex: 1; align-self: stretch; min-width: 0; position: relative; }
 /* 8-bit pixel gradient: chunky blocks, magenta to orange, dissolving away to the right (drawn in fillPixelFade). */
 .pixfade canvas { position: absolute; left: 0; bottom: 2px; width: 100%; height: 50px; image-rendering: pixelated; }
-.home-btn { all: unset; flex: none; width: 62px; height: 56px; cursor: pointer; margin-right: -14px; align-self: flex-end; position: relative; z-index: 1;
-  filter: drop-shadow(2px 3px 0 rgba(0,0,0,.45)); transition: transform .08s steps(2); }
-.home-btn svg { display: block; width: 100%; height: 100%; }
-.home-btn:hover { transform: translateY(-2px); filter: drop-shadow(2px 5px 0 rgba(0,0,0,.45)) brightness(1.12); }
+.home-btn { all: unset; flex: none; width: 69px; height: 69px; cursor: pointer; margin: 0 -14px -6px 0; align-self: flex-end; position: relative; z-index: 1;
+  filter: drop-shadow(3px 3px 0 rgba(0,0,0,.5)); transition: transform .1s steps(2); }
+.home-btn img { display: block; width: 69px; height: 69px; image-rendering: pixelated; }
+/* 8-bit shine: a stepped band of light sweeps across the pipe on hover, cut to the pipe's own shape. */
+.home-btn::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(105deg, transparent 0 42%, rgba(255,255,255,.42) 42% 46%, transparent 46% 49%, rgba(255,255,255,.24) 49% 51%, transparent 51%) no-repeat;
+  background-size: 300% 100%; background-position: 100% 0;
+  clip-path: polygon(2px 7px, 35px 7px, 35px 2px, 67px 2px, 67px 67px, 35px 67px, 35px 62px, 2px 62px); }
+.home-btn:hover { transform: translateY(-3px); filter: drop-shadow(3px 6px 0 rgba(0,0,0,.45)) brightness(1.08); }
+.home-btn:hover::after { opacity: 1; animation: pipe-shine .6s steps(8) 1 forwards; }
+@keyframes pipe-shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
 .home-btn.on { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 6px rgba(255,255,255,.75)); }
+@media (prefers-reduced-motion: reduce) { .home-btn:hover::after { animation: none; opacity: 0; } }
 .home-btn:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 3px; }
 /* The helper tools question: short and plain. */
 .ask-tools { min-width: 340px; }
@@ -517,7 +525,7 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
     <section class="page" id="page"></section>
   </main>
   <footer>
-    <button class="home-btn" id="home" title="Welcome" aria-label="Welcome"></button>
+    <button class="home-btn" id="home" title="Welcome" aria-label="Welcome"><img src="home-pipe.png" alt="" draggable="false"></button>
     <div class="pixfade" aria-hidden="true"><canvas id="pixfade"></canvas></div>
     <button class="foot-btn" id="quit">Quit</button>
     <button class="foot-btn" id="save">Save</button>
@@ -1522,14 +1530,6 @@ window.addEventListener('resize', () => { if (page === 'upscale') drawPreview();
 // ---------------------------------------------------------------- footer: 8-bit pixel gradient
 // Square blocks in the header's colours (magenta -> violet -> orange) that thin out from left to
 // right with an ordered (Bayer) dither, like an old console fade. One canvas pixel = one block.
-// The Welcome button: two green slabs in pixel art (g grey rim, k outline, L lime, M green, D dark green).
-const HOME_ICON = ["..............ggggggggggggggggg", "..............gkkkkkkkkkkkkkkkg", "..............gkLLLLLLLLLLLLLkg", "gggggggggggggggkDDDDDDDDDDDDLkg", "gkkkkkkkkkkkkkgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkDDDDDDDDDDDDgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDLLLLLLLLLLLkg", "gkLLLLLLLLLLLLgkDDLLLLLLLLLLLkg", "gkMMMMMMMMMMMMgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkLDLDLDLDLDLDLkg", "gkDLDLDLDLDLDLgkDLDLDLDLDLDLLkg", "gkLDLDLDLDLDLDgkLDLDLDLDLDLDLkg", "gkDLDLDLDLDLDLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkkkkkkkkkkkkkkkg", "gkkkkkkkkkkkkkggggggggggggggggg", "gggggggggggggggg..............."];
-function drawHomeIcon() {
-  const C = { g: '#76767f', k: '#1c1c20', L: '#b0f42c', M: '#40be1e', D: '#0a9212' };
-  let r = '';
-  HOME_ICON.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (C[row[x]]) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${C[row[x]]}"/>`; });
-  $('#home').innerHTML = `<svg viewBox="0 0 ${HOME_ICON[0].length} ${HOME_ICON.length}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
-}
 function fillPixelFade() {
   const c = $('#pixfade'); if (!c) return;
   const BLOCK = 5, w = Math.max(1, Math.floor(c.clientWidth / BLOCK)), h = Math.max(1, Math.floor(c.clientHeight / BLOCK));
@@ -1568,7 +1568,6 @@ setTimeout(() => showApp(), 4000);                  // never leave the app hidde
   setTimeout(askRomFolder, SHOW_APP_AT + 200);        // after the splash, so the dialog isn't hidden behind it
   nextHeaderPhrase();
   fillPixelFade();
-  drawHomeIcon();
   showSplash();
 })();
 </script>
