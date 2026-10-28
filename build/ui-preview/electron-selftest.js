@@ -190,10 +190,13 @@ module.exports = async ({ app, win }) => {
     fs.mkdirSync(path.join(romDir, 'USA'), { recursive: true });
     const head = (title, code) => { const b = Buffer.alloc(0x2000, 0x11); b.writeUInt32BE(0x80371240, 0); b.fill(0x20, 0x20, 0x34); b.write(title, 0x20, 'latin1'); b.write(code, 0x3b, 'latin1'); return b; };
     fs.writeFileSync(path.join(romDir, 'USA', 'Alpha.z64'), head('ALPHA TEST', 'NATE'));
-    const v = head('BRAVO TEST', 'NBTJ'); for (let i = 0; i < v.length; i += 2) { const t = v[i]; v[i] = v[i + 1]; v[i + 1] = t; }
+    const v = head('PAPERMARIO', 'NMQJ');            // a Japanese copy of a library game: same box art for (let i = 0; i < v.length; i += 2) { const t = v[i]; v[i] = v[i + 1]; v[i + 1] = t; }
     fs.writeFileSync(path.join(romDir, 'Bravo.v64'), v);
   }
-  await js(`document.querySelector('nav button[data-page="roms"]').click()`); await wait(300);
+  global.dialogs = [];
+  await js(`cfg.roms.folder = ''; ROMS.asked = false; document.querySelector('nav button[data-page="upscale"]').click()`); await wait(200);
+  await js(`document.querySelector('nav button[data-page="roms"]').click()`); await wait(500);
+  check(global.dialogs.includes('folder'), 'ROM Tools: opening it with no folder asks where the ROMs are');
   await js(`window.__done = null; if (!window.__hooked) { window.__hooked = true; window.htk.onDone((d) => { window.__done = d; }); }
     cfg.roms.folder = ${JSON.stringify(romDir)}; onPath('roms.folder'); render();`);
   let rd = null; for (let i = 0; i < 300 && !rd; i++) { await wait(100); rd = await js('window.__done'); }
@@ -201,7 +204,6 @@ module.exports = async ({ app, win }) => {
   check(rd && rd.task === 'roms' && rd.result.count > 0 && (want == null || rd.result.count === want), `ROM Tools: picking the folder scans it (${rd ? rd.result.count : 0} ROMs)`);
   await wait(300);
   check((await js("document.querySelectorAll('.rom-item').length")) === (rd ? rd.result.count : -1), 'ROM Tools: every ROM is listed');
-  check(/Found \d+ ROM/.test(await js("document.querySelector('#status .t').textContent")), 'ROM Tools: card says how many were found');
   await js("([...document.querySelectorAll('.rom-item')].find((b) => /ALPHA/.test(b.textContent)) || document.querySelector('.rom-item')).click()"); await wait(1500);
   const det = await js("document.querySelector('#rom-detail').innerText");
   check(/GAME/.test(det) && /MD5/.test(det) && /CIC chip/.test(det), 'ROM Tools: clicking a ROM shows its details');
@@ -211,8 +213,15 @@ module.exports = async ({ app, win }) => {
     check(allOk, `ROM Tools: checksum OK for all ${rd.result.count} real ROMs`);
   } else {
     check(/ALPHA TEST/.test(det) && /NATE/.test(det) && /North America/.test(det), 'ROM Tools: title, game code and region read');
-    await js("document.querySelector('#rom-search').value = 'bravo'; document.querySelector('#rom-search').dispatchEvent(new Event('input', { bubbles: true }))"); await wait(200);
-    check((await js("[...document.querySelectorAll('.rom-item b')].map((b) => b.textContent).join()")) === 'BRAVO TEST', 'ROM Tools: search filters the list');
+    check((await js("document.querySelector('#rx-desc').innerText")).trim() === 'No ROM match found, what is this game?', 'ROM Tools: a game not in the library says so');
+    check(/ROM: 1 out of 303 \(NTSC\) titles found/.test(await js("document.querySelector('#rx-count').innerText")), 'ROM Tools: counter shows 1 out of 303 titles');
+    await js("[...document.querySelectorAll('.rom-item')].find((b) => /PAPERMARIO/.test(b.textContent)).click()"); await wait(1200);
+    const art = await js("(() => { const i = document.querySelector('#rx-art img'); return i ? [i.getAttribute('src'), i.naturalWidth] : null; })()");
+    check(art && /Paper%20Mario/.test(art[0]) && art[1] > 0, 'ROM Tools: box art shows (Japanese ROM, US box)');
+    check(/paper-styled visuals/.test(await js("document.querySelector('#rx-desc').innerText")), 'ROM Tools: game description shows');
+    check(/Paper%20Mario/.test(await js("document.querySelector('#rx-ghost').style.backgroundImage")), 'ROM Tools: faded box art behind the details');
+    await js("document.querySelector('#rom-search').value = 'paper'; document.querySelector('#rom-search').dispatchEvent(new Event('input', { bubbles: true }))"); await wait(200);
+    check((await js("[...document.querySelectorAll('.rom-item b')].map((b) => b.textContent).join()")) === 'PAPERMARIO', 'ROM Tools: search filters the list');
     await js("document.querySelector('#rom-search').value = ''; document.querySelector('#rom-search').dispatchEvent(new Event('input', { bubbles: true }))");
   }
   await wait(200); await shot('run-rom-tools');

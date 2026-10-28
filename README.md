@@ -92,6 +92,7 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
 
 A quick explorer for your N64 ROM collection. It only reads ROMs, never changes them.
 
+- **Opening ROM Tools asks where your ROMs are** (when no folder is set yet).
 - **Pick your ROM folder** and it is searched straight away, subfolders included.
   Found: `.z64` (big-endian), `.v64` (byte-swapped), `.n64` (little-endian), `.rom`,
   `.bin`, `.u64`, and `.zip` files with a ROM inside. Files with a ROM-like name that
@@ -99,7 +100,15 @@ A quick explorer for your N64 ROM collection. It only reads ROMs, never changes 
   press **SCAN**.
 - **The list** is grouped by folder, so you see how the collection is laid out, and
   shows each ROM's title, game code, region and format. **Search** filters by title,
-  file name, game code or folder.
+  file name, game code or folder. A small **?** marks ROMs that aren't in the N64 library.
+- **The counter** under the folder shows how much of the North American N64 library you
+  have: "ROM: 37 out of 303 (NTSC) titles found". Each game counts once, however many
+  copies or regions of it you have.
+- **Box art and description**: clicking a ROM shows its 3D box at the top right and a
+  short description of the game beside it (long ones scroll by themselves; hover to
+  pause). A faded copy of the box sits behind the details. Games are matched by the game
+  ID in the ROM header (`NMQE` = Paper Mario), so a Japanese or European copy shows the
+  same box. A ROM that isn't in the library says *"No ROM match found, what is this game?"*
 - **Click a ROM** to see:
   - **Game**: title, game code, type (cartridge, 64DD…), game ID, region with NTSC /
     PAL, and version.
@@ -116,6 +125,11 @@ A quick explorer for your N64 ROM collection. It only reads ROMs, never changes 
     engine games (Ocarina of Time, Majora's Mask and their hacks) it also finds the
     file table: how many files, how many are compressed, and the build name and date.
 - **Show in folder** opens the ROM's folder with the file selected.
+
+The library (`app/assets/n64/games.json`, 303 games) is made by
+`build/n64-library/make-games.py` from the box art and a description list, with each
+title's game code looked up in the [libretro N64 databases](https://github.com/libretro/libretro-database)
+(No-Intro first, as its codes are read from the ROM headers).
 
 The checksum follows `n64crc.c` for CIC-6101/6102 (7101), 6103 (7103), 6105 (7105) and
 6106 (7106). CIC-7102 and the 64DD's 8303 are named but not checked.
@@ -259,3 +273,11 @@ GLideN64 support (page 5) uses the Rice texture ID formula from GLideN64 and Ric
 from RT64 and bcdec (both MIT, which can be used in GPL software); see
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The R64 icon, splash and header artwork
 were supplied by the project author.
+
+### Credits
+
+- **N64 box art scans** (ROM Tools): **Kondorito**, from the
+  [Nintendo 64 3D Boxes Pack (Real Version)](https://emumovies.com/files/file/3117-nintendo-64-3d-boxes-pack-real-version)
+  on EmuMovies.
+- **Game codes** for the box art: the [libretro-database](https://github.com/libretro/libretro-database)
+  N64 lists (No-Intro and serial).

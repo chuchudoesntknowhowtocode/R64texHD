@@ -142,3 +142,34 @@ test('scan finds ROMs in subfolders, skips look-alikes, and the app task reports
   await assert.rejects(tasks.romsTask({ folder: '' }, quietCtx()), /folder/i);
   tasks.closePreview();
 });
+
+test('N64 library: box art and description by game ID, any region', () => {
+  const lib = rom.library();
+  assert.equal(lib.count, 303);
+  assert.equal(Object.keys(lib.games).length, 303);
+  for (const [key, g] of Object.entries(lib.games)) {
+    assert.match(key, /^[A-Z0-9]{3}$/);
+    assert.ok(fs.existsSync(path.join(__dirname, '..', 'app', 'assets', 'n64', 'boxart', g.art)), `box art for ${key}: ${g.art}`);
+  }
+  const pm = rom.libraryGame('NMQE');
+  assert.equal(pm.title, 'Paper Mario'); assert.equal(pm.art, 'Paper Mario (USA).png'); assert.match(pm.description, /paper-styled/);
+  assert.equal(rom.libraryGame('NMQJ'), pm, 'a Japanese copy finds the same game');
+  assert.equal(rom.libraryGame('NG5E').title, 'Mystical Ninja Starring Goemon');
+  assert.equal(rom.libraryGame('NGME').title, "Goemon's Great Adventure");
+  assert.equal(rom.libraryGame('CZLE').title, 'The Legend of Zelda: Ocarina of Time');
+  assert.equal(rom.libraryGame(''), null); assert.equal(rom.libraryGame('ZZZE'), null);
+});
+
+test('scan counts library titles once, however many copies', () => {
+  const dir = tmpDir();
+  fs.writeFileSync(path.join(dir, 'pm-us.z64'), makeRom({ title: 'PAPERMARIO', code: 'NMQE' }).subarray(0, 0x2000));
+  fs.writeFileSync(path.join(dir, 'pm-jp.z64'), makeRom({ title: 'MARIO STORY', code: 'NMQJ' }).subarray(0, 0x2000));
+  fs.writeFileSync(path.join(dir, 'sm64.z64'), makeRom({ title: 'SUPER MARIO 64', code: 'NSME' }).subarray(0, 0x2000));
+  fs.writeFileSync(path.join(dir, 'home.z64'), makeRom({ title: 'HOMEBREW', code: '\0\0\0\0' }).subarray(0, 0x2000));
+  const r = rom.scan(dir);
+  assert.equal(r.roms.length, 4); assert.equal(r.matched, 2); assert.equal(r.libraryCount, 303);
+  assert.deepEqual(r.roms.map((x) => [x.file, x.libKey]), [['home.z64', ''], ['pm-jp.z64', 'NMQ'], ['pm-us.z64', 'NMQ'], ['sm64.z64', 'NSM']]);
+  assert.equal(r.roms.find((x) => x.file === 'home.z64').libKey, '');
+  const f = path.join(dir, 'full.z64'); fs.writeFileSync(f, makeRom({ code: 'NSME' }));
+  assert.equal(rom.info(f).library.title, 'Super Mario 64');
+});

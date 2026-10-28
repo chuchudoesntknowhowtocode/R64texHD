@@ -303,6 +303,7 @@ function registerIpc() {
   ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task }));
   ipcMain.handle('settings:save', (_e, s) => { settings = { ...settings, ...s }; saveSettings(); return true; });
   ipcMain.handle('dialog', async (_e, { kind, title, defaultPath }) => {
+    if (process.env.HTK_SELFTEST) { (global.dialogs = global.dialogs || []).push(kind); return null; }   // self-test: note it, don't block on a window
     const base = { title, defaultPath: defaultPath || settings.outputFolder || undefined };
     let r;
     if (kind === 'folder') r = await dialog.showOpenDialog(win, { ...base, properties: ['openDirectory', 'createDirectory'] });

@@ -541,7 +541,7 @@ async function romsTask(p, ctx) {
   ctx.log(`Found ${r.roms.length.toLocaleString()} N64 ROM(s) in ${folders.toLocaleString()} folder(s).`);
   if (r.skipped) ctx.log(`${r.skipped.toLocaleString()} file(s) with ROM-like names aren’t N64 ROMs and were left out.`);
   if (r.truncated) ctx.log('Stopped at 20,000 files: pick a smaller folder to see the rest.');
-  return { title: 'Found', roms: r.roms, count: r.roms.length, folders, output: p.folder, seconds: (Date.now() - t0) / 1000 };
+  return { title: 'Found', roms: r.roms, count: r.roms.length, folders, matched: r.matched, libraryCount: r.libraryCount, output: p.folder, seconds: (Date.now() - t0) / 1000 };
 }
 
 // Everything about one ROM (hashes, checksum...), on its own worker so the window stays responsive.

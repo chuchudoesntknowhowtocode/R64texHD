@@ -80,6 +80,8 @@ THE PAGES (sidebar)
    too: .z64, .v64, .n64 and .zip) and click a ROM to see its title, game code,
    region, version, CIC chip, whether the header checksum is right, CRC32 / MD5
    / SHA-1, and for Zelda 64 games the file table. ROMs are only read.
+   303 North American games also show their box art and a short description,
+   and the counter says how many of them your folder has.
 
 R64texHD is free software under the GNU General Public License, version 2
 or later (see LICENSE.R64texHD.txt).

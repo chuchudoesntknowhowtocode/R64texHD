@@ -23,7 +23,7 @@ SHOTS = [
     ('check-a-pack', 'page=pack&mode=check', ['run'], 'Rendering Nostalgia. Destroying Blur.'),
     ('ship-mods-o2r', 'page=ports&mode=build', ['scroll:120'], 'Because Even Mario Deserves Better Skin.'),
     ('rice-gliden64', 'page=legacy&mode=import', [], 'Built Different. Runs on Nostalgia.'),
-    ('rom-tools', 'page=roms', ['click:.rom-item:has-text("JULIA")', 'wait'], 'Your Childhood Called. Its Graphics Are Embarrassing.'),
+    ('rom-tools', 'page=roms', ['click:.rom-item:has-text("GOLDENEYE")', 'wait'], 'Your Childhood Called. Its Graphics Are Embarrassing.'),
     ('settings', 'page=settings&notools', ['scroll:300'], 'Same Game. Less Fugly.'),
     ('settings-look-and-feel', 'page=settings', ['click:[data-key="splash"] [data-v="true"]', 'scroll:99999'], 'Rendering Nostalgia. Destroying Blur.'),
 ]

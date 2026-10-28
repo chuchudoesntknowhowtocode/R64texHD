@@ -1,0 +1,1824 @@
+{
+ "about": "N64 North American library for ROM Tools. Key: game ID (category letter + 2-letter ID). Box art: Kondorito (EmuMovies).",
+ "count": 303,
+ "games": {
+  "CFZ": {
+   "title": "F-Zero X",
+   "code": "CFZE",
+   "art": "F-Zero X (USA).png",
+   "description": "A futuristic racer known for blistering speed, 30-vehicle races, looping tracks, and demanding high-risk racing."
+  },
+  "CLB": {
+   "title": "Mario Party",
+   "code": "CLBE",
+   "art": "Mario Party (USA).png",
+   "description": "A party game combining a virtual board game with short multiplayer minigames that reward stars and coins."
+  },
+  "CZL": {
+   "title": "The Legend of Zelda: Ocarina of Time",
+   "code": "CZLE",
+   "art": "Legend of Zelda, The - Ocarina of Time (USA) (Rev B).png",
+   "description": "A landmark 3D action-adventure in which Link explores Hyrule, solves dungeons, plays magical melodies, and battles Ganondorf across time."
+  },
+  "N22": {
+   "title": "Ready 2 Rumble Boxing: Round 2",
+   "code": "N22E",
+   "art": "Ready 2 Rumble Boxing - Round 2 (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "N2M": {
+   "title": "Madden NFL 2002",
+   "code": "N2ME",
+   "art": "Madden NFL 2002 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "N2P": {
+   "title": "Rampage 2: Universal Tour",
+   "code": "N2PE",
+   "art": "Rampage 2 - Universal Tour (USA).png",
+   "description": "A sequel to the monster-smashing arcade game, featuring destructible cities, giant creatures, and cooperative mayhem."
+  },
+  "N2V": {
+   "title": "Chameleon Twist 2",
+   "code": "N2VE",
+   "art": "Chameleon Twist 2 (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "N32": {
+   "title": "Army Men: Sarge's Heroes 2",
+   "code": "N32E",
+   "art": "Army Men - Sarge's Heroes 2 (USA).png",
+   "description": "A strategy or military-action game focused on commanding units, using weapons or vehicles, completing objectives, and overcoming opposing forces."
+  },
+  "N3H": {
+   "title": "International Track & Field 2000",
+   "code": "N3HE",
+   "art": "International Track & Field 2000 (USA).png",
+   "description": "A multi-event sports game built around competing in Olympic-style disciplines, timing button presses, and beating records or opponents."
+  },
+  "N3P": {
+   "title": "Triple Play 2000",
+   "code": "N3PE",
+   "art": "Triple Play 2000 (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "N3T": {
+   "title": "Tony Hawk's Pro Skater 3",
+   "code": "N3TE",
+   "art": "Tony Hawk's Pro Skater 3 (USA).png",
+   "description": "A refined skateboarding game with fluid trick chaining, varied levels, objectives, and local multiplayer."
+  },
+  "N7I": {
+   "title": "FIFA Soccer 64",
+   "code": "N7IE",
+   "art": "FIFA Soccer 64 (USA) (En,Fr,De).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "N8I": {
+   "title": "FIFA: Road to World Cup 98",
+   "code": "N8IE",
+   "art": "FIFA - Road to World Cup 98 (USA) (En,Fr,De,Es,It,Nl,Sv).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "N8M": {
+   "title": "Madden Football 64",
+   "code": "N8ME",
+   "art": "Madden Football 64 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "N8W": {
+   "title": "World Cup 98",
+   "code": "N8WE",
+   "art": "World Cup 98 (USA) (En,Fr,De,Es,It,Nl,Sv,Da).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "N9B": {
+   "title": "NBA Live 99",
+   "code": "N9BE",
+   "art": "NBA Live 99 (USA) (En,Fr,De,Es,It).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "N9C": {
+   "title": "NASCAR '99",
+   "code": "N9CE",
+   "art": "NASCAR 99 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "N9F": {
+   "title": "FIFA 99",
+   "code": "N9FE",
+   "art": "FIFA 99 (USA) (En,Fr,De,Es,It,Nl,Pt,Sv).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "N9H": {
+   "title": "NHL 99",
+   "code": "N9HE",
+   "art": "NHL 99 (USA).png",
+   "description": "An ice hockey game with team play, skating, passing, shooting, checking, and tournament or exhibition matches."
+  },
+  "N9M": {
+   "title": "Madden NFL 99",
+   "code": "N9ME",
+   "art": "Madden NFL 99 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NAB": {
+   "title": "Air Boarder 64",
+   "code": "NABE",
+   "art": "Air Boarder 64 (Europe).png",
+   "description": ""
+  },
+  "NAC": {
+   "title": "Army Men: Air Combat",
+   "code": "NACE",
+   "art": "Army Men - Air Combat (USA).png",
+   "description": "A strategy or military-action game focused on commanding units, using weapons or vehicles, completing objectives, and overcoming opposing forces."
+  },
+  "NAD": {
+   "title": "Worms Armageddon",
+   "code": "NADE",
+   "art": "Worms Armageddon (USA) (En,Fr,Es).png",
+   "description": "A turn-based artillery strategy game where teams of cartoon worms use an outrageous arsenal to eliminate opponents across destructible landscapes."
+  },
+  "NAG": {
+   "title": "AeroGauge",
+   "code": "NAGE",
+   "art": "AeroGauge (USA).png",
+   "description": "A futuristic anti-gravity racer built around high-speed courses, sharp turns, and experimental racing machines."
+  },
+  "NAH": {
+   "title": "Asteroids Hyper 64",
+   "code": "NAHE",
+   "art": "Asteroids Hyper 64 (USA).png",
+   "description": "A 3D reimagining of Asteroids, combining space combat, asteroid destruction, and arcade-style action."
+  },
+  "NAI": {
+   "title": "Midway's Greatest Arcade Hits: Volume 1",
+   "code": "NAIE",
+   "art": "Midway's Greatest Arcade Hits Vol. 1 (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NAL": {
+   "title": "Super Smash Bros.",
+   "code": "NALE",
+   "art": "Super Smash Bros. (USA).png",
+   "description": "A four-player crossover fighting game where Nintendo characters battle on themed stages using attacks and items to knock opponents out of bounds."
+  },
+  "NAM": {
+   "title": "Army Men: Sarge's Heroes",
+   "code": "NAME",
+   "art": "Army Men - Sarge's Heroes (USA).png",
+   "description": "A strategy or military-action game focused on commanding units, using weapons or vehicles, completing objectives, and overcoming opposing forces."
+  },
+  "NAR": {
+   "title": "Armorines: Project S.W.A.R.M.",
+   "code": "NARE",
+   "art": "Armorines - Project S.W.A.R.M. (USA).png",
+   "description": "A strategy or military-action game focused on commanding units, using weapons or vehicles, completing objectives, and overcoming opposing forces."
+  },
+  "NAS": {
+   "title": "All-Star Baseball 2001",
+   "code": "NASE",
+   "art": "All-Star Baseball 2001 (USA).png",
+   "description": "A baseball simulation with batting, pitching, fielding, season or exhibition play, and teams modeled on the professional game of its era."
+  },
+  "NAY": {
+   "title": "Aidyn Chronicles: The First Mage",
+   "code": "NAYE",
+   "art": "Aidyn Chronicles - The First Mage (USA).png",
+   "description": "A traditional fantasy RPG with party-based battles, exploration, character development, and a lengthy quest across a dangerous kingdom."
+  },
+  "NB2": {
+   "title": "NBA In the Zone '99",
+   "code": "NB2E",
+   "art": "NBA in the Zone '99 (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NB3": {
+   "title": "Bust-A-Move '99",
+   "code": "NB3E",
+   "art": "Bust-A-Move '99 (USA).png",
+   "description": ""
+  },
+  "NB4": {
+   "title": "Bass Masters 2000",
+   "code": "NB4E",
+   "art": "Bassmasters 2000 (USA).png",
+   "description": "A fishing game featuring selectable locations and equipment, casting and reeling mechanics, and challenges to catch fish under changing conditions."
+  },
+  "NB7": {
+   "title": "Banjo-Tooie",
+   "code": "NB7E",
+   "art": "Banjo-Tooie (USA).png",
+   "description": "The sequel expands the original's collectathon platforming with larger interconnected worlds, new moves, transformations, and cooperative character abilities."
+  },
+  "NB9": {
+   "title": "NBA Jam 99",
+   "code": "NB9E",
+   "art": "NBA Jam 99 (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NBA": {
+   "title": "NBA In the Zone '98",
+   "code": "NBAE",
+   "art": "NBA in the Zone '98 (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NBC": {
+   "title": "Blast Corps",
+   "code": "NBCE",
+   "art": "Blast Corps (USA) (Rev A).png",
+   "description": "A distinctive action-puzzle game where you demolish buildings and clear paths for a runaway nuclear missile carrier before it collides with anything."
+  },
+  "NBD": {
+   "title": "Bomberman Hero",
+   "code": "NBDE",
+   "art": "Bomberman Hero (USA).png",
+   "description": "A fast-paced 3D platform action game that sends Bomberman through varied planets, using bombs and acrobatic moves to fight enemies."
+  },
+  "NBE": {
+   "title": "All-Star Baseball 2000",
+   "code": "NBEE",
+   "art": "All-Star Baseball 2000 (USA).png",
+   "description": "A baseball simulation with batting, pitching, fielding, season or exhibition play, and teams modeled on the professional game of its era."
+  },
+  "NBF": {
+   "title": "Bio F.R.E.A.K.S.",
+   "code": "NBFE",
+   "art": "Bio F.R.E.A.K.S. (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NBH": {
+   "title": "Body Harvest",
+   "code": "NBHE",
+   "art": "Body Harvest (USA).png",
+   "description": "An open-world action game in which a soldier travels through different historical eras to stop alien invasions using vehicles and weapons."
+  },
+  "NBI": {
+   "title": "NFL Blitz 2000",
+   "code": "NBIE",
+   "art": "NFL Blitz 2000 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NBK": {
+   "title": "Banjo-Kazooie",
+   "code": "NBKE",
+   "art": "Banjo-Kazooie (USA) (Rev A).png",
+   "description": "A colorful 3D collectathon platformer starring bear Banjo and bird Kazooie as they explore themed worlds to rescue Banjo's sister from Gruntilda."
+  },
+  "NBL": {
+   "title": "Buck Bumble",
+   "code": "NBLE",
+   "art": "Buck Bumble (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NBM": {
+   "title": "Bomberman 64",
+   "code": "NBME",
+   "art": "Bomberman 64 (USA).png",
+   "description": "A 3D action-puzzle adventure where Bomberman places bombs to defeat enemies, solve environmental puzzles, and explore themed stages."
+  },
+  "NBO": {
+   "title": "Bottom of the 9th",
+   "code": "NBOE",
+   "art": "Bottom of the 9th (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NBP": {
+   "title": "Blues Brothers 2000",
+   "code": "NBPE",
+   "art": "Blues Brothers 2000 (USA).png",
+   "description": "A licensed action-adventure that follows familiar characters through themed levels, combat encounters, platforming challenges, and story-inspired objectives."
+  },
+  "NBQ": {
+   "title": "BattleTanx: Global Assault",
+   "code": "NBQE",
+   "art": "BattleTanx - Global Assault (USA).png",
+   "description": "A strategy or military-action game focused on commanding units, using weapons or vehicles, completing objectives, and overcoming opposing forces."
+  },
+  "NBR": {
+   "title": "Milo's Astro Lanes",
+   "code": "NBRE",
+   "art": "Milo's Astro Lanes (USA).png",
+   "description": "An arcade or puzzle game focused on quick decisions, pattern recognition, and progressively challenging rounds, with score-based or competitive play."
+  },
+  "NBS": {
+   "title": "All-Star Baseball 99",
+   "code": "NBSE",
+   "art": "All-Star Baseball '99 (USA).png",
+   "description": "A baseball simulation with batting, pitching, fielding, season or exhibition play, and teams modeled on the professional game of its era."
+  },
+  "NBU": {
+   "title": "Bust-A-Move 2: Arcade Edition",
+   "code": "NBUE",
+   "art": "Bust-A-Move 2 - Arcade Edition (USA).png",
+   "description": "An arcade or puzzle game focused on quick decisions, pattern recognition, and progressively challenging rounds, with score-based or competitive play."
+  },
+  "NBV": {
+   "title": "Bomberman 64: The Second Attack!",
+   "code": "NBVE",
+   "art": "Bomberman 64 - The Second Attack! (USA).png",
+   "description": "A story-driven Bomberman adventure featuring bomb-based combat, puzzle-solving, exploration, and a larger role-playing structure."
+  },
+  "NBW": {
+   "title": "Super Bowling",
+   "code": "NBWE",
+   "art": "Super Bowling (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NBX": {
+   "title": "BattleTanx",
+   "code": "NBXE",
+   "art": "BattleTanx (USA).png",
+   "description": "A strategy or military-action game focused on commanding units, using weapons or vehicles, completing objectives, and overcoming opposing forces."
+  },
+  "NBY": {
+   "title": "A Bug's Life",
+   "code": "NBYE",
+   "art": "Bug's Life, A (USA).png",
+   "description": "A 3D platform adventure based on Pixar's film, following Flik as he explores insect-sized environments and battles enemies."
+  },
+  "NBZ": {
+   "title": "NFL Blitz",
+   "code": "NBZE",
+   "art": "NFL Blitz (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NC2": {
+   "title": "ClayFighter: Sculptor's Cut",
+   "code": "NC2E",
+   "art": "Clay Fighter - Sculptor's Cut (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NCB": {
+   "title": "Charlie's Blast Territory",
+   "code": "NCBE",
+   "art": "Charlie Blast's Territory (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NCC": {
+   "title": "Command & Conquer",
+   "code": "NCCE",
+   "art": "Command & Conquer (USA).png",
+   "description": "A real-time strategy game about gathering resources, building bases, and commanding armies in a conflict between the GDI and Nod."
+  },
+  "NCD": {
+   "title": "Carmageddon 64",
+   "code": "NCDE",
+   "art": "Carmageddon 64 (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NCE": {
+   "title": "Nuclear Strike 64",
+   "code": "NCEE",
+   "art": "Nuclear Strike 64 (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NCF": {
+   "title": "ClayFighter 63⅓",
+   "code": "NCFE",
+   "art": "Clay Fighter 63 1-3 (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NCH": {
+   "title": "Chopper Attack",
+   "code": "NCHE",
+   "art": "Chopper Attack (USA).png",
+   "description": "A science-fiction action game featuring spacecraft or military vehicles, combat missions, enemy forces, and objectives set in a cinematic universe."
+  },
+  "NCK": {
+   "title": "NBA Courtside 2 Featuring Kobe Bryant",
+   "code": "NCKE",
+   "art": "NBA Courtside 2 featuring Kobe Bryant (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NCL": {
+   "title": "California Speed",
+   "code": "NCLE",
+   "art": "California Speed (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NCO": {
+   "title": "Jeremy McGrath Supercross 2000",
+   "code": "NCOE",
+   "art": "Jeremy McGrath Supercross 2000 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NCR": {
+   "title": "Penny Racers",
+   "code": "NCRE",
+   "art": "Penny Racers (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NCS": {
+   "title": "S.C.A.R.S.",
+   "code": "NCSE",
+   "art": "S.C.A.R.S. (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NCT": {
+   "title": "Chameleon Twist",
+   "code": "NCTE",
+   "art": "Chameleon Twist (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NCU": {
+   "title": "Cruis'n USA",
+   "code": "NCUE",
+   "art": "Cruis'n USA (USA) (Rev B).png",
+   "description": "An arcade-style racer that takes players across recognizable American locations with simple controls and exaggerated high-speed driving."
+  },
+  "NCW": {
+   "title": "Cruis'n World",
+   "code": "NCWE",
+   "art": "Cruis'n World (USA).png",
+   "description": "An arcade racer featuring international landmarks, stunt jumps, unlockable vehicles, and fast, accessible racing."
+  },
+  "NCY": {
+   "title": "South Park: Chef's Luv Shack",
+   "code": "NCYE",
+   "art": "South Park - Chef's Luv Shack (USA).png",
+   "description": "A comedy game based on the animated series, featuring its irreverent characters, familiar locations, and a mix of action or party-style challenges."
+  },
+  "ND3": {
+   "title": "Castlevania",
+   "code": "ND3E",
+   "art": "Castlevania (USA) (Rev B).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "ND4": {
+   "title": "Castlevania: Legacy of Darkness",
+   "code": "ND4E",
+   "art": "Castlevania - Legacy of Darkness (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NDE": {
+   "title": "Destruction Derby 64",
+   "code": "NDEE",
+   "art": "Destruction Derby 64 (USA).png",
+   "description": "A vehicular combat racer emphasizing collisions, arena destruction, and survival against aggressive opponents."
+  },
+  "NDH": {
+   "title": "Dual Heroes",
+   "code": "NDHE",
+   "art": "Dual Heroes (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NDK": {
+   "title": "Dark Rift",
+   "code": "NDKE",
+   "art": "Dark Rift (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NDM": {
+   "title": "Doom 64",
+   "code": "NDME",
+   "art": "Doom 64 (USA) (Rev A).png",
+   "description": "A console-exclusive first-person shooter with atmospheric levels, demonic enemies, secrets, and a darker visual style than earlier Doom games."
+  },
+  "NDN": {
+   "title": "Duke Nukem 64",
+   "code": "NDNE",
+   "art": "Duke Nukem 64 (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NDO": {
+   "title": "Donkey Kong 64",
+   "code": "NDOE",
+   "art": "Donkey Kong 64 (USA).png",
+   "description": "A large 3D collectathon starring five Kong characters, each with unique abilities, as they explore worlds and collect items to stop King K. Rool."
+  },
+  "NDQ": {
+   "title": "Donald Duck: Quack Attack",
+   "code": "NDQE",
+   "art": "Donald Duck - Goin' Quackers (USA) (En,Fr,De,Es,It).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NDT": {
+   "title": "South Park",
+   "code": "NDTE",
+   "art": "South Park (USA).png",
+   "description": "A comedy game based on the animated series, featuring its irreverent characters, familiar locations, and a mix of action or party-style challenges."
+  },
+  "NDU": {
+   "title": "Duck Dodgers Starring Daffy Duck",
+   "code": "NDUE",
+   "art": "Duck Dodgers Starring Daffy Duck (USA) (En,Fr,Es).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NDW": {
+   "title": "Daikatana",
+   "code": "NDWE",
+   "art": "John Romero's Daikatana (USA).png",
+   "description": "A role-playing adventure with exploration, character progression, battles or quests, and a story set in a fantasy or imaginative world."
+  },
+  "NDY": {
+   "title": "Diddy Kong Racing",
+   "code": "NDYE",
+   "art": "Diddy Kong Racing (USA) (En,Fr) (Rev A).png",
+   "description": "A kart racer with cars, hovercraft, and planes, a story-driven adventure mode, boss races, and a memorable cast of characters."
+  },
+  "NDZ": {
+   "title": "Duke Nukem: Zero Hour",
+   "code": "NDZE",
+   "art": "Duke Nukem - Zero Hour (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NEA": {
+   "title": "PGA European Tour Golf",
+   "code": "NEAE",
+   "art": "PGA European Tour (USA).png",
+   "description": "A golf game built around selecting clubs, judging distance and wind, and timing swings across courses and tournament formats."
+  },
+  "NEG": {
+   "title": "Extreme-G",
+   "code": "NEGE",
+   "art": "Extreme-G (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NEL": {
+   "title": "Elmo's Letter Adventure",
+   "code": "NELE",
+   "art": "Elmo's Letter Adventure (USA).png",
+   "description": "A child-friendly educational game that introduces early learning concepts through simple activities, colorful characters, and accessible challenges."
+  },
+  "NEN": {
+   "title": "Elmo's Number Journey",
+   "code": "NENE",
+   "art": "Elmo's Number Journey (USA).png",
+   "description": "A child-friendly educational game that introduces early learning concepts through simple activities, colorful characters, and accessible challenges."
+  },
+  "NEP": {
+   "title": "Star Wars Episode I: Racer",
+   "code": "NEPE",
+   "art": "Star Wars Episode I - Racer (USA).png",
+   "description": "A high-speed podracing game featuring many racers, upgradeable engines, hazardous tracks, and intense acceleration-based competition."
+  },
+  "NER": {
+   "title": "Aero Fighters Assault",
+   "code": "NERE",
+   "art": "AeroFighters Assault (USA).png",
+   "description": "A 3D aerial-combat shooter with selectable pilots and aircraft, dogfights, and mission-based campaigns."
+  },
+  "NET": {
+   "title": "Quest 64",
+   "code": "NETE",
+   "art": "Quest 64 (USA).png",
+   "description": "A fantasy role-playing game in which Brian explores a magical world, learns elemental spells, and battles enemies in real time."
+  },
+  "NF2": {
+   "title": "F-1 World Grand Prix II",
+   "code": "NF2E",
+   "art": "F-1 World Grand Prix II (Europe) (En,Fr,De,Es).png",
+   "description": ""
+  },
+  "NF9": {
+   "title": "Fox Sports College Hoops '99",
+   "code": "NF9E",
+   "art": "Fox Sports College Hoops '99 (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NFB": {
+   "title": "NFL Blitz 2001",
+   "code": "NFBE",
+   "art": "NFL Blitz 2001 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NFD": {
+   "title": "Flying Dragon",
+   "code": "NFDE",
+   "art": "Flying Dragon (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NFF": {
+   "title": "Fighting Force 64",
+   "code": "NFFE",
+   "art": "Fighting Force 64 (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NFG": {
+   "title": "Fighter Destiny 2",
+   "code": "NFGE",
+   "art": "Fighter Destiny 2 (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NFH": {
+   "title": "In-Fisherman Bass Hunter 64",
+   "code": "NFHE",
+   "art": "In-Fisherman - Bass Hunter 64 (USA).png",
+   "description": "A fishing game featuring selectable locations and equipment, casting and reeling mechanics, and challenges to catch fish under changing conditions."
+  },
+  "NFL": {
+   "title": "Madden NFL 2001",
+   "code": "NFLE",
+   "art": "Madden NFL 2001 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NFO": {
+   "title": "Forsaken 64",
+   "code": "NFOE",
+   "art": "Forsaken 64 (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NFQ": {
+   "title": "Razor Freestyle Scooter",
+   "code": "NFQE",
+   "art": "Razor Freestyle Scooter (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NFR": {
+   "title": "F1 Racing Championship",
+   "code": "NFRE",
+   "art": "F1 Racing Championship (Europe) (En,Fr,De,Es,It).png",
+   "description": ""
+  },
+  "NFU": {
+   "title": "Conker's Bad Fur Day",
+   "code": "NFUE",
+   "art": "Conker's Bad Fur Day (USA).png",
+   "description": "A deliberately crude, adult-oriented 3D platform adventure packed with dark comedy, movie parodies, bizarre characters, and varied gameplay set pieces."
+  },
+  "NFW": {
+   "title": "F-1 World Grand Prix",
+   "code": "NFWE",
+   "art": "F-1 World Grand Prix (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NFX": {
+   "title": "Star Fox 64",
+   "code": "NFXE",
+   "art": "Star Fox 64 (USA) (Rev A).png",
+   "description": "A rail-shooting space adventure starring Fox McCloud, with branching routes, aerial dogfights, memorable bosses, and multiplayer battles."
+  },
+  "NG2": {
+   "title": "Extreme-G 2",
+   "code": "NG2E",
+   "art": "Extreme-G XG2 (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NG5": {
+   "title": "Mystical Ninja Starring Goemon",
+   "code": "NG5E",
+   "art": "Mystical Ninja Starring Goemon (USA).png",
+   "description": "A quirky Japanese action-adventure featuring exploration, platforming, combat, humorous characters, and unusual set pieces."
+  },
+  "NGA": {
+   "title": "G.A.S.P!! Fighters' NEXTream",
+   "code": "NGAE",
+   "art": "Deadly Arts (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NGB": {
+   "title": "Top Gear Hyper-Bike",
+   "code": "NGBE",
+   "art": "Top Gear Hyper-Bike (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NGC": {
+   "title": "GT 64: Championship Edition",
+   "code": "NGCE",
+   "art": "GT64 - Championship Edition (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NGE": {
+   "title": "GoldenEye 007",
+   "code": "NGEE",
+   "art": "007 - GoldenEye (USA).png",
+   "description": "A landmark first-person shooter based on the James Bond film, featuring stealthy missions, objectives, gadgets, and influential split-screen multiplayer."
+  },
+  "NGM": {
+   "title": "Goemon's Great Adventure",
+   "code": "NGME",
+   "art": "Goemon's Great Adventure (USA).png",
+   "description": ""
+  },
+  "NGN": {
+   "title": "Golden Nugget 64",
+   "code": "NGNE",
+   "art": "Golden Nugget 64 (USA).png",
+   "description": "A casino collection offering several card and table games, including poker, blackjack, roulette, and other gambling-style diversions."
+  },
+  "NGR": {
+   "title": "Top Gear Rally",
+   "code": "NGRE",
+   "art": "Top Gear Rally (USA).png",
+   "description": "A rally racing game with dirt tracks, car tuning, weather effects, and demanding off-road handling."
+  },
+  "NGV": {
+   "title": "Glover",
+   "code": "NGVE",
+   "art": "Glover (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NGX": {
+   "title": "Gauntlet Legends",
+   "code": "NGXE",
+   "art": "Gauntlet Legends (USA).png",
+   "description": "A cooperative fantasy hack-and-slash game where heroes battle hordes of monsters, collect treasure, and improve their abilities."
+  },
+  "NH5": {
+   "title": "Nagano Winter Olympics '98",
+   "code": "NH5E",
+   "art": "Nagano Winter Olympics '98 (USA).png",
+   "description": "A multi-event sports game built around competing in Olympic-style disciplines, timing button presses, and beating records or opponents."
+  },
+  "NH9": {
+   "title": "NHL Breakaway 99",
+   "code": "NH9E",
+   "art": "NHL Breakaway 99 (USA).png",
+   "description": "An ice hockey game with team play, skating, passing, shooting, checking, and tournament or exhibition matches."
+  },
+  "NHC": {
+   "title": "Hercules: The Legendary Journeys",
+   "code": "NHCE",
+   "art": "Hercules - The Legendary Journeys (USA).png",
+   "description": "A licensed action-adventure that follows familiar characters through themed levels, combat encounters, platforming challenges, and story-inspired objectives."
+  },
+  "NHG": {
+   "title": "F1 Pole Position 64",
+   "code": "NHGE",
+   "art": "F1 Pole Position 64 (USA) (En,Fr,De).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NHL": {
+   "title": "NHL Breakaway 98",
+   "code": "NHLE",
+   "art": "NHL Breakaway 98 (USA).png",
+   "description": "An ice hockey game with team play, skating, passing, shooting, checking, and tournament or exhibition matches."
+  },
+  "NHM": {
+   "title": "Mia Hamm Soccer 64",
+   "code": "NHME",
+   "art": "Mia Hamm Soccer 64 (USA) (En,Es).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "NHN": {
+   "title": "Olympic Hockey '98",
+   "code": "NHNE",
+   "art": "Olympic Hockey Nagano '98 (USA).png",
+   "description": "An ice hockey game with team play, skating, passing, shooting, checking, and tournament or exhibition matches."
+  },
+  "NHO": {
+   "title": "NHL Blades of Steel '99",
+   "code": "NHOE",
+   "art": "NHL Blades of Steel '99 (USA).png",
+   "description": "An ice hockey game with team play, skating, passing, shooting, checking, and tournament or exhibition matches."
+  },
+  "NHT": {
+   "title": "Hydro Thunder",
+   "code": "NHTE",
+   "art": "Hydro Thunder (USA).png",
+   "description": "An arcade powerboat racer featuring huge jumps, turbulent water, shortcuts, and speed-boosting pickups."
+  },
+  "NHV": {
+   "title": "Hybrid Heaven",
+   "code": "NHVE",
+   "art": "Hybrid Heaven (USA).png",
+   "description": "A sci-fi action RPG combining third-person exploration and shooting with unusual wrestling-style, turn-based body-part combat."
+  },
+  "NHW": {
+   "title": "Hot Wheels Turbo Racing",
+   "code": "NHWE",
+   "art": "Hot Wheels - Turbo Racing (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NHX": {
+   "title": "Hexen",
+   "code": "NHXE",
+   "art": "Hexen (USA).png",
+   "description": "A dark fantasy first-person action game with multiple character classes, puzzle-heavy levels, and hordes of supernatural enemies."
+  },
+  "NIC": {
+   "title": "Indy Racing 2000",
+   "code": "NICE",
+   "art": "Indy Racing 2000 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NIJ": {
+   "title": "Indiana Jones and the Infernal Machine",
+   "code": "NIJE",
+   "art": "Indiana Jones and the Infernal Machine (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NIS": {
+   "title": "International Superstar Soccer 2000",
+   "code": "NISE",
+   "art": "International Superstar Soccer 2000 (USA) (En,Es).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "NIV": {
+   "title": "Space Invaders",
+   "code": "NIVE",
+   "art": "Space Invaders (USA).png",
+   "description": "A modernized version of the classic arcade shooter, tasking players with clearing descending alien formations."
+  },
+  "NJA": {
+   "title": "NBA Jam 2000",
+   "code": "NJAE",
+   "art": "NBA Jam 2000 (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NJF": {
+   "title": "Jet Force Gemini",
+   "code": "NJFE",
+   "art": "Jet Force Gemini (USA).png",
+   "description": "A sci-fi action-adventure shooter in which a team of heroes fights an insectoid army, explores alien worlds, and rescues endangered Tribals."
+  },
+  "NJM": {
+   "title": "Earthworm Jim 3D",
+   "code": "NJME",
+   "art": "Earthworm Jim 3D (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NJO": {
+   "title": "Jeopardy!",
+   "code": "NJOE",
+   "art": "Jeopardy! (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NJP": {
+   "title": "International Superstar Soccer 64",
+   "code": "NJPE",
+   "art": "International Superstar Soccer 64 (USA).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "NJQ": {
+   "title": "Batman Beyond: Return of the Joker",
+   "code": "NJQE",
+   "art": "Batman Beyond - Return of the Joker (USA).png",
+   "description": "A licensed action-adventure that follows familiar characters through themed levels, combat encounters, platforming challenges, and story-inspired objectives."
+  },
+  "NK2": {
+   "title": "Snowboard Kids 2",
+   "code": "NK2E",
+   "art": "Snowboard Kids 2 (USA).png",
+   "description": "A snowboarding sequel with new courses, characters, items, and a playful blend of racing and combat."
+  },
+  "NK4": {
+   "title": "Kirby 64: The Crystal Shards",
+   "code": "NK4E",
+   "art": "Kirby 64 - The Crystal Shards (USA).png",
+   "description": "A side-scrolling platformer where Kirby inhales enemies and combines copy abilities to create powerful mixed abilities while collecting crystal shards."
+  },
+  "NKA": {
+   "title": "Fighters Destiny",
+   "code": "NKAE",
+   "art": "Fighters Destiny (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NKE": {
+   "title": "Knife Edge: Nose Gunner",
+   "code": "NKEE",
+   "art": "Knife Edge - Nose Gunner (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NKG": {
+   "title": "Major League Baseball Featuring Ken Griffey Jr.",
+   "code": "NKGE",
+   "art": "Major League Baseball featuring Ken Griffey Jr. (USA).png",
+   "description": "A baseball simulation with batting, pitching, fielding, season or exhibition play, and teams modeled on the professional game of its era."
+  },
+  "NKI": {
+   "title": "Killer Instinct Gold",
+   "code": "NKIE",
+   "art": "Killer Instinct Gold (USA) (Rev B).png",
+   "description": "A fast combo-focused fighting game with a roster of distinctive characters, special moves, and cinematic finishing attacks."
+  },
+  "NKJ": {
+   "title": "Ken Griffey Jr.'s Slugfest",
+   "code": "NKJE",
+   "art": "Ken Griffey Jr.'s Slugfest (USA).png",
+   "description": "A baseball simulation with batting, pitching, fielding, season or exhibition play, and teams modeled on the professional game of its era."
+  },
+  "NKK": {
+   "title": "Knockout Kings 2000",
+   "code": "NKKE",
+   "art": "Knockout Kings 2000 (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NKR": {
+   "title": "Rakuga Kids",
+   "code": "NKRE",
+   "art": "Rakuga Kids (Europe).png",
+   "description": ""
+  },
+  "NKT": {
+   "title": "Mario Kart 64",
+   "code": "NKTE",
+   "art": "Mario Kart 64 (USA).png",
+   "description": "A four-player kart racer featuring Nintendo characters, item-based combat, memorable tracks, and split-screen multiplayer."
+  },
+  "NL2": {
+   "title": "Top Gear Rally 2",
+   "code": "NL2E",
+   "art": "Top Gear Rally 2 (USA).png",
+   "description": "A rally sequel featuring more cars and courses, challenging surfaces, and championship racing."
+  },
+  "NLC": {
+   "title": "Automobili Lamborghini",
+   "code": "NLCE",
+   "art": "Automobili Lamborghini (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NLG": {
+   "title": "LEGO Racers",
+   "code": "NLGE",
+   "art": "LEGO Racers (USA) (En,Fr,De,Es,It,Nl,Sv,No,Da,Fi).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NLR": {
+   "title": "Lode Runner 3-D",
+   "code": "NLRE",
+   "art": "Lode Runner 3-D (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NM3": {
+   "title": "Monster Truck Madness 64",
+   "code": "NM3E",
+   "art": "Monster Truck Madness 64 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NM4": {
+   "title": "Mortal Kombat 4",
+   "code": "NM4E",
+   "art": "Mortal Kombat 4 (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NM6": {
+   "title": "Mega Man 64",
+   "code": "NM6E",
+   "art": "Mega Man 64 (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NM8": {
+   "title": "Mario Tennis",
+   "code": "NM8E",
+   "art": "Mario Tennis (USA).png",
+   "description": "A colorful tennis game with Nintendo characters, varied courts, and approachable controls with room for skilled shot placement."
+  },
+  "NMB": {
+   "title": "Mike Piazza's Strike Zone",
+   "code": "NMBE",
+   "art": "Mike Piazza's StrikeZone (USA).png",
+   "description": "A baseball simulation with batting, pitching, fielding, season or exhibition play, and teams modeled on the professional game of its era."
+  },
+  "NMD": {
+   "title": "Madden NFL 2000",
+   "code": "NMDE",
+   "art": "Madden NFL 2000 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NME": {
+   "title": "Mace: The Dark Age",
+   "code": "NMEE",
+   "art": "Mace - The Dark Age (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NMF": {
+   "title": "Mario Golf",
+   "code": "NMFE",
+   "art": "Mario Golf (USA).png",
+   "description": "An accessible but strategic golf game with Mario characters, multiple courses, unlockables, and timing-based swing controls."
+  },
+  "NMG": {
+   "title": "Monaco Grand Prix",
+   "code": "NMGE",
+   "art": "Monaco Grand Prix (USA).png",
+   "description": ""
+  },
+  "NMI": {
+   "title": "Mission: Impossible",
+   "code": "NMIE",
+   "art": "Mission Impossible (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NMK": {
+   "title": "Mortal Kombat Trilogy",
+   "code": "NMKE",
+   "art": "Mortal Kombat Trilogy (USA) (Rev B).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NML": {
+   "title": "Mickey's Speedway USA",
+   "code": "NMLE",
+   "art": "Mickey's Speedway USA (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NMO": {
+   "title": "Monopoly",
+   "code": "NMOE",
+   "art": "Monopoly (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NMQ": {
+   "title": "Paper Mario",
+   "code": "NMQE",
+   "art": "Paper Mario (USA).png",
+   "description": "A story-rich RPG with paper-styled visuals, turn-based battles, timed action commands, and a humorous journey through the Mushroom Kingdom."
+  },
+  "NMR": {
+   "title": "MRC: Multi-Racing Championship",
+   "code": "NMRE",
+   "art": "MRC - Multi Racing Championship (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NMT": {
+   "title": "Magical Tetris Challenge",
+   "code": "NMTE",
+   "art": "Magical Tetris Challenge (USA).png",
+   "description": "An arcade or puzzle game focused on quick decisions, pattern recognition, and progressively challenging rounds, with score-based or competitive play."
+  },
+  "NMU": {
+   "title": "Big Mountain 2000",
+   "code": "NMUE",
+   "art": "Big Mountain 2000 (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NMV": {
+   "title": "Mario Party 3",
+   "code": "NMVE",
+   "art": "Mario Party 3 (USA).png",
+   "description": "A party-game sequel introducing new boards, characters, duel modes, and a wide variety of multiplayer minigames."
+  },
+  "NMW": {
+   "title": "Mario Party 2",
+   "code": "NMWE",
+   "art": "Mario Party 2 (USA).png",
+   "description": "A board-game party sequel with themed boards, costumes, and a large selection of competitive minigames."
+  },
+  "NMX": {
+   "title": "Excitebike 64",
+   "code": "NMXE",
+   "art": "Excitebike 64 (USA).png",
+   "description": "A motocross racing game with realistic track deformation, stunt tricks, varied modes, and a course editor."
+  },
+  "NMY": {
+   "title": "Mortal Kombat Mythologies: Sub-Zero",
+   "code": "NMYE",
+   "art": "Mortal Kombat Mythologies - Sub-Zero (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NN2": {
+   "title": "NASCAR 2000",
+   "code": "NN2E",
+   "art": "NASCAR 2000 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NN6": {
+   "title": "Dr. Mario 64",
+   "code": "NN6E",
+   "art": "Dr. Mario 64 (USA).png",
+   "description": "A falling-block puzzle game where players match colored viruses with capsule halves, including competitive multiplayer modes."
+  },
+  "NNA": {
+   "title": "Star Wars Episode I: Battle for Naboo",
+   "code": "NNAE",
+   "art": "Star Wars Episode I - Battle for Naboo (USA).png",
+   "description": "A science-fiction action game featuring spacecraft or military vehicles, combat missions, enemy forces, and objectives set in a cinematic universe."
+  },
+  "NNB": {
+   "title": "Kobe Bryant in NBA Courtside",
+   "code": "NNBE",
+   "art": "Kobe Bryant's NBA Courtside (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NNC": {
+   "title": "Nightmare Creatures",
+   "code": "NNCE",
+   "art": "Nightmare Creatures (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NNL": {
+   "title": "NBA Live 2000",
+   "code": "NNLE",
+   "art": "NBA Live 2000 (USA) (En,Fr,De,Es).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NNM": {
+   "title": "Namco Museum 64",
+   "code": "NNME",
+   "art": "Namco Museum 64 (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NNS": {
+   "title": "Beetle Adventure Racing!",
+   "code": "NNSE",
+   "art": "Beetle Adventure Racing! (USA) (En,Fr,De).png",
+   "description": "A distinctive arcade racer built around Volkswagen Beetles, sprawling tracks, shortcuts, and hidden routes."
+  },
+  "NO7": {
+   "title": "007: The World Is Not Enough",
+   "code": "NO7E",
+   "art": "007 - The World Is Not Enough (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NOB": {
+   "title": "Ogre Battle 64: Person of Lordly Caliber",
+   "code": "NOBE",
+   "art": "Ogre Battle 64 - Person of Lordly Caliber (USA).png",
+   "description": "A tactical strategy RPG about leading an army through a political conflict, arranging units, and making choices that affect the story."
+  },
+  "NOF": {
+   "title": "Off Road Challenge",
+   "code": "NOFE",
+   "art": "Off Road Challenge (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NOH": {
+   "title": "Transformers: Beast Wars Transmetals",
+   "code": "NOHE",
+   "art": "Transformers - Beast Wars Transmetals (USA).png",
+   "description": "A licensed action-adventure that follows familiar characters through themed levels, combat encounters, platforming challenges, and story-inspired objectives."
+  },
+  "NOW": {
+   "title": "Brunswick Circuit Pro Bowling",
+   "code": "NOWE",
+   "art": "Brunswick Circuit Pro Bowling (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NP3": {
+   "title": "Pokémon Stadium 2",
+   "code": "NP3E",
+   "art": "Pokemon Stadium 2 (USA).png",
+   "description": "A sequel with a larger Pokémon roster, additional battle formats, minigames, and support for the second-generation Game Boy games."
+  },
+  "NP9": {
+   "title": "Ms. Pac-Man Maze Madness",
+   "code": "NP9E",
+   "art": "Ms. Pac-Man - Maze Madness (USA).png",
+   "description": "A 3D maze adventure starring Ms. Pac-Man, with puzzles, collectibles, enemies, and classic maze-chase ideas."
+  },
+  "NPD": {
+   "title": "Perfect Dark",
+   "code": "NPDE",
+   "art": "Perfect Dark (USA) (Rev A).png",
+   "description": "A sci-fi first-person shooter starring agent Joanna Dark, with objective-driven missions, gadgets, bots, and extensive multiplayer customization."
+  },
+  "NPF": {
+   "title": "Pokémon Snap",
+   "code": "NPFE",
+   "art": "Pokemon Snap (USA).png",
+   "description": "A rail-based photography game where players ride through Pokémon habitats and photograph creatures behaving naturally or reacting to items."
+  },
+  "NPG": {
+   "title": "Hey You, Pikachu!",
+   "code": "NPGE",
+   "art": "Hey You, Pikachu! (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NPM": {
+   "title": "Premier Manager 64",
+   "code": "NPME",
+   "art": "Premier Manager 64 (Europe).png",
+   "description": ""
+  },
+  "NPN": {
+   "title": "Pokémon Puzzle League",
+   "code": "NPNE",
+   "art": "Pokemon Puzzle League (USA).png",
+   "description": "A fast puzzle game based on matching colored panels in rows, featuring Pokémon characters and competitive play."
+  },
+  "NPO": {
+   "title": "Pokémon Stadium",
+   "code": "NPOE",
+   "art": "Pokemon Stadium (USA).png",
+   "description": "A Pokémon battle game featuring 3D combat, tournament cups, minigames, and transfer support for Game Boy Pokémon titles."
+  },
+  "NPQ": {
+   "title": "The Powerpuff Girls: Chemical X-Traction",
+   "code": "NPQE",
+   "art": "Powerpuff Girls, The - Chemical X-Traction (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NPR": {
+   "title": "South Park Rally",
+   "code": "NPRE",
+   "art": "South Park Rally (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NPU": {
+   "title": "Power Rangers Lightspeed Rescue",
+   "code": "NPUE",
+   "art": "Power Rangers - Lightspeed Rescue (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NPW": {
+   "title": "Pilotwings 64",
+   "code": "NPWE",
+   "art": "Pilotwings 64 (USA).png",
+   "description": "A flight and aerial-sports simulation focused on mastering hang gliders, gyrocopters, and rocket belts across scenic environments."
+  },
+  "NPX": {
+   "title": "Polaris SnoCross",
+   "code": "NPXE",
+   "art": "Polaris SnoCross (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NQ2": {
+   "title": "Quake II",
+   "code": "NQ2E",
+   "art": "Quake II (USA).png",
+   "description": "A sci-fi first-person shooter in which a soldier fights the hostile Strogg across alien installations using an arsenal of weapons."
+  },
+  "NQ8": {
+   "title": "NFL Quarterback Club 98",
+   "code": "NQ8E",
+   "art": "NFL Quarterback Club 98 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NQ9": {
+   "title": "NFL Quarterback Club 99",
+   "code": "NQ9E",
+   "art": "NFL Quarterback Club 99 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NQB": {
+   "title": "NFL Quarterback Club 2000",
+   "code": "NQBE",
+   "art": "NFL Quarterback Club 2000 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NQC": {
+   "title": "NFL QB Club 2001",
+   "code": "NQCE",
+   "art": "NFL Quarterback Club 2001 (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NQK": {
+   "title": "Quake 64",
+   "code": "NQKE",
+   "art": "Quake 64 (USA).png",
+   "description": "A console adaptation of the dark first-person shooter, featuring maze-like levels, monsters, weapons, and multiplayer combat."
+  },
+  "NR2": {
+   "title": "Rush 2: Extreme Racing USA",
+   "code": "NR2E",
+   "art": "Rush 2 - Extreme Racing USA (USA).png",
+   "description": "A sequel to the arcade racer with stunt arenas, hidden shortcuts, and fast courses across American settings."
+  },
+  "NR3": {
+   "title": "Stunt Racer 64",
+   "code": "NR3E",
+   "art": "Stunt Racer 64 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NR6": {
+   "title": "Tom Clancy's Rainbow Six",
+   "code": "NR6E",
+   "art": "Tom Clancy's Rainbow Six (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NRC": {
+   "title": "Top Gear Overdrive",
+   "code": "NRCE",
+   "art": "Top Gear Overdrive (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NRD": {
+   "title": "Ready 2 Rumble Boxing",
+   "code": "NRDE",
+   "art": "Ready 2 Rumble Boxing (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NRE": {
+   "title": "Resident Evil 2",
+   "code": "NREE",
+   "art": "Resident Evil 2 (USA) (Rev A).png",
+   "description": "A survival-horror adventure following Leon Kennedy and Claire Redfield as they escape a zombie outbreak in Raccoon City."
+  },
+  "NRG": {
+   "title": "Rugrats: Scavenger Hunt",
+   "code": "NRGE",
+   "art": "Rugrats - Scavenger Hunt (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NRI": {
+   "title": "The New Tetris",
+   "code": "NRIE",
+   "art": "New Tetris, The (USA).png",
+   "description": "An arcade or puzzle game focused on quick decisions, pattern recognition, and progressively challenging rounds, with score-based or competitive play."
+  },
+  "NRK": {
+   "title": "Rugrats in Paris: The Movie",
+   "code": "NRKE",
+   "art": "Rugrats in Paris - The Movie (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NRO": {
+   "title": "Road Rash 64",
+   "code": "NROE",
+   "art": "Road Rash 64 (USA).png",
+   "description": "A motorcycle racing-combat game where riders punch and strike rivals while racing on traffic-filled roads."
+  },
+  "NRP": {
+   "title": "Rampage World Tour",
+   "code": "NRPE",
+   "art": "Rampage - World Tour (USA).png",
+   "description": "A destructive arcade action game where giant monsters smash cities, eat people, and battle military forces."
+  },
+  "NRR": {
+   "title": "Roadsters",
+   "code": "NRRE",
+   "art": "Roadsters Trophy (USA) (En,Fr,Es).png",
+   "description": "A street-racing game with upgradeable cars, tournament progression, and road courses."
+  },
+  "NRS": {
+   "title": "Star Wars: Rogue Squadron",
+   "code": "NRSE",
+   "art": "Star Wars - Rogue Squadron (USA).png",
+   "description": "A Star Wars flight-action game featuring X-wing and other spacecraft in missions inspired by the original trilogy."
+  },
+  "NRT": {
+   "title": "Rat Attack!",
+   "code": "NRTE",
+   "art": "Rat Attack! (USA) (En,Fr,De,Es,It,Nl).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NRU": {
+   "title": "San Francisco Rush 2049",
+   "code": "NRUE",
+   "art": "San Francisco Rush 2049 (USA).png",
+   "description": "A futuristic arcade racer with high-speed city tracks, stunt arenas, and unlockable wings for aerial tricks."
+  },
+  "NRV": {
+   "title": "Re-Volt",
+   "code": "NRVE",
+   "art": "Re-Volt (USA).png",
+   "description": "A radio-controlled car racer with imaginative toy-sized tracks, power-ups, and challenging time trials."
+  },
+  "NRW": {
+   "title": "Turok: Rage Wars",
+   "code": "NRWE",
+   "art": "Turok - Rage Wars (USA).png",
+   "description": "A multiplayer-focused arena shooter featuring Turok characters, varied weapons, and competitive combat modes."
+  },
+  "NRX": {
+   "title": "Robotron 64",
+   "code": "NRXE",
+   "art": "Robotron 64 (USA).png",
+   "description": "A twin-stick-style arcade shooter in which players blast swarms of robots and rescue humans amid constant on-screen chaos."
+  },
+  "NRZ": {
+   "title": "Ridge Racer 64",
+   "code": "NRZE",
+   "art": "RR64 - Ridge Racer 64 (USA).png",
+   "description": "An arcade racing game featuring drift-focused handling, fast circuits, and a range of cars and modes."
+  },
+  "NS6": {
+   "title": "Star Soldier: Vanishing Earth",
+   "code": "NS6E",
+   "art": "Star Soldier - Vanishing Earth (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NSB": {
+   "title": "Twisted Edge Extreme Snowboarding",
+   "code": "NSBE",
+   "art": "Twisted Edge - Extreme Snowboarding (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NSC": {
+   "title": "Starshot: Space Circus Fever",
+   "code": "NSCE",
+   "art": "Starshot - Space Circus Fever (USA) (En,Fr,Es).png",
+   "description": "A licensed action-adventure that follows familiar characters through themed levels, combat encounters, platforming challenges, and story-inspired objectives."
+  },
+  "NSD": {
+   "title": "Shadow Man",
+   "code": "NSDE",
+   "art": "Shadow Man (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NSF": {
+   "title": "San Francisco Rush: Extreme Racing",
+   "code": "NSFE",
+   "art": "San Francisco Rush - Extreme Racing (USA) (En,Fr,De).png",
+   "description": "An arcade racer with fast city circuits, shortcuts, jumps, and a focus on high-speed driving."
+  },
+  "NSG": {
+   "title": "Shadowgate 64: Trials of the Four Towers",
+   "code": "NSGE",
+   "art": "Shadowgate 64 - Trials of the Four Towers (USA) (En,Es).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NSK": {
+   "title": "Snowboard Kids",
+   "code": "NSKE",
+   "art": "Snowboard Kids (USA).png",
+   "description": "A cartoon-style snowboarding racer with item attacks, shortcuts, tricks, and multiplayer competition."
+  },
+  "NSL": {
+   "title": "Spider-Man",
+   "code": "NSLE",
+   "art": "Spider-Man (USA).png",
+   "description": "An action game built around combat, exploration, and mission or level progression, with weapons, enemies, and hazards suited to its setting."
+  },
+  "NSM": {
+   "title": "Super Mario 64",
+   "code": "NSME",
+   "art": "Super Mario 64 (USA).png",
+   "description": "A pioneering 3D platformer in which Mario explores Princess Peach's castle, collects Power Stars, and completes open-ended stages."
+  },
+  "NSO": {
+   "title": "NBA Showtime: NBA on NBC",
+   "code": "NSOE",
+   "art": "NBA Showtime - NBA on NBC (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NSP": {
+   "title": "Superman: The New Superman Adventures",
+   "code": "NSPE",
+   "art": "Superman (USA) (En,Fr,Es).png",
+   "description": "A licensed action-adventure that follows familiar characters through themed levels, combat encounters, platforming challenges, and story-inspired objectives."
+  },
+  "NSQ": {
+   "title": "StarCraft 64",
+   "code": "NSQE",
+   "art": "StarCraft 64 (USA).png",
+   "description": "A console adaptation of the real-time strategy classic, with Terran, Zerg, and Protoss campaigns and strategic base-building battles."
+  },
+  "NSU": {
+   "title": "Rocket: Robot on Wheels",
+   "code": "NSUE",
+   "art": "Rocket - Robot on Wheels (USA).png",
+   "description": "A physics-driven 3D platformer built around inventive puzzles, interactive machinery, and a robot exploring an amusement park."
+  },
+  "NSV": {
+   "title": "Space Station Silicon Valley",
+   "code": "NSVE",
+   "art": "SpaceStation Silicon Valley (USA).png",
+   "description": "A quirky 3D puzzle-platformer where a robot takes control of animal-shaped machines, each with different abilities, to solve challenges."
+  },
+  "NSW": {
+   "title": "Star Wars: Shadows of the Empire",
+   "code": "NSWE",
+   "art": "Star Wars - Shadows of the Empire (USA) (Rev B).png",
+   "description": "A third-person action game starring mercenary Dash Rendar, mixing on-foot combat, vehicle stages, and Star Wars battles."
+  },
+  "NSX": {
+   "title": "Supercross 2000",
+   "code": "NSXE",
+   "art": "Supercross 2000 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NSY": {
+   "title": "Scooby-Doo! Classic Creep Capers",
+   "code": "NSYE",
+   "art": "Scooby-Doo! - Classic Creep Capers (USA).png",
+   "description": "A licensed action-adventure that follows familiar characters through themed levels, combat encounters, platforming challenges, and story-inspired objectives."
+  },
+  "NSZ": {
+   "title": "NFL Blitz Special Edition",
+   "code": "NSZE",
+   "art": "NFL Blitz - Special Edition (USA).png",
+   "description": "An American football game offering team selection, passing, running, tackling, and season or exhibition matches; its style ranges from simulation to arcade action."
+  },
+  "NT2": {
+   "title": "Turok 2: Seeds of Evil",
+   "code": "NT2E",
+   "art": "Turok 2 - Seeds of Evil (USA) (Rev A).png",
+   "description": "A sequel to the dinosaur-themed shooter, featuring expansive levels, alien threats, powerful weapons, and the iconic Cerebral Bore."
+  },
+  "NT4": {
+   "title": "CyberTiger",
+   "code": "NT4E",
+   "art": "CyberTiger (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NT9": {
+   "title": "Tigger's Honey Hunt",
+   "code": "NT9E",
+   "art": "Tigger's Honey Hunt (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NTA": {
+   "title": "Tarzan",
+   "code": "NTAE",
+   "art": "Tarzan (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NTE": {
+   "title": "1080° Snowboarding",
+   "code": "NTEE",
+   "art": "1080 Snowboarding (Japan, USA) (En,Ja).png",
+   "description": "A fast, trick-focused snowboarding game with downhill races, half-pipes, and a strong emphasis on chaining grabs and aerial tricks."
+  },
+  "NTF": {
+   "title": "Tony Hawk's Pro Skater",
+   "code": "NTFE",
+   "art": "Tony Hawk's Pro Skater (USA) (Rev A).png",
+   "description": "A skateboarding game focused on trick combos, timed goals, hidden collectibles, and score-chasing across compact skate parks."
+  },
+  "NTH": {
+   "title": "Toy Story 2: Buzz Lightyear to the Rescue!",
+   "code": "NTHE",
+   "art": "Toy Story 2 (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NTI": {
+   "title": "WWF Attitude",
+   "code": "NTIE",
+   "art": "WWF Attitude (USA).png",
+   "description": "A wrestling sequel with a large roster, detailed character creation, and a wide range of match and career options."
+  },
+  "NTJ": {
+   "title": "Tom and Jerry in Fists of Furry",
+   "code": "NTJE",
+   "art": "Tom and Jerry in Fists of Furry (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NTK": {
+   "title": "Turok 3: Shadow of Oblivion",
+   "code": "NTKE",
+   "art": "Turok 3 - Shadow of Oblivion (USA).png",
+   "description": "A first-person shooter with two playable protagonists, mission-based levels, and a new supernatural threat."
+  },
+  "NTM": {
+   "title": "Mischief Makers",
+   "code": "NTME",
+   "art": "Mischief Makers (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NTN": {
+   "title": "All Star Tennis '99",
+   "code": "NTNE",
+   "art": "All Star Tennis '99 (USA).png",
+   "description": "A tennis game with singles and doubles matches, varied shots, court positioning, and tournament or exhibition play."
+  },
+  "NTP": {
+   "title": "Tetrisphere",
+   "code": "NTPE",
+   "art": "Tetrisphere (USA).png",
+   "description": "An arcade or puzzle game focused on quick decisions, pattern recognition, and progressively challenging rounds, with score-based or competitive play."
+  },
+  "NTQ": {
+   "title": "Tony Hawk's Pro Skater 2",
+   "code": "NTQE",
+   "art": "Tony Hawk's Pro Skater 2 (USA).png",
+   "description": "A skateboarding sequel adding manuals and expanded trick combos, with creative levels, career goals, and a skatepark editor."
+  },
+  "NTS": {
+   "title": "Centre Court Tennis",
+   "code": "NTSE",
+   "art": "Centre Court Tennis (Europe).png",
+   "description": ""
+  },
+  "NTT": {
+   "title": "Tonic Trouble",
+   "code": "NTTE",
+   "art": "Tonic Trouble (USA) (Rev A).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NTU": {
+   "title": "Turok: Dinosaur Hunter",
+   "code": "NTUE",
+   "art": "Turok - Dinosaur Hunter (USA) (Rev B).png",
+   "description": "A first-person shooter in which a warrior explores dangerous jungles and ancient ruins while battling dinosaurs and other enemies."
+  },
+  "NTX": {
+   "title": "Taz Express",
+   "code": "NTXE",
+   "art": "Taz Express (Europe) (En,Fr,De,Es,It,Nl).png",
+   "description": ""
+  },
+  "NV3": {
+   "title": "Micro Machines 64 Turbo",
+   "code": "NV3E",
+   "art": "Micro Machines 64 Turbo (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NV8": {
+   "title": "Vigilante 8",
+   "code": "NV8E",
+   "art": "Vigilante 8 (USA).png",
+   "description": "A car-combat game set in an alternate 1970s, with armed vehicles, destructible environments, and story-driven missions."
+  },
+  "NVC": {
+   "title": "Virtual Chess 64",
+   "code": "NVCE",
+   "art": "Virtual Chess 64 (USA) (En,Fr,Es).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NVG": {
+   "title": "Vigilante 8: 2nd Offense",
+   "code": "NVGE",
+   "art": "Vigilante 8 - 2nd Offense (USA).png",
+   "description": "A sequel to the vehicular combat game, adding vehicles, weapons, arenas, and a new story of explosive car battles."
+  },
+  "NVL": {
+   "title": "V-Rally: Edition '99",
+   "code": "NVLE",
+   "art": "V-Rally Edition 99 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NVR": {
+   "title": "Virtual Pool 64",
+   "code": "NVRE",
+   "art": "Virtual Pool 64 (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NW2": {
+   "title": "WCW/nWo Revenge",
+   "code": "NW2E",
+   "art": "WCW-nWo Revenge (USA).png",
+   "description": "A wrestling game featuring WCW and nWo stars, fast grappling, championship paths, and multiplayer matches."
+  },
+  "NW3": {
+   "title": "WCW Nitro",
+   "code": "NW3E",
+   "art": "WCW Nitro (USA).png",
+   "description": "A wrestling game based on WCW television, featuring a roster of wrestlers and arcade-style matches."
+  },
+  "NW4": {
+   "title": "WWF No Mercy",
+   "code": "NW4E",
+   "art": "WWF No Mercy (USA).png",
+   "description": "A highly regarded wrestling game with a deep roster, story paths, create-a-wrestler options, and flexible grappling-based matches."
+  },
+  "NW8": {
+   "title": "Wayne Gretzky's 3D Hockey '98",
+   "code": "NW8E",
+   "art": "Wayne Gretzky's 3D Hockey '98 (USA).png",
+   "description": "An ice hockey game with team play, skating, passing, shooting, checking, and tournament or exhibition matches."
+  },
+  "NWA": {
+   "title": "War Gods",
+   "code": "NWAE",
+   "art": "War Gods (USA).png",
+   "description": "A one-on-one fighting game featuring a roster of distinctive combatants, special attacks, defensive moves, and versus battles."
+  },
+  "NWB": {
+   "title": "Iggy's Reckin' Balls",
+   "code": "NWBE",
+   "art": "Iggy's Reckin' Balls (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NWD": {
+   "title": "WinBack: Covert Operations",
+   "code": "NWDE",
+   "art": "WinBack - Covert Operations (USA).png",
+   "description": "A tactical third-person action game built around cover-based firefights, stealth, and a special forces mission to stop a terrorist threat."
+  },
+  "NWF": {
+   "title": "Wheel of Fortune",
+   "code": "NWFE",
+   "art": "Wheel of Fortune (USA).png",
+   "description": "A digital game collection or tabletop-style adaptation offering familiar rules, solo challenges, and multiplayer play."
+  },
+  "NWG": {
+   "title": "Wayne Gretzky's 3D Hockey",
+   "code": "NWGE",
+   "art": "Wayne Gretzky's 3D Hockey (USA) (Rev A).png",
+   "description": "An ice hockey game with team play, skating, passing, shooting, checking, and tournament or exhibition matches."
+  },
+  "NWI": {
+   "title": "ECW Hardcore Revolution",
+   "code": "NWIE",
+   "art": "ECW Hardcore Revolution (USA).png",
+   "description": "A professional wrestling game featuring a roster of performers, grappling and signature moves, multiple match types, and multiplayer bouts."
+  },
+  "NWL": {
+   "title": "Waialae Country Club: True Golf Classics",
+   "code": "NWLE",
+   "art": "Waialae Country Club - True Golf Classics (USA).png",
+   "description": "A golf game built around selecting clubs, judging distance and wind, and timing swings across courses and tournament formats."
+  },
+  "NWM": {
+   "title": "WCW Mayhem",
+   "code": "NWME",
+   "art": "WCW Mayhem (USA).png",
+   "description": "A wrestling game with WCW talent, match types, backstage areas, and a career progression mode."
+  },
+  "NWN": {
+   "title": "WCW vs. nWo: World Tour",
+   "code": "NWNE",
+   "art": "WCW vs. nWo - World Tour (USA) (Rev A).png",
+   "description": "A wrestling game built around WCW and nWo wrestlers, arcade-style grappling, and multiplayer bouts."
+  },
+  "NWO": {
+   "title": "World Driver Championship",
+   "code": "NWOE",
+   "art": "World Driver Championship (USA).png",
+   "description": "A serious circuit-racing game with licensed-style championships, detailed tracks, car tuning, and simulation-oriented handling."
+  },
+  "NWP": {
+   "title": "Wipeout 64",
+   "code": "NWPE",
+   "art": "Wipeout 64 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NWQ": {
+   "title": "Rally Challenge 2000",
+   "code": "NWQE",
+   "art": "Rally Challenge 2000 (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NWR": {
+   "title": "Wave Race 64",
+   "code": "NWRE",
+   "art": "Wave Race 64 (USA) (Rev A).png",
+   "description": "A watercraft racing game featuring realistic-feeling waves, buoy courses, responsive handling, and changing weather conditions."
+  },
+  "NWS": {
+   "title": "International Superstar Soccer 98",
+   "code": "NWSE",
+   "art": "International Superstar Soccer '98 (USA).png",
+   "description": "A soccer game featuring national or club teams, passing, shooting, tackles, tournaments, and exhibition matches."
+  },
+  "NWT": {
+   "title": "Wetrix",
+   "code": "NWTE",
+   "art": "Wetrix (USA) (En,Fr,De,Es,It,Nl).png",
+   "description": "An arcade or puzzle game focused on quick decisions, pattern recognition, and progressively challenging rounds, with score-based or competitive play."
+  },
+  "NWV": {
+   "title": "WCW Backstage Assault",
+   "code": "NWVE",
+   "art": "WCW Backstage Assault (USA).png",
+   "description": "A professional wrestling game featuring a roster of performers, grappling and signature moves, multiple match types, and multiplayer bouts."
+  },
+  "NWW": {
+   "title": "WWF War Zone",
+   "code": "NWWE",
+   "art": "WWF War Zone (USA).png",
+   "description": "A wrestling game featuring WWF superstars, signature moves, create-a-wrestler options, and multiple match types."
+  },
+  "NWX": {
+   "title": "WWF WrestleMania 2000",
+   "code": "NWXE",
+   "art": "WWF WrestleMania 2000 (USA).png",
+   "description": "A wrestling game with a large WWF roster, customizable wrestlers, championship modes, and accessible grappling gameplay."
+  },
+  "NWZ": {
+   "title": "NBA In the Zone 2000",
+   "code": "NWZE",
+   "art": "NBA in the Zone 2000 (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NX2": {
+   "title": "Gex 64: Enter the Gecko",
+   "code": "NX2E",
+   "art": "Gex 64 - Enter the Gecko (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NX3": {
+   "title": "Gex 3: Deep Cover Gecko",
+   "code": "NX3E",
+   "art": "Gex 3 - Deep Cover Gecko (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NXF": {
+   "title": "Xena: Warrior Princess: The Talisman of Fate",
+   "code": "NXFE",
+   "art": "Xena - Warrior Princess - The Talisman of Fate (USA).png",
+   "description": "A character-driven platform or adventure game featuring themed stages, obstacles, enemies, collectibles, and a progression through increasingly challenging levels."
+  },
+  "NXG": {
+   "title": "NBA Hangtime",
+   "code": "NXGE",
+   "art": "NBA Hangtime (USA).png",
+   "description": "A basketball game featuring teams, court play, passing, shooting, defensive moves, and season or exhibition modes, with an emphasis on the era's arcade or simulation style."
+  },
+  "NXO": {
+   "title": "Cruis'n Exotica",
+   "code": "NXOE",
+   "art": "Cruis'n Exotica (USA).png",
+   "description": "A racing game centered on mastering its vehicles and courses, competing for position, and unlocking or competing across a range of events and tracks."
+  },
+  "NY2": {
+   "title": "Rayman 2: The Great Escape",
+   "code": "NY2E",
+   "art": "Rayman 2 - The Great Escape (USA) (En,Fr,De,Es,It).png",
+   "description": "A polished 3D platform adventure in which Rayman travels across imaginative worlds to defeat robotic pirates and free captured allies."
+  },
+  "NYP": {
+   "title": "Paperboy",
+   "code": "NYPE",
+   "art": "Paperboy (USA).png",
+   "description": "A Nintendo 64 game offering genre-specific challenges, playable modes, and progression through its levels, matches, or objectives."
+  },
+  "NYS": {
+   "title": "Yoshi's Story",
+   "code": "NYSE",
+   "art": "Yoshi's Story (USA) (En,Ja).png",
+   "description": "A charming side-scrolling platformer where a team of Yoshis traverses storybook levels, eats fruit, and searches for collectibles."
+  },
+  "NYW": {
+   "title": "Harvest Moon 64",
+   "code": "NYWE",
+   "art": "Harvest Moon 64 (USA).png",
+   "description": "A farming and life simulation game about restoring a farm, raising animals, growing crops, building relationships, and participating in village festivals."
+  },
+  "NZO": {
+   "title": "Battlezone: Rise of the Black Dogs",
+   "code": "NZOE",
+   "art": "Battlezone - Rise of the Black Dogs (USA).png",
+   "description": "A strategy or military-action game focused on commanding units, using weapons or vehicles, completing objectives, and overcoming opposing forces."
+  },
+  "NZS": {
+   "title": "The Legend of Zelda: Majora's Mask",
+   "code": "NZSE",
+   "art": "Legend of Zelda, The - Majora's Mask (USA).png",
+   "description": "A darker Zelda adventure set in Termina, where Link uses a repeating three-day cycle, masks, and time management to prevent the moon from destroying the world."
+  }
+ }
+}

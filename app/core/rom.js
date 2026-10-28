@@ -35,6 +35,20 @@ const CIC = {
   0x0e018159: { name: 'CIC-8303', seed: null, note: '64DD' },
 };
 
+// The N64 North American library (box art + description), keyed by game ID: category letter +
+// 2-letter ID, e.g. "NMQ" for NMQE Paper Mario. Any region's ROM finds the same game.
+// Made by build/n64-library/make-games.py.
+let LIBRARY = null;
+function library() {
+  if (!LIBRARY) {
+    try { LIBRARY = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'assets', 'n64', 'games.json'), 'utf8')); }
+    catch { LIBRARY = { count: 0, games: {} }; }
+  }
+  return LIBRARY;
+}
+const gameKey = (code) => (/^[A-Z0-9]{4}$/.test(code || '') ? code.slice(0, 3) : '');
+function libraryGame(code) { const k = gameKey(code); return (k && library().games[k]) || null; }
+
 const hex = (v, n = 8) => (v >>> 0).toString(16).toUpperCase().padStart(n, '0');
 
 // Bytes in .z64 order (a copy for .v64 / .n64).
@@ -176,12 +190,15 @@ function scan(folder, { progress = () => {}, limit = 20000 } = {}) {
     let h = null;
     try { h = peek(f); } catch { h = null; }
     if (!h) { skipped++; return; }
-    roms.push({ path: f, rel: path.relative(root, f).split(path.sep).join('/'), folder: path.relative(root, path.dirname(f)).split(path.sep).join('/'), file: path.basename(f), ...h });
+    const lib = libraryGame(h.gameCode);
+    roms.push({ path: f, rel: path.relative(root, f).split(path.sep).join('/'), folder: path.relative(root, path.dirname(f)).split(path.sep).join('/'), file: path.basename(f), ...h,
+      libKey: lib ? gameKey(h.gameCode) : '', libTitle: lib ? lib.title : '' });
   });
   // Folder by folder (ROMs right in the chosen folder first), then by file name.
   const cmp = (x, y) => x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' });
   roms.sort((a, b) => (a.folder === b.folder ? cmp(a.file, b.file) : !a.folder ? -1 : !b.folder ? 1 : cmp(a.folder, b.folder)));
-  return { roms, skipped, truncated: files.length >= limit };
+  const matched = new Set(roms.map((r) => r.libKey).filter(Boolean)).size;
+  return { roms, skipped, truncated: files.length >= limit, matched, libraryCount: library().count };
 }
 
 // Everything about one ROM.
@@ -213,7 +230,8 @@ function info(file) {
       { name: 'Game code and data', start: 0x1000, end: data.length },
     ],
     zelda,
+    library: libraryGame(h.gameCode),          // { title, code, art, description } or null
   };
 }
 
-module.exports = { scan, info, peek, toZ64, parseHeader, checksum, zeldaFiles, CIC, REGION, MAGIC };
+module.exports = { scan, info, peek, library, libraryGame, toZ64, parseHeader, checksum, zeldaFiles, CIC, REGION, MAGIC };

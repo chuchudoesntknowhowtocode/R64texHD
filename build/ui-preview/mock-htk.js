@@ -80,7 +80,7 @@
     run: async (task) => {
       setTimeout(() => {
         const R = window.__ROMS || { list: [], folder: 'D:\\N64\\ROMs' };
-        if (task === 'roms') emit('done', { task, result: { title: 'Found', roms: R.list, count: R.list.length, folders: new Set(R.list.map((r) => r.folder)).size, output: R.folder, seconds: 0.4 } });
+        if (task === 'roms') emit('done', { task, result: { title: 'Found', roms: R.list, count: R.list.length, matched: R.matched || 0, libraryCount: R.libraryCount || 0, folders: new Set(R.list.map((r) => r.folder)).size, output: R.folder, seconds: 0.4 } });
         else if (task === 'check') emit('done', { task, result: { title: 'Checked', checks: CHECKS, output: settings.check.input, summary: 'Majora HD.rtz · 4,812 textures · 1.9 GB' } });
         else emit('done', { task, result: { title: 'Done', written: 4812, failed: 0, output: 'D:\\N64\\HD\\out', seconds: 42.1 } });
       }, 50);
