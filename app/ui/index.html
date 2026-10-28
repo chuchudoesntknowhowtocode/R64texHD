@@ -145,6 +145,21 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .pixfade { flex: 1; align-self: stretch; min-width: 0; position: relative; }
 /* 8-bit pixel gradient: chunky blocks, magenta to orange, dissolving away to the right (drawn in fillPixelFade). */
 .pixfade canvas { position: absolute; left: 0; bottom: 2px; width: 100%; height: 50px; image-rendering: pixelated; }
+.home-btn { all: unset; flex: none; width: 62px; height: 56px; cursor: pointer; margin-right: -14px; align-self: flex-end; position: relative; z-index: 1;
+  filter: drop-shadow(2px 3px 0 rgba(0,0,0,.45)); transition: transform .08s steps(2); }
+.home-btn svg { display: block; width: 100%; height: 100%; }
+.home-btn:hover { transform: translateY(-2px); filter: drop-shadow(2px 5px 0 rgba(0,0,0,.45)) brightness(1.12); }
+.home-btn.on { filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 6px rgba(255,255,255,.75)); }
+.home-btn:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 3px; }
+/* The helper tools question: short and plain. */
+.ask-tools { min-width: 340px; }
+.ask-tools h3 { margin: 0 0 4px; font-size: 20px; }
+.ask-tools > p { margin: 0 0 14px; color: var(--muted); }
+.ask-tools ul { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+.ask-tools li { display: grid; grid-template-columns: 18px auto 1fr; align-items: center; gap: 10px; }
+.ask-tools li .px-icon { width: 16px; height: 16px; }
+.ask-tools li span { color: var(--muted); font-size: 12.5px; }
+.ask-tools .tool:empty { display: none; }
 .foot-btn { width: 130px; height: 50px; border: 0; border-radius: 12px; background: var(--field); font-size: 14.5px; cursor: pointer; }
 .foot-btn:hover { background: var(--field-hover); }
 .go { min-width: 214px; padding: 0 26px; height: 58px; border: 0; border-radius: 30px; cursor: pointer; font-size: 17px; font-weight: 800; letter-spacing: .6px; color: var(--ink);
@@ -502,6 +517,7 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
     <section class="page" id="page"></section>
   </main>
   <footer>
+    <button class="home-btn" id="home" title="Welcome" aria-label="Welcome"></button>
     <div class="pixfade" aria-hidden="true"><canvas id="pixfade"></canvas></div>
     <button class="foot-btn" id="quit">Quit</button>
     <button class="foot-btn" id="save">Save</button>
@@ -628,11 +644,9 @@ function withDefaults(c) {
 
 // ---------------------------------------------------------------- pages
 const pages = {
-  setup() {
+  welcome() {
     return `<img class="welcome-art" src="welcome.png" alt="RT64, 2 Ship and Majora's Mask over a retro sunset">
       <h2>Welcome</h2><p class="lead">Lions and Tigers and Textures, oh my!</p>
-      ${row('Output folder', 'Where your HD textures and packs are saved by default.',
-        pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']], 'Choose a folder'))}
       ${row('Desktop shortcut', 'Optional. R64texHD is portable: nothing is installed.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)}
       ${row('Settings location', 'Settings, downloads and temporary files stay next to the program.', `<div class="tool">${esc(S.dataDir)}</div>`)}`;
   },
@@ -771,23 +785,13 @@ const pages = {
   settings() {
     const t = S.tools;
     const tool = (name, path, label, size) => `<div class="tool-state ${path ? 'have' : 'missing'}">${pixelIcon(path ? 'green' : 'red', path ? '' : 'x')}<span>${path ? 'Downloaded' : 'Not downloaded'}</span></div><div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}<button class="btn" data-browse="exe" data-for="${name}">Locate…</button></div><div class="tool" id="tool-${name}"></div>`;
-    const miss = missingTools();
-    const notice = !toolNotice ? '' : miss.length
-      ? `<div class="card notice"><div class="dot">${statusIcon('notice')}</div><div class="body"><div class="t">Download the helper tools</div>
-          <div class="p">These haven’t been downloaded to this copy of R64texHD yet:</div>
-          <ul>${miss.map((n) => `<li><b>${TOOL_INFO[n].label}</b>: ${TOOL_INFO[n].use}</li>`).join('')}</ul>
-          <div class="p">They go in the portable data folder. Everything else works without them.</div>
-          <div class="tool" id="tool-all"></div></div>
-          <div class="act"><button class="btn primary" id="dl-all">Download ${miss.length > 1 ? 'all' : TOOL_INFO[miss[0]].label} (${miss.map((n) => TOOL_INFO[n].size).join(' + ')})</button><button class="btn" id="skip-tools">Not now</button></div></div>`
-      : `<div class="card done"><div class="dot">${statusIcon('done')}</div><div class="body"><div class="t">All tools are ready</div><div class="p">BC7 DDS output and AI upscaling are available.</div></div><div class="act"><button class="btn primary" id="skip-tools">Start ▶</button></div></div>`;
     return `<h2>Settings</h2><p class="lead">Default folders, helper tools and how R64texHD looks and runs.</p>
-      ${notice}
       ${section('Folders')}
       ${row('Output folder', 'Default place for new output.', pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']]))}
       ${section('Helper tools')}
       ${row('texconv (BC7)', 'From Microsoft. Makes sharp BC7 DDS textures and keeps far-away fences visible.', tool('texconv', t.texconv, 'texconv', TOOL_INFO.texconv.size))}
       ${row('Real-ESRGAN (AI)', 'For the AI upscale method. Needs a graphics card with Vulkan.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', TOOL_INFO.realesrgan.size))}
-      ${row('Check tools at startup', 'If a tool is missing, R64texHD opens here so you can download it.', seg('checkTools', [['true', 'On'], ['false', 'Off']], String(cfg.checkTools !== false)))}
+      ${row('Check tools at startup', 'If a tool is missing, R64texHD offers to download it when it starts.', seg('checkTools', [['true', 'On'], ['false', 'Off']], String(cfg.checkTools !== false)))}
       ${section('AI upscaling')}
       ${row('AI model', 'General suits most textures. Art suits drawn or cartoon textures.', seg('realesrganModel', [['realesrgan-x4plus', 'General'], ['realesrgan-x4plus-anime', 'Art'], ['realesr-animevideov3', 'Fast art']], cfg.realesrganModel))}
       ${row('Graphics card', 'Which GPU the AI uses. Auto picks the best one.', seg('aiGpu', [['auto', 'Auto'], ['0', 'GPU 1'], ['1', 'GPU 2']], cfg.aiGpu))}
@@ -844,24 +848,29 @@ const TOOL_INFO = {
   realesrgan: { label: 'Real-ESRGAN', size: '45 MB', use: 'AI upscaling' },
 };
 const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !S.tools[n]);
-let toolNotice = false, afterTools = 'upscale';
-function toolsLanding(next) {
-  afterTools = next;
-  if (cfg.checkTools !== false && missingTools().length) { toolNotice = true; return 'settings'; }
-  return next;
+// At startup (unless turned off in Settings), missing tools are offered in a small Yes / No window.
+let toolsBackTo = '';
+function askTools(backTo) {
+  if (cfg.checkTools === false || !missingTools().length) return false;
+  toolsBackTo = backTo || '';
+  const miss = missingTools();
+  modal(`<div class="ask-tools"><h3>New install, who dis?</h3><p>Download Helper Tools?</p>
+    <ul>${miss.map((n) => `<li>${pixelIcon('red', 'x')}<b>${TOOL_INFO[n].label}</b><span>${TOOL_INFO[n].use} · ${TOOL_INFO[n].size}</span></li>`).join('')}</ul>
+    <div class="tool" id="tool-all"></div>
+    <div class="buttons"><button class="btn" id="tools-no">No</button><button class="btn primary" id="tools-yes">Yes</button></div></div>`);
+  return true;
 }
+function toolsDone() { closeModal(); if (toolsBackTo) { page = toolsBackTo; cfg.page = page; } render(); }
 async function installAll() {
-  const btn = $('#dl-all'), skip = $('#skip-tools');
-  if (btn) { btn.disabled = true; btn.textContent = 'Downloading…'; }
-  if (skip) skip.disabled = true;
+  const yes = $('#tools-yes'), no = $('#tools-no');
+  yes.disabled = no.disabled = true; yes.textContent = 'Downloading…';
   for (const name of missingTools()) {
-    const status = $('#tool-all');
-    if (status) status.textContent = `Downloading ${TOOL_INFO[name].label}…`;
+    $('#tool-all').textContent = `Downloading ${TOOL_INFO[name].label}…`;
     const r = await window.htk.installTool(name);
-    if (!r.ok) { render(); const el = $('#tool-all'); if (el) el.textContent = `${TOOL_INFO[name].label} download failed: ${r.error}`; return; }
+    if (!r.ok) { $('#tool-all').textContent = `${TOOL_INFO[name].label} didn’t download: ${r.error}. You can try again in Settings.`; no.disabled = false; no.textContent = 'Close'; yes.hidden = true; return; }
     S.tools = r.tools;
   }
-  toast('Tools installed'); render();
+  toast('Helper tools downloaded'); toolsDone();
 }
 
 // Each page runs one task, picked by its "What to do" switch.
@@ -875,7 +884,7 @@ function taskOf(pg) {
 const TASK_PAGE = { unpack: ['pack', 'unpack'], check: ['pack', 'check'], fix: ['pack', 'check'], pack: ['pack', 'pack'], o2rExtract: ['ports', 'extract'], o2rBuild: ['ports', 'build'],
   legacyImport: ['legacy', 'import'], legacyHts: ['legacy', 'hts'], riceToO2r: ['legacy', 'ship'] };
 const pageOf = (task) => (TASK_PAGE[task] ? TASK_PAGE[task][0] : task);
-const RUN_LABEL = { upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK ▶', unpack: 'UNPACK ▶', check: 'CHECK ▶', fix: 'CHECK ▶', setup: 'CONTINUE ▶',
+const RUN_LABEL = { upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK ▶', unpack: 'UNPACK ▶', check: 'CHECK ▶', fix: 'CHECK ▶',
   o2rExtract: 'GET TEXTURES ▶', o2rBuild: 'BUILD MOD ▶', roms: 'SCAN ▶', legacyImport: 'IMPORT ▶', legacyHts: 'MAKE .HTS ▶', riceToO2r: 'BUILD MOD ▶' };
 const RUN_VERB = { upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking', check: 'Checking', fix: 'Fixing', o2rExtract: 'Getting textures', o2rBuild: 'Building mod', roms: 'Looking for ROMs',
   legacyImport: 'Importing', legacyHts: 'Making .hts', riceToO2r: 'Matching textures' };
@@ -903,16 +912,15 @@ function suggest() {
 }
 
 function render() {
-  const setup = page === 'setup';
   document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('active', b.dataset.page === page));
-  $('#nav').classList.toggle('locked', setup);
+  $('#home').classList.toggle('on', page === 'welcome');
   $('#tools-badge').hidden = !missingTools().length;
   if (!$('#tools-badge').innerHTML) $('#tools-badge').innerHTML = pixelIcon('red', 'x');
   suggest();
   savePreviewScroll();
   $('#page').innerHTML = pages[page]();
   const go = $('#go');
-  go.style.visibility = (page === 'settings' || page === 'about') ? 'hidden' : 'visible';
+  go.style.visibility = (page === 'settings' || page === 'about' || page === 'welcome') ? 'hidden' : 'visible';
   renderJob();
   refreshStatus();
   if (page === 'upscale') afterRenderPreview();
@@ -969,7 +977,6 @@ function renderChecks(r) {
 
 function renderJob() {
   const go = $('#go');
-  if (page === 'setup') { go.textContent = RUN_LABEL.setup; go.classList.remove('cancel'); return; }
   if (job.running) { go.textContent = 'CANCEL ■'; go.classList.add('cancel'); }
   else { go.textContent = RUN_LABEL[taskOf(page)] || 'RUN ▶'; go.classList.remove('cancel'); }
   if (job.task !== taskOf(page)) return;
@@ -1101,8 +1108,9 @@ document.addEventListener('click', async (e) => {
   if (id === 'check-again') { recheck(); return; }
   if (id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }
   if (id === 'open-repo') { window.htk.openRepo(); return; }
-  if (id === 'dl-all') { installAll(); return; }
-  if (id === 'skip-tools') { toolNotice = false; page = afterTools; cfg.page = page; render(); return; }
+  if (id === 'tools-yes') { installAll(); return; }
+  if (id === 'tools-no') { toolsDone(); return; }
+  if (e.target.closest('#home')) { page = 'welcome'; cfg.page = page; render(); nextHeaderPhrase(); return; }
   const inst = e.target.closest('[data-install]');
   if (inst) {
     inst.disabled = true; inst.textContent = 'Downloading…';
@@ -1178,10 +1186,6 @@ async function start(task) {
 }
 
 async function go() {
-  if (page === 'setup') {
-    if (!cfg.outputFolder) { toast('Choose an output folder first'); return; }
-    cfg.firstRunDone = true; await save(true); page = toolsLanding('upscale'); cfg.page = 'upscale'; render(); return;
-  }
   if (job.running) { await window.htk.cancel(); toast('Cancelling…'); return; }
   const t = taskOf(page);
   if (pages[page] && RUN_LABEL[t]) start(t);
@@ -1249,7 +1253,7 @@ function maybeScanRoms(force) {
 function afterRenderRoms() { fitRomPanes(); fillRomList(); drawRomDetail(); drawRomCount(); }
 // Opening ROM Tools with no folder set asks for one straight away (once per visit).
 function askRomFolder() {
-  if (page !== 'roms' || cfg.roms.folder || ROMS.asked || job.running) return;
+  if (page !== 'roms' || cfg.roms.folder || ROMS.asked || job.running || !$('#modal').hidden) return;
   ROMS.asked = true;
   const b = document.querySelector('[data-browse="folder"][data-for="roms.folder"]'); if (b) b.click();
 }
@@ -1518,6 +1522,14 @@ window.addEventListener('resize', () => { if (page === 'upscale') drawPreview();
 // ---------------------------------------------------------------- footer: 8-bit pixel gradient
 // Square blocks in the header's colours (magenta -> violet -> orange) that thin out from left to
 // right with an ordered (Bayer) dither, like an old console fade. One canvas pixel = one block.
+// The Welcome button: two green slabs in pixel art (g grey rim, k outline, L lime, M green, D dark green).
+const HOME_ICON = ["..............ggggggggggggggggg", "..............gkkkkkkkkkkkkkkkg", "..............gkLLLLLLLLLLLLLkg", "gggggggggggggggkDDDDDDDDDDDDLkg", "gkkkkkkkkkkkkkgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkDDDDDDDDDDDDgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDLLLLLLLLLLLkg", "gkLLLLLLLLLLLLgkDDLLLLLLLLLLLkg", "gkMMMMMMMMMMMMgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkLDLDLDLDLDLDLkg", "gkDLDLDLDLDLDLgkDLDLDLDLDLDLLkg", "gkLDLDLDLDLDLDgkLDLDLDLDLDLDLkg", "gkDLDLDLDLDLDLgkDDDDDDDDDDDDLkg", "gkLLLLLLLLLLLLgkkkkkkkkkkkkkkkg", "gkkkkkkkkkkkkkggggggggggggggggg", "gggggggggggggggg..............."];
+function drawHomeIcon() {
+  const C = { g: '#76767f', k: '#1c1c20', L: '#b0f42c', M: '#40be1e', D: '#0a9212' };
+  let r = '';
+  HOME_ICON.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (C[row[x]]) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${C[row[x]]}"/>`; });
+  $('#home').innerHTML = `<svg viewBox="0 0 ${HOME_ICON[0].length} ${HOME_ICON.length}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
 function fillPixelFade() {
   const c = $('#pixfade'); if (!c) return;
   const BLOCK = 5, w = Math.max(1, Math.floor(c.clientWidth / BLOCK)), h = Math.max(1, Math.floor(c.clientHeight / BLOCK));
@@ -1545,12 +1557,18 @@ setTimeout(() => showApp(), 4000);                  // never leave the app hidde
   $('#ver').textContent = 'v' + S.version;
   if (!Array.isArray(cfg.upscale.inputs)) cfg.upscale.inputs = cfg.upscale.inputs ? [cfg.upscale.inputs] : [];
   if (cfg.page === 'unpack') { cfg.page = 'pack'; cfg.pack.mode = 'unpack'; }
-  page = !cfg.firstRunDone ? 'setup' : toolsLanding(pages[cfg.page] && cfg.page !== 'setup' ? cfg.page : 'upscale');
+  if (cfg.page === 'setup') cfg.page = 'welcome';
+  const firstRun = !cfg.firstRunDone;
+  page = firstRun || !pages[cfg.page] ? 'welcome' : cfg.page;
+  cfg.page = page;
+  if (firstRun) { cfg.firstRunDone = true; save(true); }
+  setTimeout(() => askTools(firstRun ? 'welcome' : ''), SHOW_APP_AT + 150);   // after the splash
   render();
   maybeScanRoms();
   setTimeout(askRomFolder, SHOW_APP_AT + 200);        // after the splash, so the dialog isn't hidden behind it
   nextHeaderPhrase();
   fillPixelFade();
+  drawHomeIcon();
   showSplash();
 })();
 </script>

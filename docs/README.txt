@@ -18,13 +18,14 @@ To reset the toolkit, delete the data folder. To remove it, delete this folder.
 To update, unzip the new version next to this one and copy this data folder
 into it to keep your settings and downloaded tools.
 
-First launch shows a Welcome page: the output folder and an optional Desktop
-shortcut. The RT64 dump folder is chosen on 2 Convert RT64 Dump.
+R64texHD opens straight away; there is nothing to set up first. The first
+launch opens on the Welcome page, and the green button at the bottom left
+brings you back to it any time. The output folder is in Settings.
 
 At every start R64texHD checks for the two optional tools below. If either one
-has not been downloaded yet it opens on Settings, where "Download" fetches it
-into data\tools. Choose "Not now" to carry on without them, or turn off
-"Check tools at startup" in Settings.
+has not been downloaded yet, a small window asks "Download Helper Tools?".
+Yes downloads them into data\tools; No carries on without them. You can also
+download them in Settings, or turn off "Check tools at startup" there.
 
 THE PAGES (sidebar)
 

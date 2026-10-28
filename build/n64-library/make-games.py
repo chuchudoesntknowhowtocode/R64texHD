@@ -51,6 +51,7 @@ DESC_ALIAS = {
     'Superman: The New Superman Adventures': 'Superman (USA) (En,Fr,Es)', 'Toy Story 2: Buzz Lightyear to the Rescue!': 'Toy Story 2 (USA)',
     'Bass Hunter 64': 'In-Fisherman - Bass Hunter 64 (USA)', '007: The World Is Not Enough': '007 - The World Is Not Enough (USA)',
     "G.A.S.P!! Fighters' NEXTream": 'Deadly Arts (USA)',
+    "Donald Duck: Quack Attack / Goin' Quackers": "Donald Duck - Goin' Quackers (USA) (En,Fr,De,Es,It)",
 }
 
 def code_of(name):
@@ -66,7 +67,8 @@ def title_of(name):  # "Legend of Zelda, The - Ocarina of Time (USA) (Rev B)" ->
     return t.replace(' - ', ': ')
 
 txt = desc_file.read_text(encoding='utf-8')
-descs = {m.group(1).strip(): ' '.join(l.strip() for l in m.group(2).splitlines())
+straight = lambda t: t.replace('\u2019', "'").replace('\u2018', "'")   # the list may use curly apostrophes
+descs = {straight(m.group(1).strip()): ' '.join(l.strip() for l in m.group(2).splitlines())
          for m in re.finditer(r'^\d{3}\. (.+)\n((?:     .+\n?)+)', txt, re.M)}
 
 games, problems = {}, []

@@ -29,6 +29,17 @@ module.exports = async ({ app, win }) => {
   check(await js("document.querySelector('#splash').hidden"), 'splash gone after 3.5 s');
   check((await js("document.querySelector('#ver').textContent")) === 'v' + app.getVersion(), 'version in the header');
 
+  // First launch: no setup step. It opens on Welcome and asks about the missing helper tools.
+  check((await js('page')) === 'welcome', 'first launch opens on the Welcome page (nothing to fill in)');
+  const toolsAsk = await js("(() => { const m = document.querySelector('#modal'); return m && !m.hidden ? m.innerText : ''; })()");
+  check(/New install, who dis\?/.test(toolsAsk) && /Download Helper Tools\?/.test(toolsAsk) && /texconv/.test(toolsAsk) && /Real-ESRGAN/.test(toolsAsk), 'helper tools question lists the tools');
+  await js("document.querySelector('#tools-no').click()"); await wait(300);
+  check((await js("document.querySelector('#modal').hidden")) && (await js('page')) === 'welcome', 'No closes it and stays on Welcome');
+  await shot('first-launch-welcome');
+  await js(`document.querySelector('nav button[data-page="convert"]').click()`); await wait(200);
+  await js("document.querySelector('#home').click()"); await wait(300);
+  check((await js('page')) === 'welcome' && (await js("document.querySelector('#home').classList.contains('on')")), 'Welcome button brings the Welcome page back');
+
   // Every page renders, and the subtitle phrase changes on each switch.
   const pages = ['upscale', 'convert', 'pack', 'ports', 'legacy', 'roms', 'settings', 'about'];
   const seen = new Set();

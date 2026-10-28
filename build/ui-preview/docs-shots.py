@@ -17,6 +17,7 @@ DATA = ''.join((HERE / n).read_text(encoding='utf-8') for n in ('preview-data.js
 # name, query, actions, header phrase
 SHOTS = [
     ('welcome', 'setup', [], 'HD Texture Packs for Games That Refuse to Die.'),
+    ('first-launch-tools', 'setup&notools', ['sleep:3700'], 'HD Texture Packs for Games That Refuse to Die.'),
     ('upscale', 'page=upscale', ['wait'], 'Making Muddy Textures Eat Their Vegetables.'),
     ('convert-rt64-dump', 'page=convert', ['scroll:250'], 'Expansion Pak for Your Eyeballs.'),
     ('pack-recomp-info', 'page=pack&mode=pack', ['scroll:430'], 'More Pixels Than Nintendo Ever Intended.'),
@@ -42,6 +43,8 @@ with sync_playwright() as p:
         for a in actions:
             if a == 'splash':
                 page.wait_for_timeout(1300); page.evaluate('document.getAnimations().forEach(a => a.pause())')
+            elif a.startswith('sleep:'):
+                page.wait_for_timeout(int(a[6:]))
             elif a == 'wait':
                 page.wait_for_timeout(700)
             elif a == 'run':

@@ -144,8 +144,9 @@ The checksum follows `n64crc.c` for CIC-6101/6102 (7101), 6103 (7103), 6105 (710
   **Downloaded** or **Not downloaded**, downloads with one click to the portable
   `data` folder, and is checked against a fixed checksum. **Locate…** points to a copy
   you already have.
-- **Check tools at startup**: if a tool is missing, R64texHD opens on Settings so you
-  can download it (or choose Not now). Can be turned off.
+- **Check tools at startup**: if a tool is missing, a small window asks *"New install,
+  who dis? Download Helper Tools?"*, listing the tools and their sizes. **Yes** downloads
+  them, **No** carries on. Can be turned off.
 - **AI upscaling**: the model (General, Art, Fast art), which graphics card to use, and
   GPU memory use (pick Low if AI upscaling crashes or the card has little memory).
 - **Performance**: worker threads (Auto, Half, One) and the largest texture size
@@ -164,7 +165,15 @@ The checksum follows `n64crc.c` for CIC-6101/6102 (7101), 6103 (7103), 6105 (710
 
 ![Settings: splash screen and catchphrase options](docs/screenshots/settings-look-and-feel.png)
 
-![First-run welcome page](docs/screenshots/welcome.png)
+**Welcome**
+- R64texHD opens straight away, with nothing to set up first (the output folder lives in
+  Settings). The first launch opens on the Welcome page, and the green pixel button at
+  the bottom left brings you back to it any time. It also has the Desktop shortcut and
+  shows where settings are kept.
+
+![Welcome page, with the Welcome button at the bottom left](docs/screenshots/welcome.png)
+
+![First launch: the helper tools question](docs/screenshots/first-launch-tools.png)
 
 **Portable:** nothing is installed. Settings, downloaded tools and temporary files
 stay in a `data` folder next to `R64texHD.exe`, never in AppData.
