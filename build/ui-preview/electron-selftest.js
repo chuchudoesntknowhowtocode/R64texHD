@@ -180,6 +180,30 @@ module.exports = async ({ app, win }) => {
   check((await js("document.querySelector('[data-port=\"2 Ship 2 Harkinian\"]').className")).includes('have'), 'Ship Mods: an installed port that isn’t selected is green');
   await js(`document.querySelector('[data-port="2 Ship 2 Harkinian"]').click()`); await wait(500);
   check((await js('cfg.ports.archive')) === path.join(portDir, 'mm.o2r') && (await js('cfg.ports.modOutput')).startsWith(path.join(portDir, 'mods')), 'Ship Mods: clicking an installed port uses its game archive and mods folder');
+  // Every toggle / Check again / Search again looks again: is the game archive made, and from this build?
+  {
+    const rz = require(path.join(__dirname, '..', '..', 'app', 'core', 'rtz')), zl = require('zlib');
+    const pv = (m) => Buffer.from([1, 0, m, 0, 0, 0, 0]);
+    const zip = (file, entries) => { const w = new rz.ZipWriter(file); for (const [n, b] of entries) w.add(n, b, 0, zl.crc32(b), b.length, Date.now()); w.close(); };
+    const status = () => js("document.querySelector('#status .t').textContent");
+    const chip = () => js(`document.querySelector('[data-port="2 Ship 2 Harkinian"]').textContent`);
+    const settle = async () => { for (let i = 0; i < 30 && (await status()) === 'Checking…'; i++) await wait(100); await wait(150); };
+    zip(path.join(portDir, '2ship.o2r'), [['portVersion', pv(2)]]);          // the port updates to 2.0.0; mm.o2r has no portVersion
+    await js(`document.querySelector('[data-port="2 Ship 2 Harkinian"]').click()`); await wait(300); await settle();
+    await shot('ship-outdated');
+    check(/outdated/i.test(await status()) && /outdated/.test(await chip()), `Ship Mods: toggling a port finds its game archive is older than the port (${await status()} / ${await chip()})`);
+    const mmEntries = rz.readEntries(arc).map((e) => [e.name, rz.readEntry(arc, e)]);
+    zip(path.join(portDir, 'mm.o2r'), [...mmEntries, ['portVersion', pv(2)]]);   // the port makes it again
+    await js(`document.querySelector('#check-again').click()`); await wait(300); await settle();
+    check(/Ready/.test(await status()) && !/outdated/.test(await chip()), `Ship Mods: Check again sees the archive made again (${await status()})`);
+    check(/Made by 2 Ship 2 Harkinian 2\.0\.0, matches the installed build/.test(await js("document.querySelector('#sx-id').innerText")), 'Ship Mods: the card says which build made the archive');
+    fs.renameSync(path.join(portDir, 'mm.o2r'), path.join(portDir, 'mm.bak'));
+    await js('findPorts()'); for (let i = 0; i < 50 && (await js('SHIP.finding')); i++) await wait(100); await settle();
+    check(/not made yet/i.test(await status()) && /run once/.test(await chip()), `Ship Mods: Search again sees the game archive is gone (${await status()} / ${await chip()})`);
+    fs.renameSync(path.join(portDir, 'mm.bak'), path.join(portDir, 'mm.o2r'));
+    await js(`window.dispatchEvent(new Event('focus'))`); await wait(300); await settle();
+    check(/Ready/.test(await status()), 'Ship Mods: coming back to the app checks again');
+  }
   const o2r = require(path.join(__dirname, '..', '..', 'app', 'core', 'o2r'));
   const rtzm = require(path.join(__dirname, '..', '..', 'app', 'core', 'rtz'));
   const modFile = path.join(out, 'mods', 'Majora HD.o2r');

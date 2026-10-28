@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('htk', {
   romInfo: (file) => ipcRenderer.invoke('rom:info', file),
   shipIdentify: (file) => ipcRenderer.invoke('ship:identify', file),
   shipFind: (seeds) => ipcRenderer.invoke('ship:find', seeds),
+  shipCheck: (ports, target) => ipcRenderer.invoke('ship:check', { ports, target }),
   onStarted: on('task:started'),
   onProgress: on('task:progress'),
   onLog: on('task:log'),

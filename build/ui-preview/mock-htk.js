@@ -98,6 +98,13 @@
         : { name: p.name, game: p.game, installed: false });
       return { ports, folders: 18342, ms: 640, complete: true };
     },
+    // Ship Mods: looks at each port and the chosen archive again (the real app reads portVersion; core/shipcheck.js).
+    shipCheck: async (ports, target) => {
+      const id = target ? await window.htk.shipIdentify(target) : null;
+      const out = (ports || null) && ports.map((p) => p.installed ? { ...p, state: p.name === 'Ghostship' ? 'not-generated' : 'ready', build: { major: 9, minor: 0, patch: 2, text: '9.0.2' },
+        message: p.name === 'Ghostship' ? 'Ghostship hasn’t made its game archive yet: run it once and give it your ROM.' : '' } : p);
+      return { ports: out, target: target ? { file: target, id, state: id && id.kind === 'game' ? 'ready' : '', message: '', build: null, version: null } : null };
+    },
     // Ship Mods: which game an archive is (the real app reads the archive's version file).
     shipIdentify: async (file) => {
       const SH = window.__SHIP || { ports: [], games: {} };

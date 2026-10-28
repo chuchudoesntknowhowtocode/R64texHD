@@ -463,6 +463,7 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .chip.have { background: #1d4f1f; color: #c4f7a6; box-shadow: inset 0 0 0 2px #46c43a; }
 .chip.missing { background: #4a1621; color: #ffb0b8; box-shadow: inset 0 0 0 2px #d23c4c; cursor: help; }
 .chip.sel { background: #5a2b96; color: #fff; box-shadow: inset 0 0 0 2px #c48cff; }
+.chip .stale { color: var(--warn); font-weight: 700; margin-left: 6px; }
 .chip.have:hover { background: #276a29; } .chip.sel:hover { background: #6a35ae; }
 .chip:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 2px; }
 .sx-find { margin-top: 8px; font-size: 12px; color: var(--muted); }
@@ -1009,7 +1010,7 @@ function render() {
   refreshStatus();
   if (page === 'upscale') afterRenderPreview();
   if (page === 'roms') afterRenderRoms();
-  if (page === 'ports') afterRenderShip();
+  if (page === 'ports') afterRenderShip(); else SHIP.shown = false;
   const th = $('#thumb-img');
   if (th) window.htk.thumbnail(th.dataset.src).then((url) => { if (url && th.isConnected) th.src = url; });
 }
@@ -1023,12 +1024,18 @@ function inputFor() {
 
 const CHECK_AGAIN = '<button class="btn" id="check-again">Check again</button>';
 // Look at the input again (after picking a folder, coming back to the app, or pressing Check again).
-function recheck() { statusCache = {}; PV.listKey = ''; if (!job.running) refreshStatus(); if (page === 'upscale') afterRenderPreview(); }
+function recheck() {
+  statusCache = {}; PV.listKey = '';
+  if (page === 'ports') { shipRecheck(); return; }        // refreshes the card when it's done
+  if (!job.running) refreshStatus(); if (page === 'upscale') afterRenderPreview();
+}
 async function refreshStatus() {
   if (!$('#status')) return;
   if (job.task === taskOf(page) && (job.running || job.result || job.error)) return renderJob();
   const [kind, value] = inputFor();
   if (!value || (Array.isArray(value) && !value.length)) return setCard('idle', IDLE_TEXT[taskOf(page)], 'Use Browse… or paste a path.');
+  const sn = page === 'ports' && shipNotice();
+  if (sn) return setCard('notice', sn.title, sn.text, undefined, CHECK_AGAIN);
   const key = kind + '|' + JSON.stringify(value);
   if (!statusCache[key]) {
     setCard('idle', 'Checking…', '');
@@ -1043,7 +1050,7 @@ async function refreshStatus() {
 
 function setCard(state, title, text, progress, actions) {
   const c = $('#status'); if (!c) return;
-  c.className = 'card ' + ({ ready: '', idle: 'idle', error: 'error', done: 'done', running: 'running' }[state] ?? '');
+  c.className = 'card ' + ({ ready: '', idle: 'idle', error: 'error', notice: 'notice', done: 'done', running: 'running' }[state] ?? '');
   const dot = $('.dot', c), want = state || 'idle';
   if (dot.dataset.state !== want) { dot.innerHTML = statusIcon(want); dot.dataset.state = want; }
   $('.t', c).textContent = title || '';
@@ -1334,9 +1341,37 @@ document.addEventListener('keydown', (e) => {
 // ---------------------------------------------------------------- Ship Mods (4): the game behind the archive
 // The file to look at: the game archive for Extract Textures; for Create HD Texture Pack, the base archive, or the
 // HD folder (its texture list remembers the game). shipid.js reads the archive's version file (the ROM's CRC1).
-const SHIP = { target: '', id: null, busy: false, finding: false };
+const SHIP = { target: '', id: null, check: null, busy: false, finding: false, shown: false, checking: 0 };
 const shipTarget = () => (cfg.ports.mode === 'extract' ? cfg.ports.archive : cfg.ports.base || cfg.ports.hdInput) || '';
-// Before the search: plain chips. After it: toggles — green on this PC, red not found, purple (glowing) selected.
+const SHIP_NOTE = { 'not-generated': 'Game archive not made yet', outdated: 'Game archive is outdated', unreadable: 'Game archive can’t be read' };
+const SHIP_STALE = { 'not-generated': 'run once', outdated: 'outdated', unreadable: 'damaged' };
+// The status card's warning when the chosen archive is missing or older than the installed port.
+function shipNotice() {
+  const c = SHIP.check;
+  if (!c || !SHIP_NOTE[c.state] || c.file !== shipTarget()) return null;
+  return { title: SHIP_NOTE[c.state], text: `${c.message}\n${c.file}` };
+}
+// Every port toggle, Check again, Search again, coming back to the app and opening the page: look
+// at each found port and the chosen archive again — is the game archive made, and is it from the
+// port build that's installed now? (core/shipcheck.js)
+async function shipRecheck() {
+  const n = ++SHIP.checking, t = shipTarget();
+  if (t !== SHIP.target) { SHIP.target = t; SHIP.id = null; SHIP.check = null; }
+  SHIP.busy = !!t && !SHIP.id;
+  const jobCard = job.task === taskOf(page) && (job.running || job.result || job.error);
+  if (page === 'ports') { drawShip(); if (!jobCard && !job.running) setCard('idle', 'Checking…', ''); }
+  const r = await window.htk.shipCheck(cfg.shipFound ? cfg.shipFound.ports : null, t);
+  if (n !== SHIP.checking) return false;                         // a newer check took over
+  if (r && !r.error) {
+    if (r.ports && cfg.shipFound) { cfg.shipFound.ports = r.ports; cfg.shipFound.checked = Date.now(); save(true); }
+    if (shipTarget() === t) { SHIP.check = r.target; SHIP.id = r.target ? r.target.id : null; }
+  } else if (r && r.error) toast('Couldn’t check the ports: ' + r.error);
+  SHIP.busy = false;
+  if (page === 'ports') { statusCache = {}; drawShip(); if (!job.running) refreshStatus(); }
+  return true;
+}
+// Before the search: plain chips. After it: toggles — green on this PC, red not found, purple (glowing)
+// selected; a yellow note when the port's game archive isn't made yet or is older than the port.
 function shipChips() {
   const on = SHIP.id && SHIP.id.port ? SHIP.id.port.name : '';
   const found = cfg.shipFound && cfg.shipFound.ports;
@@ -1344,8 +1379,10 @@ function shipChips() {
   return (S.shipPorts || []).map((p) => {
     const f = found.find((x) => x.name === p.name) || { installed: false };
     const sel = p.name === on, state = sel ? 'sel' : f.installed ? 'have' : 'missing';
-    const tip = f.installed ? `${p.name} is on this PC: ${f.dir}${f.archive ? '' : ' (no game archive yet: run it once with your ROM)'}` : `${p.name} wasn’t found on this PC`;
-    return `<span class="chip-w ${state}"><button class="chip ship-port ${state}" data-port="${esc(p.name)}" title="${esc(tip)}" aria-pressed="${sel}">${esc(p.name)}</button></span>`;
+    const stale = f.installed && SHIP_STALE[f.state];
+    const build = f.build ? ` · build ${f.build.text}` : '';
+    const tip = f.installed ? `${p.name} is on this PC: ${f.dir}${build}\n${f.message || ''}` : `${p.name} wasn’t found on this PC`;
+    return `<span class="chip-w ${state}"><button class="chip ship-port ${state}" data-port="${esc(p.name)}" data-state="${esc(f.state || '')}" title="${esc(tip)}" aria-pressed="${sel}">${esc(p.name)}${stale ? `<span class="stale">${stale}</span>` : ''}</button></span>`;
   }).join('');
 }
 function drawShipFind() {
@@ -1366,27 +1403,26 @@ async function findPorts() {
   SHIP.finding = false;
   if (r && !r.error) { cfg.shipFound = { at: Date.now(), ports: r.ports, ms: r.ms, folders: r.folders, complete: r.complete }; save(true); }
   else toast('Couldn’t look for ports: ' + ((r && r.error) || 'unknown error'));
-  if (page === 'ports') drawShip();
+  if (page === 'ports') await shipRecheck();
 }
-// Clicking an installed port: use its game archive, and save into its mods folder.
-function selectPort(name) {
+// Clicking a port: check it again first (it may have been run or updated since), then use its game
+// archive and save into its mods folder.
+async function selectPort(name) {
+  await shipRecheck();
   const f = cfg.shipFound && cfg.shipFound.ports.find((p) => p.name === name);
   if (!f || !f.installed) { toast(`${name} wasn’t found on this PC. Search again, or use Browse… to pick its .o2r.`); return; }
-  if (!f.archive) { toast(`${name} is installed but hasn’t made its game archive yet. Run it once with your ROM.`); return; }
+  if (!f.archive) { toast(f.message || `${name} is installed but hasn’t made its game archive yet. Run it once with your ROM.`); return; }
   cfg.ports.archive = f.archive; cfg.ports.base = f.archive;
   const packName = (cfg.ports.modOutput && baseName(cfg.ports.modOutput)) || ((cfg.ports.hdInput && baseName(cfg.ports.hdInput)) || 'HD textures') + '.o2r';
   cfg.ports.modOutput = join(f.mods, packName);
+  if (f.state === 'outdated' || f.state === 'unreadable') toast(SHIP_NOTE[f.state] + ': ' + f.message);
   onPath('ports.archive'); render();
 }
-async function afterRenderShip() {
+function afterRenderShip() {
   if (!cfg.shipFound && !SHIP.finding) findPorts();               // the first visit looks for installed ports
-  const t = shipTarget();
-  if (t !== SHIP.target) {
-    SHIP.target = t; SHIP.id = null;
-    if (t) { SHIP.busy = true; drawShip(); const id = await window.htk.shipIdentify(t); if (SHIP.target !== t) return; SHIP.id = id; }
-    SHIP.busy = false;
-  }
-  drawShip();
+  const first = !SHIP.shown; SHIP.shown = true;
+  if (first || shipTarget() !== SHIP.target) shipRecheck();
+  else drawShip();
 }
 function drawShip() {
   const card = $('#sx-id'), artEl = $('#rx-art'), ghost = $('#rx-ghost'), desc = $('#rx-desc'); if (!card) return;
@@ -1398,7 +1434,10 @@ function drawShip() {
   else if (SHIP.busy || !id) { title = 'Reading…'; sub = baseName(SHIP.target); text = 'Reading the archive…'; cls = 'muted'; }
   else if (g) { title = g.title; sub = [port && port.name, baseName(SHIP.target)].filter(Boolean).join(' · '); text = g.description || 'No description for this game yet.'; }
   else { title = 'Unknown game'; sub = baseName(SHIP.target); text = 'No ROM match found, what is this game?'; cls = 'nomatch'; }
-  const how = id && !id.error && (g || port) ? `Found from ${id.source || 'the file name'}${id.crc ? ` · CRC1 ${id.crc}` : ''}${id.rom ? ` · ROM: ${id.rom}` : ''}` : '';
+  const c = SHIP.check && SHIP.check.file === SHIP.target ? SHIP.check : null;
+  const made = c && c.state === 'ready' && c.version ? ` · Made by ${port ? port.name + ' ' : ''}${c.version.text}${c.build ? (c.version.major === c.build.major ? ', matches the installed build' : '') : ''}` : '';
+  const stale = c && SHIP_NOTE[c.state] ? ` · ${SHIP_NOTE[c.state]}` : '';
+  const how = id && !id.error && (g || port) ? `Found from ${id.source || 'the file name'}${id.crc ? ` · CRC1 ${id.crc}` : ''}${id.rom ? ` · ROM: ${id.rom}` : ''}${made}${stale}` : '';
   card.innerHTML = `<div class="rom-item sx-card ${g ? 'on' : ''}">${g ? rowArt(g.art) : ''}<b>${esc(title)}</b><span>${esc(sub)}</span></div>${how ? `<div class="sx-how" title="${esc(how)}">${esc(how)}</div>` : ''}`;
   const key = g ? g.art : (SHIP.target && id ? '?' : '');
   if (artEl.dataset.key !== key) {

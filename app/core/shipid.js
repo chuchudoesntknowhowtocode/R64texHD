@@ -52,7 +52,9 @@ function readArchive(file) {
   if (mine && out.crc == null) {
     try { const j = JSON.parse(mine.toString('utf8')); if (j.crc) { out.crc = parseInt(j.crc, 16) >>> 0; out.source = 'R64texHD’s note in the mod'; } } catch { /* ignore */ }
   }
-  out.portArchive = entries.some((e) => e.name === 'portVersion');
+  // The port's own archive (soh.o2r) has a portVersion but no ROM version file; game archives made
+  // from a ROM have both (portVersion there is the build that made them).
+  out.portArchive = entries.some((e) => e.name === 'portVersion') && v == null;
   return out;
 }
 

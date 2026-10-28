@@ -307,6 +307,14 @@ function registerIpc() {
       return await shipfind.find({ roots, seeds: (seeds || []).filter((x) => typeof x === 'string' && x) });
     } catch (e) { return { error: e.message || String(e) }; }
   });
+  // Every toggle, Check again and search: is each port's game archive there, and made by the installed build?
+  ipcMain.handle('ship:check', (_e, { ports, target } = {}) => {
+    try {
+      const sc = require('./core/shipcheck');
+      const checked = Array.isArray(ports) ? sc.checkPorts(ports) : null;
+      return { ports: checked, target: target ? sc.checkTarget(target, checked || []) : null };
+    } catch (e) { return { error: e.message || String(e) }; }
+  });
   ipcMain.handle('ship:identify', (_e, file) => { try { return require('./core/shipid').identify(file); } catch (e) { return { error: e.message || String(e) }; } });
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));

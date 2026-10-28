@@ -13,6 +13,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const shipid = require('./shipid');
+const shipcheck = require('./shipcheck');
 
 const SKIP = new Set(['windows', '$recycle.bin', 'system volume information', 'programdata', 'appdata', 'node_modules', '.git', 'windowsapps',
   'winsxs', 'msocache', 'recovery', 'perflogs', 'config.msi', '$windows.~bt', '$windows.~ws', '$winreagent', 'intel', 'amd', 'nvidia', 'drivers',
@@ -104,15 +105,17 @@ async function find({ roots = defaultRoots(), seeds = [], timeLimit = 4000, maxF
     }
   });
   await Promise.all(workers);
-  for (const f of Object.values(found)) {
-    // Prefer the game archive next to the port's program (a copy elsewhere is only a fallback).
+  for (const [name, f] of Object.entries(found)) {
+    // Prefer the game archive next to the port's program (a copy elsewhere is only a fallback),
+    // then see whether it's there and made by the installed build (shipcheck.js).
     const home = f.exe ? path.dirname(f.exe) : f.portArchive ? path.dirname(f.portArchive) : '';
-    f.archive = f.archives.find((a) => path.dirname(a) === home) || f.archives[0] || '';
-    f.dir = home || path.dirname(f.archive);
-    f.mods = path.join(f.dir, 'mods');
+    const archive = f.archives.find((a) => path.dirname(a) === home) || f.archives[0] || '';
+    const dir = home || path.dirname(archive);
+    const how = f.how;
+    found[name] = { ...shipcheck.checkPort(ports.find((p) => p.name === name), dir, { ...f, archive }), how, installed: true };
   }
   return {
-    ports: ports.map((p) => found[p.name] ? { ...found[p.name], installed: true } : { name: p.name, game: p.game, installed: false }),
+    ports: ports.map((p) => found[p.name] || { name: p.name, game: p.game, installed: false, state: 'missing', message: `${p.name} wasn’t found on this PC` }),
     folders, ms: Date.now() - t0, complete: allFound() || (!hot.length && !queue.length),   // false: stopped at the time / folder limit
   };
 }
