@@ -70,9 +70,20 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
     games, so `sm64.o2r` → Super Mario 64 → Ghostship, and **new ports work without an
     update**, even renamed files.
   - Mods R64texHD builds carry a small `r64texhd.json` with the game's CRC1 (the port
-    ignores it), and texture folders from **Get textures** remember it too, so those are
+    ignores it), and texture folders from **Extract Textures** remember it too, so those are
     recognised later. Only when a file says nothing does it fall back to the file name
     (`mm.o2r`) or a port's folder in the path (`…\Ghostship\mods\…`).
+- **Finds your installed ports.** The first time you open Ship Mods it looks for the
+  Harbour Masters ports on this PC; **Search again** repeats it. It's built to be quick
+  and light: it never uses Windows Search, only lists folders (no file-by-file checks),
+  looks first in folders you've used before, then Desktop / Downloads / Documents / Games
+  folders and each drive, skips system folders, searches next to any port it finds first
+  (ports usually sit side by side), and stops once all are found or after 4 seconds. A
+  folder counts as a port when it has the port's program (`soh.exe`, `2ship.exe`…), its own
+  archive (`soh.o2r`…) or a game archive whose version file names the port's game.
+- **Works with** then becomes a set of toggles: **green** = on this PC, **red** = not
+  found, **purple with a glow** = the one you're using. Click a green one to use its game
+  archive and save the HD texture pack into its `mods` folder.
   - Port names come from `app/assets/n64/ports.json`:
 
     | Port | Game |
@@ -84,12 +95,11 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
     | Starship | Star Fox 64 |
     | Lighthouse | Banjo-Kazooie |
     | Paperboat | Paper Mario |
-    | Township | Animal Crossing (GameCube, so no N64 box art) |
-- **Get textures**: every texture in the game's `.o2r` (made by the port from your ROM)
+- **Extract Textures**: every texture in the game's `.o2r` (made by the port from your ROM)
   as a PNG, in the same folders as inside the archive. Palette textures come out grey,
   because their colours live in a separate palette: paint them in colour for HD.
 - Then **1 · Upscale** the folder (as PNG; "Upscale these" sets that for you).
-- **Build HD mod**: each PNG replaces the texture at the same path. HD textures are
+- **Create HD Texture Pack**: each PNG replaces the texture at the same path. HD textures are
   stored the way HarbourMasters' Retro tool stores them (RGBA32 at a whole multiple of
   the original size, with the scale the renderer needs); textures that aren't a whole
   multiple are fitted. With **In-game switch** the textures sit under `alt/`, so players
@@ -97,6 +107,8 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
 - Older MPQ `.otr` archives aren't supported; ports make `.o2r` now.
 
 ![Ship Mods knows the game: a Ghostship archive shows Super Mario 64](docs/screenshots/ship-mods-o2r.png)
+
+![Works with: ports found on this PC in green, not found in red, the selected one in purple](docs/screenshots/ship-mods-ports.png)
 
 **5 · Rice / GLideN64**
 - **Rice IDs**: Convert RT64 Dump can add each texture's Rice ID to `rt64.json`
@@ -109,7 +121,7 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
   into a GLideN64 `.hts` pack for Project64, RetroArch, RMG and BizHawk ("Texture Hires
   File Storage").
 - **Use in a Ship port**: matches a classic pack to the textures in a Ship port's `.o2r`
-  by Rice ID and builds an HD mod (with the in-game switch).
+  by Rice ID and creates an HD texture pack (with the in-game switch).
 - Classic pack files can be several GB: `.hts` packs are read a texture at a time.
 
 ![Bringing a classic pack into RT64](docs/screenshots/rice-gliden64.png)
@@ -179,7 +191,8 @@ The checksum follows `n64crc.c` for CIC-6101/6102 (7101), 6103 (7103), 6105 (710
   upscaling may reach (2048 / 4096 / 8192 px).
 - **Look and feel**:
   - **Splash screen**: On or Off. When on, R64texHD opens with a 5 s intro showing
-    the logo and a random catchphrase; **Enter**, **Space**, **Esc** or a click on the
+    the logo and a random catchphrase, always on one line in the Pixelfy pixel font (at
+    the biggest crisp size that fits); **Enter**, **Space**, **Esc** or a click on the
     logo skips it. When off, the app opens straight away.
   - **Catchphrases**: **Full send** uses the whole list; **Keep it clean** leaves out
     every catchphrase with swearing, both on the splash screen and in the header
@@ -269,7 +282,7 @@ docs/              README.txt shipped in the release, screenshots
 ## Testing
 
 ```
-node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js tests/rom.test.js tests/shipid.test.js
+node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js tests/rom.test.js tests/shipid.test.js tests/shipfind.test.js
 ```
 
 Needs Node 22.15 or newer (the same Node that Electron 38 uses). The tests cover
@@ -314,6 +327,10 @@ were supplied by the project author.
 - **N64 box art scans** (ROM Tools): **Kondorito**, from the
   [Nintendo 64 3D Boxes Pack (Real Version)](https://emumovies.com/files/file/3117-nintendo-64-3d-boxes-pack-real-version)
   on EmuMovies.
+- **Splash catchphrase font**: [Pixelfy](https://shoppy.gg/@stefiejustprince/groups/IpAo0ml) by
+  stefiejustprince. It has its own licence ("for personal use, don't use it for any
+  commercial project", see `app/ui/fonts/Pixelfy-LICENSE.txt`); it is **not** covered by
+  R64texHD's GPL.
 - **ROM CRC1 table** for Ship Mods: the [mupen64plus](https://github.com/mupen64plus/mupen64plus-core)
   ROM database, joined to game codes by MD5; GameCube versions from the Shipwright and
   2ship2harkinian sources.

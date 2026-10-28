@@ -1,5 +1,5 @@
 'use strict';
-// Step 3: Ship port archives (.o2r) - read, get textures, build HD mods.
+// Step 3: Ship port archives (.o2r) - read, Extract Textures, Create HD Texture Pack.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
@@ -56,7 +56,7 @@ test('IA4 / IA8 / I8 decode', () => {
   assert.deepEqual([...ia8.data], [255, 255, 255, 136]);
 });
 
-test('Get textures: PNGs in the same folders, plus the texture list', () => {
+test('Extract Textures: PNGs in the same folders, plus the texture list', () => {
   const arc = gameArchive(path.join(tmpDir(), 'mm.o2r')), out = tmpDir();
   const r = o2r.extract(arc, out);
   assert.equal(r.textures, 5); assert.equal(r.written, 5); assert.equal(r.palette, 1);
@@ -66,7 +66,7 @@ test('Get textures: PNGs in the same folders, plus the texture list', () => {
   assert.ok(info.textures.find((t) => t.path.endsWith('gGrassCITex')).palette);
 });
 
-test('Build HD mod: RGBA32 raw at a whole multiple, Retro scales, alt/ paths', () => {
+test('Create HD Texture Pack: RGBA32 raw at a whole multiple, Retro scales, alt/ paths', () => {
   const arc = gameArchive(path.join(tmpDir(), 'mm.o2r')), hd = tmpDir(), mod = path.join(tmpDir(), 'mods', 'HD.o2r');
   const put = (rel, im) => { fs.mkdirSync(path.dirname(path.join(hd, rel)), { recursive: true }); fs.writeFileSync(path.join(hd, rel), png.encodePNG(im)); };
   put('objects/gameplay_keep/gBrickTex.png', img(64, 64, () => [200, 100, 50, 255]));       // 4x RGBA16
@@ -114,7 +114,7 @@ test('older MPQ .otr archives get a clear message', () => {
   assert.throws(() => o2r.listTextures(f), /older \.otr archive/);
 });
 
-test('whole flow through the app tasks: Get textures -> Upscale (PNG) -> Build HD mod', async () => {
+test('whole flow through the app tasks: Extract Textures -> Upscale (PNG) -> Create HD Texture Pack', async () => {
   const arc = gameArchive(path.join(tmpDir(), 'mm.o2r')), got = path.join(tmpDir(), 'mm-textures'), up = path.join(tmpDir(), 'up'), mod = path.join(tmpDir(), 'Majora HD.o2r');
   const g = await tasks.o2rExtractTask({ archive: arc, output: got }, quietCtx());
   assert.equal(g.written, 5); assert.ok(g.upscalable);

@@ -89,6 +89,15 @@
     cancel: async () => true, open: async () => true, createShortcuts: async () => ({ ok: true }), openRepo: async () => '', quit: async () => true,
     installTool: async () => ({ ok: false, error: 'preview' }),
     fix: async () => ({ ok: true }),
+    // Ship Mods: installed ports (the real app lists folders; see core/shipfind.js).
+    shipFind: async () => {
+      await new Promise((r) => setTimeout(r, q.has('slowfind') ? 4000 : 150));
+      const have = { 'Ship of Harkinian': ['C:\\Games\\SoH', 'oot.o2r'], '2 Ship 2 Harkinian': ['C:\\Games\\2Ship', 'mm.o2r'], Ghostship: ['C:\\Games\\Ghostship', 'sm64.o2r'] };
+      const ports = ((window.__SHIP || {}).ports || []).map((p) => have[p.name]
+        ? { name: p.name, game: p.game, installed: true, dir: have[p.name][0], exe: '', archive: have[p.name][0] + '\\' + have[p.name][1], mods: have[p.name][0] + '\\mods' }
+        : { name: p.name, game: p.game, installed: false });
+      return { ports, folders: 18342, ms: 640, complete: true };
+    },
     // Ship Mods: which game an archive is (the real app reads the archive's version file).
     shipIdentify: async (file) => {
       const SH = window.__SHIP || { ports: [], games: {} };

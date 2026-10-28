@@ -94,3 +94,13 @@ Downloaded by the user from Settings, not redistributed with R64texHD:
 
 The R64 app icon (`app/assets/icon.*`) and the header artwork
 (`app/ui/header-art.jpg`) were supplied by the project author.
+
+## Pixelfy font (splash catchphrase)
+
+`app/ui/fonts/Pixelfy.ttf`, by stefiejustprince
+(https://shoppy.gg/@stefiejustprince/groups/IpAo0ml). Not under the GPL. Its own terms, as
+supplied in `app/ui/fonts/Pixelfy-LICENSE.txt`:
+
+> thankyou for downloading. this font is for Personal use. dont use it for any commercial
+> project.
+

@@ -299,6 +299,14 @@ function registerIpc() {
   ipcMain.handle('thumbnail', (_e, p) => thumbnail(p));
   ipcMain.handle('rom:info', async (_e, file) => { try { return await tasks.romInfo(file); } catch (e) { return { error: e.message || String(e) }; } });
   // 4 · Ship Mods: the N64 game behind a port archive, mod or texture folder (reads the archive's version file).
+  // 4 · Ship Mods: find the installed Harbour Masters ports (folder listings only; see core/shipfind.js).
+  ipcMain.handle('ship:find', async (_e, seeds) => {
+    try {
+      const shipfind = require('./core/shipfind');
+      const roots = process.env.HTK_SHIPFIND_ROOTS ? process.env.HTK_SHIPFIND_ROOTS.split(';').filter(Boolean).map((dir) => ({ dir, depth: 4 })) : shipfind.defaultRoots();
+      return await shipfind.find({ roots, seeds: (seeds || []).filter((x) => typeof x === 'string' && x) });
+    } catch (e) { return { error: e.message || String(e) }; }
+  });
   ipcMain.handle('ship:identify', (_e, file) => { try { return require('./core/shipid').identify(file); } catch (e) { return { error: e.message || String(e) }; } });
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));

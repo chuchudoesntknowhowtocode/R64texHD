@@ -70,7 +70,7 @@ test('names and folders only when the file says nothing; unknown stays unknown',
   assert.equal(shipid.readVersion(Buffer.from('1.0')), null, 'too short to be a version file');
 });
 
-test('Get textures and Build HD mod carry the game along', async () => {
+test('Extract Textures and Create HD Texture Pack carry the game along', async () => {
   const d = tmpDir();
   const base = archive(path.join(d, 'renamed.o2r'), { version: version(0x635a2bff), 'textures/castle/gWall': tex() });
   const got = path.join(d, 'got');

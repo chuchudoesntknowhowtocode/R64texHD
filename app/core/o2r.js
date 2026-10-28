@@ -160,7 +160,7 @@ function listTextures(file, { progress = () => {}, cancelled = () => false } = {
   return out;
 }
 
-// Get textures: every texture as PNG at <out>/<path in the archive>.png, plus r64texhd-o2r.json.
+// Extract Textures: every texture as PNG at <out>/<path in the archive>.png, plus r64texhd-o2r.json.
 function extract(file, outDir, { progress = () => {}, cancelled = () => false, skipPalette = false } = {}) {
   const list = listTextures(file, { progress: (d, t) => progress(d, t * 2, 'Finding textures'), cancelled });
   if (!list.length) throw new Error('No textures in this archive.');
@@ -242,7 +242,7 @@ function build(hdDir, baseFile, outFile, { alt = true, compression = 'store', pr
     done.add(t.name);
     pairs.push({ t, label: rel, img: () => png.decodePNG(fs.readFileSync(path.join(hdDir, rel))) });
   }
-  if (!pairs.length) throw new Error('None of the PNGs match a texture in the game archive. Keep the folders and names you got from “Get textures”.');
+  if (!pairs.length) throw new Error('None of the PNGs match a texture in the game archive. Keep the folders and names you got from “Extract Textures”.');
   const r = writeMod(pairs, outFile, { alt, compression, progress, cancelled, offset: base.length, total: base.length + pairs.length, note: modNote(baseFile) });
   return { file: outFile, written: r.written, unmatched, resized: r.resized, same: r.same, game: gameOf(baseFile), bytesOut: r.bytesOut };
 }

@@ -61,11 +61,14 @@ THE PAGES (sidebar)
      texture turned into DDS. The original is never changed.
 
 4  Ship Mods .o2r
-   HD texture mods for 2 Ship 2 Harkinian, Ship of Harkinian, Starship and
-   other .o2r ports, in three steps:
-   - Get textures: every texture in the game's .o2r as a PNG.
+   HD texture packs for the Harbour Masters ports (Ship of Harkinian,
+   2 Ship 2 Harkinian, Ghostship, SpaghettiKart, Starship, Lighthouse,
+   Paperboat) and other .o2r ports. The page finds the ports installed on
+   this PC (green = found, red = not found; click one to use it) and shows
+   the game's box art, read from the archive itself. In three steps:
+   - Extract Textures: every texture in the game's .o2r as a PNG.
    - Upscale the folder on page 1 (as PNG).
-   - Build HD mod: makes an .o2r for the port's mods folder. With the in-game
+   - Create HD Texture Pack: makes an .o2r for the port's mods folder. With the in-game
      switch on, players turn it on and off with "Use Alternate Assets" (Tab).
 
 5  Rice / GLideN64

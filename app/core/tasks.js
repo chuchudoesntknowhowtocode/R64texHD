@@ -192,7 +192,7 @@ function inspect(kind, value) {
     if (!st.isDirectory()) return { state: 'error', title: 'Not a folder', text: p };
     const n = require('./o2r').listPngs(p).length;
     const fromShip = fs.existsSync(path.join(p, require('./o2r').INFO_FILE));
-    return n ? { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} PNG textures${fromShip ? ' (from Get textures)' : ''}\n${p}` }
+    return n ? { state: 'ready', title: 'Ready', text: `${n.toLocaleString()} PNG textures${fromShip ? ' (from Extract Textures)' : ''}\n${p}` }
       : { state: 'error', title: 'No PNG textures here', text: `Ship mods are built from PNG: upscale with Output format PNG.\n${p}` };
   }
   if (kind === 'legacyImport' || kind === 'riceToO2r') {

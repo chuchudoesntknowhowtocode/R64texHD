@@ -130,20 +130,19 @@ module.exports = async ({ app, win }) => {
   check(fs.existsSync(path.join(out, 'converted-fixed.rtz')), 'fixed copy saved next to the folder');
   await wait(300); await shot('run-check-fixed');
 
-  // Step 3: Ship mods. Get textures from a game archive, upscale them (PNG), build the HD mod.
+  // Step 3: Ship mods. Extract Textures from a game archive, upscale them (PNG), Create HD Texture Pack.
   const arc = path.join(out, 'game', 'mm.o2r');
   require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'make-test-o2r.js'), arc], { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' } });
   const got = JSON.stringify(path.join(out, 'mm-textures')), shipUp = JSON.stringify(path.join(out, 'mm-textures-upscaled')), mod = JSON.stringify(path.join(out, 'mods', 'Majora HD.o2r'));
   await js(`document.querySelector('nav button[data-page="ports"]').click()`); await wait(300);
   const gx = await runAndWait(`cfg.ports.mode = 'extract'; cfg.ports.archive = ${JSON.stringify(arc)}; cfg.ports.output = ${got}; render();`, 'o2rExtract');
-  check(gx && gx.result && gx.result.written === 3, 'Ship Mods: Get textures (3 from mm.o2r)');
+  check(gx && gx.result && gx.result.written === 3, 'Ship Mods: Extract Textures (3 from mm.o2r)');
   await wait(500);
   const shipCard = await js("document.querySelector('#sx-id').innerText");
   check(/Majora's Mask/.test(shipCard) && /2 Ship 2 Harkinian/.test(shipCard) && /version file/.test(shipCard) && /5354631C/.test(shipCard), 'Ship Mods: the archive’s version file names the game (Majora’s Mask, 2Ship)');
   const shipArt = await js("(() => { const i = document.querySelector('#rx-art img'); return i ? [i.getAttribute('src'), i.naturalWidth] : null; })()");
   check(shipArt && /Majora/.test(shipArt[0]) && shipArt[1] > 0, 'Ship Mods: box art shows');
   check(/Termina/.test(await js("document.querySelector('#rx-desc').innerText")), 'Ship Mods: game description shows');
-  check((await js("[...document.querySelectorAll('#ship-chips .chip.on')].map((c) => c.textContent).join()")) === '2 Ship 2 Harkinian', 'Ship Mods: the port lights up under Works with');
   await wait(300); await shot('run-o2r-extract');
   await js(`window.__done = null; document.querySelector('#go-upscale').click()`); await wait(400);
   check((await js("cfg.upscale.format")) === 'png', 'Upscale these: switches output to PNG for Ship mods');
@@ -151,11 +150,26 @@ module.exports = async ({ app, win }) => {
   check(su && su.result && su.result.fromO2r, 'Upscale knows the textures came from a Ship archive');
   await wait(1500); await js("closeModal()"); await wait(300);
   await js(`document.querySelector('#go-ship').click()`); await wait(400);
-  check((await js("cfg.ports.mode")) === 'build' && (await js("cfg.ports.base")) === arc, 'Build HD mod button fills in the folder and game archive');
+  check((await js("cfg.ports.mode")) === 'build' && (await js("cfg.ports.base")) === arc, 'Create HD Texture Pack button fills in the folder and game archive');
   const sb = await runAndWait(`cfg.ports.modOutput = ${mod}; render();`, 'o2rBuild');
-  check(sb && sb.result && sb.result.written === 3, 'Ship Mods: Build HD mod (3 textures)');
+  check(sb && sb.result && sb.result.written === 3, 'Ship Mods: Create HD Texture Pack (3 textures)');
   const modId = await js(`window.htk.shipIdentify(${JSON.stringify(path.join(out, 'mods', 'Majora HD.o2r'))})`);
   check(modId && modId.key === 'NZS' && modId.kind === 'mod', 'Ship Mods: the built mod remembers its game');
+  await js(`cfg.ports.mode = 'extract'; cfg.ports.archive = ${JSON.stringify(arc)}; document.querySelector('nav button[data-page="ports"]').click()`); await wait(600);
+  // Finding installed ports (HTK_SHIPFIND_ROOTS keeps the search to the test folder): a 2Ship folder
+  // with its program and game archive. Then the chips are toggles: green found, red not, purple selected.
+  const portDir = path.join(out, 'Games', '2Ship');
+  fs.mkdirSync(portDir, { recursive: true }); fs.writeFileSync(path.join(portDir, '2ship.exe'), 'x'); fs.copyFileSync(arc, path.join(portDir, 'mm.o2r'));
+  await js('findPorts()');
+  for (let i = 0; i < 50 && (await js('SHIP.finding')); i++) await wait(100);
+  const chipState = await js("Object.fromEntries([...document.querySelectorAll('#ship-chips .chip')].map((c) => [c.textContent, c.className.replace('chip ship-port ', '')]))");
+  check(chipState['2 Ship 2 Harkinian'] === 'sel' && chipState.Starship === 'missing' && chipState.Ghostship === 'missing', `Ship Mods: found ports become toggles (${JSON.stringify(chipState)})`);
+  check(/Found 1 of 7 ports/.test(await js("document.querySelector('#sx-find').innerText")), 'Ship Mods: says how many ports it found');
+  check(await js("getComputedStyle(document.querySelector('.chip-w.sel')).filter.includes('drop-shadow')"), 'Ship Mods: the selected port glows');
+  await js(`cfg.ports.archive = ''; render();`); await wait(400);
+  check((await js("document.querySelector('[data-port=\"2 Ship 2 Harkinian\"]').className")).includes('have'), 'Ship Mods: an installed port that isn’t selected is green');
+  await js(`document.querySelector('[data-port="2 Ship 2 Harkinian"]').click()`); await wait(500);
+  check((await js('cfg.ports.archive')) === path.join(portDir, 'mm.o2r') && (await js('cfg.ports.modOutput')).startsWith(path.join(portDir, 'mods')), 'Ship Mods: clicking an installed port uses its game archive and mods folder');
   const o2r = require(path.join(__dirname, '..', '..', 'app', 'core', 'o2r'));
   const rtzm = require(path.join(__dirname, '..', '..', 'app', 'core', 'rtz'));
   const modFile = path.join(out, 'mods', 'Majora HD.o2r');
