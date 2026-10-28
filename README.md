@@ -57,8 +57,34 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
 ![Check a pack: problems first, with a one-click fix](docs/screenshots/check-a-pack.png)
 
 **4 · Ship Mods .o2r**
-- For the PC ports built on libultraship: 2 Ship 2 Harkinian, Ship of Harkinian,
-  Starship and other `.o2r` ports.
+- For the PC ports [Harbour Masters](https://www.harbourmasters.org/downloads) build on
+  libultraship, and any other `.o2r` port.
+- **Knows the game.** Pick an archive and the page shows the N64 game it comes from, with
+  the same box art header as ROM Tools: the box at the top right, its description beside
+  it, a card with the cropped box art, and a faded copy of the box behind the settings.
+  The port lights up under **Works with**.
+  - The game is **read from the archive itself**: every `.o2r` made from a ROM has a
+    `version` file holding that ROM's CRC1 (header offset 0x10), written by both Torch and
+    Shipwright's exporter (newer archives may also have it in `manifest.json`). R64texHD
+    looks the CRC1 up in a table of 773 retail ROM dumps covering 302 of the 303 library
+    games, so `sm64.o2r` → Super Mario 64 → Ghostship, and **new ports work without an
+    update**, even renamed files.
+  - Mods R64texHD builds carry a small `r64texhd.json` with the game's CRC1 (the port
+    ignores it), and texture folders from **Get textures** remember it too, so those are
+    recognised later. Only when a file says nothing does it fall back to the file name
+    (`mm.o2r`) or a port's folder in the path (`…\Ghostship\mods\…`).
+  - Port names come from `app/assets/n64/ports.json`:
+
+    | Port | Game |
+    | --- | --- |
+    | Ship of Harkinian | The Legend of Zelda: Ocarina of Time |
+    | 2 Ship 2 Harkinian | The Legend of Zelda: Majora's Mask |
+    | Ghostship | Super Mario 64 |
+    | SpaghettiKart | Mario Kart 64 |
+    | Starship | Star Fox 64 |
+    | Lighthouse | Banjo-Kazooie |
+    | Paperboat | Paper Mario |
+    | Township | Animal Crossing (GameCube, so no N64 box art) |
 - **Get textures**: every texture in the game's `.o2r` (made by the port from your ROM)
   as a PNG, in the same folders as inside the archive. Palette textures come out grey,
   because their colours live in a separate palette: paint them in colour for HD.
@@ -70,7 +96,7 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
   flip them with "Use Alternate Assets" (Tab). Put the `.o2r` in the port's `mods` folder.
 - Older MPQ `.otr` archives aren't supported; ports make `.o2r` now.
 
-![Building a Ship port HD mod](docs/screenshots/ship-mods-o2r.png)
+![Ship Mods knows the game: a Ghostship archive shows Super Mario 64](docs/screenshots/ship-mods-o2r.png)
 
 **5 · Rice / GLideN64**
 - **Rice IDs**: Convert RT64 Dump can add each texture's Rice ID to `rt64.json`
@@ -152,9 +178,9 @@ The checksum follows `n64crc.c` for CIC-6101/6102 (7101), 6103 (7103), 6105 (710
 - **Performance**: worker threads (Auto, Half, One) and the largest texture size
   upscaling may reach (2048 / 4096 / 8192 px).
 - **Look and feel**:
-  - **Splash screen**: On or Off. When on, R64texHD opens with a 3.5 s intro showing
-    the logo and a random catchphrase; a click or any key skips it. When off, the app
-    opens straight away.
+  - **Splash screen**: On or Off. When on, R64texHD opens with a 5 s intro showing
+    the logo and a random catchphrase; **Enter**, **Space**, **Esc** or a click on the
+    logo skips it. When off, the app opens straight away.
   - **Catchphrases**: **Full send** uses the whole list; **Keep it clean** leaves out
     every catchphrase with swearing, both on the splash screen and in the header
     subtitle, which shows a new catchphrase each time you switch page.
@@ -243,7 +269,7 @@ docs/              README.txt shipped in the release, screenshots
 ## Testing
 
 ```
-node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js tests/rom.test.js
+node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js tests/rom.test.js tests/shipid.test.js
 ```
 
 Needs Node 22.15 or newer (the same Node that Electron 38 uses). The tests cover
@@ -288,5 +314,8 @@ were supplied by the project author.
 - **N64 box art scans** (ROM Tools): **Kondorito**, from the
   [Nintendo 64 3D Boxes Pack (Real Version)](https://emumovies.com/files/file/3117-nintendo-64-3d-boxes-pack-real-version)
   on EmuMovies.
+- **ROM CRC1 table** for Ship Mods: the [mupen64plus](https://github.com/mupen64plus/mupen64plus-core)
+  ROM database, joined to game codes by MD5; GameCube versions from the Shipwright and
+  2ship2harkinian sources.
 - **Game codes** for the box art: the [libretro-database](https://github.com/libretro/libretro-database)
   N64 lists (No-Intro and serial).

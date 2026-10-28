@@ -22,7 +22,7 @@ SHOTS = [
     ('convert-rt64-dump', 'page=convert', ['scroll:250'], 'Expansion Pak for Your Eyeballs.'),
     ('pack-recomp-info', 'page=pack&mode=pack', ['scroll:430'], 'More Pixels Than Nintendo Ever Intended.'),
     ('check-a-pack', 'page=pack&mode=check', ['run'], 'Rendering Nostalgia. Destroying Blur.'),
-    ('ship-mods-o2r', 'page=ports&mode=build', ['scroll:120'], 'Because Even Mario Deserves Better Skin.'),
+    ('ship-mods-o2r', 'page=ports&mode=extract&ship=ghost', ['wait'], 'Because Even Mario Deserves Better Skin.'),
     ('rice-gliden64', 'page=legacy&mode=import', [], 'Built Different. Runs on Nostalgia.'),
     ('rom-tools', 'page=roms', ['click:.rom-item:has-text("GOLDENEYE")', 'wait'], 'Your Childhood Called. Its Graphics Are Embarrassing.'),
     ('settings', 'page=settings&notools', ['scroll:300'], 'Same Game. Less Fugly.'),

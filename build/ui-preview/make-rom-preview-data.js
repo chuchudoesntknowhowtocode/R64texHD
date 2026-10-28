@@ -64,7 +64,12 @@ for (const [file, title, code, mb, cic] of RETAIL) {
 }
 list.sort((a, b) => (a.folder === b.folder ? a.file.localeCompare(b.file) : !a.folder ? -1 : !b.folder ? 1 : a.folder.localeCompare(b.folder)));
 const matched = new Set(list.map((r) => r.libKey).filter(Boolean)).size;
+// Ship Mods: the ports list and the games behind them, with a real CRC1 for each (from crc.json).
+const shipid = require('../../app/core/shipid');
+const crcOf = (key) => (Object.entries(shipid.crcTable()).find(([, v]) => v[0] === key && /\(U\)/.test(v[1])) || Object.entries(shipid.crcTable()).find(([, v]) => v[0] === key) || [''])[0];
+const ship = { ports: shipid.ports(), games: {} };
+for (const p of ship.ports) if (p.game) { const c = crcOf(p.game); ship.games[p.game] = { game: rom.library().games[p.game], crc: c, rom: c ? shipid.crcTable()[c][1] : '' }; }
 const out = path.join(__dirname, 'rom-preview-data.js');
-fs.writeFileSync(out, `// Made by make-rom-preview-data.js from homebrew test ROMs.\nwindow.__ROMS = ${JSON.stringify({ folder: WIN, list, info, matched, libraryCount: rom.library().count })};\n`);
+fs.writeFileSync(out, `// Made by make-rom-preview-data.js from homebrew test ROMs.\nwindow.__ROMS = ${JSON.stringify({ folder: WIN, list, info, matched, libraryCount: rom.library().count })};\nwindow.__SHIP = ${JSON.stringify(ship)};\n`);
 fs.rmSync(lib, { recursive: true, force: true });
 console.log(`${list.length} ROMs -> ${out}`);

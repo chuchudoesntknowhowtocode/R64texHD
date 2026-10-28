@@ -27,8 +27,13 @@ const TYPES = {
   5: { name: 'I4', bpp: 0.5 }, 6: { name: 'I8', bpp: 1 }, 7: { name: 'IA4', bpp: 0.5 }, 8: { name: 'IA8', bpp: 1 }, 9: { name: 'IA16', bpp: 2 },
 };
 const INFO_FILE = 'r64texhd-o2r.json';
-const GAMES = [[/^mm/i, '2 Ship 2 Harkinian'], [/^oot|^mq/i, 'Ship of Harkinian'], [/^sf64|^starship/i, 'Starship'], [/^sm64|^ghostship/i, 'Ghostship'], [/^mk64|^spaghetti/i, 'SpaghettiKart']];
-const gameOf = (file) => { const b = path.basename(file); for (const [re, name] of GAMES) if (re.test(b)) return name; return 'Ship port'; };
+// The port (or game) an archive belongs to, for messages: read from the archive itself (see shipid.js).
+const gameOf = (file) => { const id = require('./shipid').identify(file); return id.port ? id.port.name : id.game ? id.game.title : 'Ship port'; };
+// What R64texHD writes into a mod so it can be recognised later: the base game's CRC1.
+function modNote(baseFile) {
+  const id = require('./shipid').identify(baseFile);
+  return id.crc ? Buffer.from(JSON.stringify({ tool: 'R64texHD', crc: id.crc, game: id.game ? id.game.title : '', port: id.port ? id.port.name : '', base: path.basename(baseFile) }) + '\n') : null;
+}
 
 function isMpq(file) {
   const fd = fs.openSync(file, 'r');
@@ -180,7 +185,8 @@ function extract(file, outDir, { progress = () => {}, cancelled = () => false, s
       if (i % 25 === 0) progress(list.length + i, list.length * 2, t.name);
     });
   } finally { fs.closeSync(fd); }
-  fs.writeFileSync(path.join(root, INFO_FILE), JSON.stringify({ version: 1, archive: path.basename(file), game: gameOf(file), textures: info }, null, 1) + '\n');
+  const id = require('./shipid').identify(file);
+  fs.writeFileSync(path.join(root, INFO_FILE), JSON.stringify({ version: 1, archive: path.basename(file), game: gameOf(file), crc: id.crc || undefined, textures: info }, null, 1) + '\n');
   return { textures: list.length, written, palette, game: gameOf(file) };
 }
 
@@ -195,7 +201,7 @@ const listPngs = (dir) => {
 };
 
 // Writes a mod from [{ t: base texture, img, label }]. Returns { written, resized, same }.
-function writeMod(pairs, outFile, { alt = true, compression = 'store', progress = () => {}, cancelled = () => false, offset = 0, total = pairs.length } = {}) {
+function writeMod(pairs, outFile, { alt = true, compression = 'store', progress = () => {}, cancelled = () => false, offset = 0, total = pairs.length, note = null } = {}) {
   const part = outFile + '.part';
   fs.mkdirSync(path.dirname(path.resolve(outFile)), { recursive: true });
   const zip = new rtz.ZipWriter(part);
@@ -213,6 +219,7 @@ function writeMod(pairs, outFile, { alt = true, compression = 'store', progress 
       written++;
       progress(offset + i + 1, offset + total, `Adding ${t.name}`);
     });
+    if (note) zip.add(require('./shipid').MOD_INFO, note, 0, zlib.crc32(note), note.length, Date.now());   // ignored by the port
     zip.close();
     fs.renameSync(part, outFile);
   } catch (e) { zip.abort(); fs.rmSync(part, { force: true }); throw e; }
@@ -236,7 +243,7 @@ function build(hdDir, baseFile, outFile, { alt = true, compression = 'store', pr
     pairs.push({ t, label: rel, img: () => png.decodePNG(fs.readFileSync(path.join(hdDir, rel))) });
   }
   if (!pairs.length) throw new Error('None of the PNGs match a texture in the game archive. Keep the folders and names you got from “Get textures”.');
-  const r = writeMod(pairs, outFile, { alt, compression, progress, cancelled, offset: base.length, total: base.length + pairs.length });
+  const r = writeMod(pairs, outFile, { alt, compression, progress, cancelled, offset: base.length, total: base.length + pairs.length, note: modNote(baseFile) });
   return { file: outFile, written: r.written, unmatched, resized: r.resized, same: r.same, game: gameOf(baseFile), bytesOut: r.bytesOut };
 }
 
@@ -263,4 +270,4 @@ function inspect(file) {
   return { game: gameOf(file), files: entries.length, size: fs.statSync(file).size };
 }
 
-module.exports = { TYPES, OTEX, LOAD_AS_RAW, INFO_FILE, parseTexture, decodeTexture, encodePixels, resource, hdResource, listTextures, readTextures, extract, build, writeMod, inspect, gameOf, isMpq, listPngs };
+module.exports = { TYPES, OTEX, LOAD_AS_RAW, INFO_FILE, modNote, parseTexture, decodeTexture, encodePixels, resource, hdResource, listTextures, readTextures, extract, build, writeMod, inspect, gameOf, isMpq, listPngs };

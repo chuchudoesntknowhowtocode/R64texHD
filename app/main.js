@@ -298,9 +298,11 @@ function thumbnail(p) {
 function registerIpc() {
   ipcMain.handle('thumbnail', (_e, p) => thumbnail(p));
   ipcMain.handle('rom:info', async (_e, file) => { try { return await tasks.romInfo(file); } catch (e) { return { error: e.message || String(e) }; } });
+  // 4 · Ship Mods: the N64 game behind a port archive, mod or texture folder (reads the archive's version file).
+  ipcMain.handle('ship:identify', (_e, file) => { try { return require('./core/shipid').identify(file); } catch (e) { return { error: e.message || String(e) }; } });
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));
-  ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task }));
+  ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task, shipPorts: require('./core/shipid').ports() }));
   ipcMain.handle('settings:save', (_e, s) => { settings = { ...settings, ...s }; saveSettings(); return true; });
   ipcMain.handle('dialog', async (_e, { kind, title, defaultPath }) => {
     if (process.env.HTK_SELFTEST) { (global.dialogs = global.dialogs || []).push(kind); return null; }   // self-test: note it, don't block on a window

@@ -103,7 +103,7 @@ function riceToO2r(input, baseFile, outFile, { alt = true, compression = 'store'
     if (any) matched++;
   }
   if (!pairs.length) throw new Error('No textures in this pack match the game archive. Is it a pack for this game?');
-  const r = o2r.writeMod(pairs, outFile, { alt, compression, progress, cancelled, offset: base.length, total: base.length + pairs.length });
+  const r = o2r.writeMod(pairs, outFile, { alt, compression, progress, cancelled, offset: base.length, total: base.length + pairs.length, note: o2r.modNote(baseFile) });
   return { written: r.written, matched, packTextures: pack.length, unmatched, resized: r.resized, bytesOut: r.bytesOut, game: o2r.gameOf(baseFile) };
 }
 

@@ -1,0 +1,13 @@
+{
+ "about": "Harbour Masters ports (harbourmasters.org) and the N64 game each one is built from. Only used for the port's name: the game itself is read from each archive's own version file, so new ports work without changes here.",
+ "ports": [
+  { "name": "Ship of Harkinian", "repo": "HarbourMasters/Shipwright", "game": "CZL", "archives": ["oot", "oot-mq", "soh"] },
+  { "name": "2 Ship 2 Harkinian", "repo": "HarbourMasters/2ship2harkinian", "game": "NZS", "archives": ["mm", "2ship"] },
+  { "name": "Ghostship", "repo": "HarbourMasters/Ghostship", "game": "NSM", "archives": ["sm64", "ghostship"] },
+  { "name": "SpaghettiKart", "repo": "HarbourMasters/SpaghettiKart", "game": "NKT", "archives": ["mk64", "spaghetti", "spaghettikart"] },
+  { "name": "Starship", "repo": "HarbourMasters/Starship", "game": "NFX", "archives": ["sf64", "starship"] },
+  { "name": "Lighthouse", "repo": "HarbourMasters/Lighthouse", "game": "NBK", "archives": ["bk", "banjo", "lighthouse"] },
+  { "name": "Paperboat", "repo": "HarbourMasters/Paperboat", "game": "NMQ", "archives": ["pm64", "papermario", "paperboat"] },
+  { "name": "Township", "repo": "", "game": "", "title": "Animal Crossing", "platform": "GameCube", "archives": ["township"] }
+ ]
+}

@@ -41,7 +41,7 @@
       recomp: true, recompName: 'Majora HD Reimagined', recompAuthor: 'chuchu', recompVersion: '1.0.0', recompDescription: 'Every texture in Termina, redone in HD.', recompThumb: 'D:\\N64\\HD\\thumb.png', recompToggle: true },
     unpack: { input: '', output: '', keepCache: false },
     check: { input: 'D:\\N64\\HD\\Majora HD.rtz' },
-    ports: { mode: q.get('mode') || 'extract', archive: 'C:\\Games\\2Ship\\mm.o2r', output: 'D:\\N64\\HD\\mm-textures', hdInput: 'D:\\N64\\HD\\mm-textures-upscaled',
+    ports: { mode: q.get('mode') || 'extract', archive: q.get('ship') === 'ghost' ? 'C:\\Games\\Ghostship\\sm64.o2r' : 'C:\\Games\\2Ship\\mm.o2r', output: 'D:\\N64\\HD\\mm-textures', hdInput: 'D:\\N64\\HD\\mm-textures-upscaled',
       base: 'C:\\Games\\2Ship\\mm.o2r', modOutput: 'C:\\Games\\2Ship\\mods\\Majora HD.o2r', alt: true, compression: 'store' },
     legacy: { mode: q.get('mode') || 'import', input: 'D:\\Packs\\THE LEGEND OF ZELDA_HIRESTEXTURES.hts', output: 'D:\\N64\\HD\\OoT Reloaded-rt64',
       htsInput: 'D:\\N64\\HD\\majora-textures-upscaled', htsName: 'ZELDA MAJORA\'S MASK', htsOutput: 'D:\\N64\\HD\\ZELDA MAJORA\'S MASK_HIRESTEXTURES.hts',
@@ -54,7 +54,7 @@
     pack: ['ready', 'Ready', '4,812 textures (0 PNG, 4,812 DDS) with rt64.json\nD:\\N64\\HD\\majora-textures-upscaled'],
     unpack: ['idle', 'Choose the .rtz pack to unpack', ''],
     check: ['ready', 'Ready', '.rtz pack: 4,812 textures (4,790 DDS, 22 PNG), 1.9 GB unpacked, zstd, rt64.json\nD:\\N64\\HD\\Majora HD.rtz'],
-    o2rExtract: ['ready', 'Ready', '2 Ship 2 Harkinian game archive: 6,528 textures\nC:\\Games\\2Ship\\mm.o2r'],
+    o2rExtract: q.get('ship') === 'ghost' ? ['ready', 'Ready', 'Ghostship game archive: 2,874 textures\nC:\\Games\\Ghostship\\sm64.o2r'] : ['ready', 'Ready', '2 Ship 2 Harkinian game archive: 6,528 textures\nC:\\Games\\2Ship\\mm.o2r'],
     o2rBuild: ['ready', 'Ready', '6,412 HD textures match the game (116 not found in mm.o2r)\nD:\\N64\\HD\\mm-textures-upscaled'],
     legacyImport: ['ready', 'Ready', 'GLideN64 pack (.hts): 9,841 textures, Rice IDs\nD:\\Packs\\THE LEGEND OF ZELDA_HIRESTEXTURES.hts'],
     legacyHts: ['ready', 'Ready', '4,812 textures, 4,655 with Rice IDs\nD:\\N64\\HD\\majora-textures-upscaled'],
@@ -73,7 +73,7 @@
   window.htk = {
     state: async () => ({ settings, dataDir: 'C:\\Tools\\R64texHD-v0.7.1.1\\data', dataWritable: true,
       tools: noTools ? { texconv: '', realesrgan: '' } : window.__mixedTools ? { texconv: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\texconv.exe', realesrgan: '' } : { texconv: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\texconv.exe', realesrgan: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\realesrgan\\realesrgan-ncnn-vulkan.exe' },
-      version: '0.7.1.1', platform: 'win32', cpus: 16, workers: 8, running: null }),
+      version: '0.7.1.1', platform: 'win32', cpus: 16, workers: 8, running: null, shipPorts: (window.__SHIP || {}).ports || [] }),
     saveSettings: async () => true,
     dialog: async () => null,
     inspect: async (kind) => { const r = INSPECT[kind] || ['idle', '', '']; return { state: r[0], title: r[1], text: r[2] }; },
@@ -89,6 +89,15 @@
     cancel: async () => true, open: async () => true, createShortcuts: async () => ({ ok: true }), openRepo: async () => '', quit: async () => true,
     installTool: async () => ({ ok: false, error: 'preview' }),
     fix: async () => ({ ok: true }),
+    // Ship Mods: which game an archive is (the real app reads the archive's version file).
+    shipIdentify: async (file) => {
+      const SH = window.__SHIP || { ports: [], games: {} };
+      const port = SH.ports.find((p) => p.archives.some((a) => new RegExp(`\\\\${a}\\.o2r$`, 'i').test(file))) || SH.ports.find((p) => file.toLowerCase().includes(p.archives[0]));
+      const g = port && SH.games[port.game];
+      if (!g) return { file, crc: '', rom: '', source: '', key: '', game: null, port: null, kind: '' };
+      const folder = !/\.o2r$/i.test(file);
+      return { file, crc: g.crc, rom: g.rom, source: folder ? 'the texture list R64texHD saved here' : 'the archive’s version file', key: port.game, game: g.game, port, kind: folder ? 'folder' : 'game' };
+    },
     romInfo: async (file) => (window.__ROMS && window.__ROMS.info[file]) || { error: 'Not in the preview data' },
     thumbnail: async () => 'splash.png',
     previewList: async () => ({ items: [{ src: 'a', rel: 'textures/0f3a9c21d8e4b7a1.png' }, { src: 'b', rel: 'textures/1b77e0a4c2d39f05.png' }], total: 4812 }),

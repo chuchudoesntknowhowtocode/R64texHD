@@ -17,16 +17,23 @@ module.exports = async ({ app, win }) => {
   const check = (ok, what) => { report.push(`${ok ? 'PASS' : 'FAIL'} ${what}`); fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n'); };
 
   await new Promise((r) => (wc.isLoading() ? wc.once('did-finish-load', r) : r()));
-  await wait(1200);                                   // splash: 3.5 s; the app appears at 3 s
+  await wait(1200);                                   // splash: 5 s; the app appears at 4.5 s
   // Read the state and the page's own clock together, so a slow machine can't make this flaky.
   const early = await js("({ t: performance.now(), splash: !document.querySelector('#splash').hidden, waiting: document.querySelector('.app').classList.contains('waiting') })");
-  check(early.t >= 2900 || (early.splash && early.waiting), `splash shows first, app still hidden (at ${(early.t / 1000).toFixed(1)} s)`);
+  check(early.t >= 4400 || (early.splash && early.waiting), `splash shows first, app still hidden (at ${(early.t / 1000).toFixed(1)} s)`);
   await shot('splash-early');
-  await wait(2000);
-  check(!(await js("document.querySelector('.app').classList.contains('waiting')")), 'app shown by ~3.2 s, under the fading splash');
+  // Other keys don't skip it; Space / Enter / Esc and a click on the logo do (tried in the preview tests).
+  await js("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }))"); await wait(100);
+  const stillUp = await js("({ t: performance.now(), up: !document.querySelector('#splash').hidden })");
+  check(stillUp.up || stillUp.t >= 5000, 'a random key does not skip the splash');
+  const t0 = await js('performance.now()'); await wait(Math.max(0, 4800 - t0));
+  check(!(await js("document.querySelector('.app').classList.contains('waiting')")), 'app shown by ~4.7 s, under the fading splash');
   await shot('splash-handover');
-  await wait(800);
-  check(await js("document.querySelector('#splash').hidden"), 'splash gone after 3.5 s');
+  // The animation clock starts when the page first paints, a little after the page's own clock.
+  let gone = false; for (let i = 0; i < 30 && !gone; i++) { await wait(100); gone = await js("document.querySelector('#splash').hidden"); }
+  const goneAt = await js('performance.now()');
+  check(gone && goneAt < 7000, `splash gone after 5 s (closed by ${(goneAt / 1000).toFixed(1)} s)`);
+  await wait(400);                                     // the start-up prompts open once the splash is gone
   check((await js("document.querySelector('#ver').textContent")) === 'v' + app.getVersion(), 'version in the header');
 
   // First launch: no setup step. It opens on Welcome and asks about the missing helper tools.
@@ -130,6 +137,13 @@ module.exports = async ({ app, win }) => {
   await js(`document.querySelector('nav button[data-page="ports"]').click()`); await wait(300);
   const gx = await runAndWait(`cfg.ports.mode = 'extract'; cfg.ports.archive = ${JSON.stringify(arc)}; cfg.ports.output = ${got}; render();`, 'o2rExtract');
   check(gx && gx.result && gx.result.written === 3, 'Ship Mods: Get textures (3 from mm.o2r)');
+  await wait(500);
+  const shipCard = await js("document.querySelector('#sx-id').innerText");
+  check(/Majora's Mask/.test(shipCard) && /2 Ship 2 Harkinian/.test(shipCard) && /version file/.test(shipCard) && /5354631C/.test(shipCard), 'Ship Mods: the archive’s version file names the game (Majora’s Mask, 2Ship)');
+  const shipArt = await js("(() => { const i = document.querySelector('#rx-art img'); return i ? [i.getAttribute('src'), i.naturalWidth] : null; })()");
+  check(shipArt && /Majora/.test(shipArt[0]) && shipArt[1] > 0, 'Ship Mods: box art shows');
+  check(/Termina/.test(await js("document.querySelector('#rx-desc').innerText")), 'Ship Mods: game description shows');
+  check((await js("[...document.querySelectorAll('#ship-chips .chip.on')].map((c) => c.textContent).join()")) === '2 Ship 2 Harkinian', 'Ship Mods: the port lights up under Works with');
   await wait(300); await shot('run-o2r-extract');
   await js(`window.__done = null; document.querySelector('#go-upscale').click()`); await wait(400);
   check((await js("cfg.upscale.format")) === 'png', 'Upscale these: switches output to PNG for Ship mods');
@@ -140,6 +154,8 @@ module.exports = async ({ app, win }) => {
   check((await js("cfg.ports.mode")) === 'build' && (await js("cfg.ports.base")) === arc, 'Build HD mod button fills in the folder and game archive');
   const sb = await runAndWait(`cfg.ports.modOutput = ${mod}; render();`, 'o2rBuild');
   check(sb && sb.result && sb.result.written === 3, 'Ship Mods: Build HD mod (3 textures)');
+  const modId = await js(`window.htk.shipIdentify(${JSON.stringify(path.join(out, 'mods', 'Majora HD.o2r'))})`);
+  check(modId && modId.key === 'NZS' && modId.kind === 'mod', 'Ship Mods: the built mod remembers its game');
   const o2r = require(path.join(__dirname, '..', '..', 'app', 'core', 'o2r'));
   const rtzm = require(path.join(__dirname, '..', '..', 'app', 'core', 'rtz'));
   const modFile = path.join(out, 'mods', 'Majora HD.o2r');

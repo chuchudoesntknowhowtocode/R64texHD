@@ -220,14 +220,14 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
 .repo .rt { flex: 1; min-width: 0; } .repo .rt b { display: block; } .repo .rt span { color: var(--muted); font-size: 13px; word-break: break-all; }
 @media (max-width: 1240px) { h1 { font-size: 21px; } .sub { font-size: 12.5px; max-width: 420px; } }
 
-/* ---------------------------------------------------------------- splash (3.5 s: fade in, hold, fade out; the app appears at 3 s) */
-#splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; cursor: pointer;
+/* ---------------------------------------------------------------- splash (5 s: fade in, hold, fade out; the app appears at 4.5 s) */
+#splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
   background: radial-gradient(ellipse at 50% 45%, #1c0c3a 0%, #0b0618 55%, #05030c 100%);
-  animation: splash-life 3.5s ease-in-out forwards; }
+  animation: splash-life 5s ease-in-out forwards; }
 #splash[hidden] { display: none; }
 #splash .inner { display: flex; flex-direction: column; align-items: center; width: min(92vw, 980px); }
-#splash img { width: 100%; height: auto; filter: drop-shadow(0 0 30px rgba(233,80,138,.35));
-  animation: splash-logo 3.5s cubic-bezier(.2,.8,.2,1) forwards; }
+#splash img { cursor: pointer; width: 100%; height: auto; filter: drop-shadow(0 0 30px rgba(233,80,138,.35));
+  animation: splash-logo 5s cubic-bezier(.2,.8,.2,1) forwards; }
 #splash .grid { position: absolute; inset: 55% 0 0 0; pointer-events: none; opacity: .35;
   background-image: linear-gradient(rgba(233,80,138,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,181,150,.4) 1px, transparent 1px);
   background-size: 60px 30px; transform: perspective(380px) rotateX(62deg); transform-origin: top; mask-image: linear-gradient(transparent, #000 40%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 40%, transparent); }
@@ -237,14 +237,14 @@ footer { display: flex; align-items: flex-end; gap: 14px; padding: 14px 18px 16p
   color: #fff; background: linear-gradient(90deg, var(--cyan), #fff 30%, #ffe45c 50%, #fff 70%, var(--pink)); background-size: 220% 100%;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 10px rgba(233,80,138,.85)) drop-shadow(0 0 24px rgba(168,101,214,.6));
-  opacity: 0; animation: phrase-in 3.5s cubic-bezier(.2,.9,.25,1) forwards, phrase-shine 1.6s linear .5s infinite; }
+  opacity: 0; animation: phrase-in 5s cubic-bezier(.2,.9,.25,1) forwards, phrase-shine 1.6s linear .5s infinite; }
 /* chromatic glitch copies behind the text */
 .phrase::before, .phrase::after { content: attr(data-text); position: absolute; inset: 0; padding: 0 20px; -webkit-text-fill-color: currentColor; background: none; pointer-events: none; mix-blend-mode: screen; opacity: .8; }
-.phrase::before { color: var(--cyan); animation: glitch-a 3.5s steps(1) forwards; }
-.phrase::after { color: var(--pink); animation: glitch-b 3.5s steps(1) forwards; }
-.phrase-sub { margin-top: 14px; font-size: 12px; font-weight: 700; letter-spacing: 4px; color: rgba(255,255,255,.55); text-transform: uppercase; opacity: 0; animation: phrase-sub 3.5s ease forwards; }
-@keyframes splash-life { 0% { opacity: 0; } 18% { opacity: 1; } 85.7% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-/* The app stays out of sight until the splash starts fading (3 s), then fades in under it. */
+.phrase::before { color: var(--cyan); animation: glitch-a 5s steps(1) forwards; }
+.phrase::after { color: var(--pink); animation: glitch-b 5s steps(1) forwards; }
+.phrase-sub { margin-top: 14px; font-size: 12px; font-weight: 700; letter-spacing: 4px; color: rgba(255,255,255,.55); text-transform: uppercase; opacity: 0; animation: phrase-sub 5s ease forwards; }
+@keyframes splash-life { 0% { opacity: 0; } 12.6% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+/* The app stays out of sight until the splash starts fading (4.5 s), then fades in under it. */
 .app { transition: opacity .5s ease; }
 .app.waiting { opacity: 0; pointer-events: none; }
 @keyframes splash-logo { 0% { transform: scale(.92); filter: drop-shadow(0 0 0 rgba(233,80,138,0)) brightness(.6); } 30% { transform: scale(1); filter: drop-shadow(0 0 34px rgba(233,80,138,.45)) brightness(1.08); } 100% { transform: scale(1.03); } }
@@ -435,6 +435,16 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
 .romx { display: grid; grid-template-columns: minmax(200px, 32%) minmax(0, 1fr); gap: 14px; margin-top: 12px; }
 .rx-right { display: flex; flex-direction: column; gap: 6px; height: var(--rom-h, 300px); min-width: 0; }
 .rx-right .path input { background: rgba(24, 14, 38, .62); }
+/* Ship Mods: the same box art header as ROM Tools. */
+.sx .rx-head { grid-template-columns: minmax(220px, 36%) minmax(0, 1fr) 196px; margin-bottom: 14px; }
+.sx-id { grid-column: 1; grid-row: 2; min-width: 0; }
+.sx-card { cursor: default; padding: 9px 12px; min-height: 46px; }
+.sx-card:not(.on) { background: rgba(24, 14, 38, .62); box-shadow: inset 0 0 0 2px rgba(80, 56, 112, .7); }
+.sx-card:not(.on) b { color: var(--muted); }
+.sx-how { margin-top: 6px; padding: 0 12px; font-size: 11.5px; color: var(--muted); text-shadow: 1px 1px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sx-ghost { left: 34%; top: 150px; }
+.sx .path input, .sx .text { background: rgba(24, 14, 38, .62); }
+.sx .chip small { opacity: .7; font-size: 10.5px; }
 .rx-count { font-size: 12.5px; color: var(--muted); padding: 6px 12px 4px; text-shadow: 1px 1px 0 #000; }   /* lines up with the text in the fields */
 /* Browse… on ROM Tools glows white. The glow sits on a wrapper: the button's notched corners would clip it. */
 .glow { display: flex; filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 5px #fff) drop-shadow(0 0 9px rgba(255,255,255,.6)); }
@@ -487,10 +497,10 @@ nav button.active:hover, .seg button.on:hover, .btn.primary:hover, .go:not(.canc
 </style>
 </head>
 <body>
-<div id="splash" title="Click to skip">
+<div id="splash">
   <div class="grid"></div>
   <div class="inner">
-    <img src="splash.png" alt="R64texHD">
+    <img src="splash.png" alt="R64texHD" title="Click, or press Enter, Space or Esc, to skip">
     <div class="phrase" id="phrase"></div>
     <div class="phrase-sub" id="phrase-sub"></div>
   </div>
@@ -587,10 +597,17 @@ function nextHeaderPhrase() {
   el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap');
 }
 // The splash is on screen from the first frame (it's in the page, not added later), so the app never
-// flashes first. It runs 3.5 s; the app is shown at 3 s, under the fading splash. A click or key skips it.
-const SHOW_APP_AT = 3000;
+// flashes first. It runs 5 s; the app is shown at 4.5 s, under the fading splash. Enter, Space, Esc
+// or a click on the logo skips it. Anything that pops up at start waits for it (whenSplashGone).
+const SHOW_APP_AT = 4500;
+const SKIP_KEYS = new Set(['Enter', ' ', 'Spacebar', 'Escape', 'Esc']);
+let splashWaiters = [];
 function showApp() { $('.app').classList.remove('waiting'); }
-function hideSplash() { $('#splash').hidden = true; showApp(); }
+function hideSplash() {
+  $('#splash').hidden = true; showApp();
+  const w = splashWaiters; splashWaiters = null; if (w) w.forEach((fn) => setTimeout(fn, 120));
+}
+function whenSplashGone(fn) { if (splashWaiters) splashWaiters.push(fn); else setTimeout(fn, 0); }
 function showSplash() {
   const sp = $('#splash');
   if (cfg.splash === false) { hideSplash(); return; }
@@ -600,7 +617,7 @@ function showSplash() {
   const started = performance.now();                 // the animation started with the page
   setTimeout(showApp, Math.max(0, SHOW_APP_AT - started));
   sp.addEventListener('animationend', (e) => { if (e.target === sp) hideSplash(); });
-  sp.addEventListener('click', hideSplash);
+  $('img', sp).addEventListener('click', hideSplash);
 }
 
 // ---------------------------------------------------------------- controls
@@ -741,9 +758,7 @@ const pages = {
   ports() {
     const o = cfg.ports, extract = o.mode === 'extract';
     const modes = seg('ports.mode', [['extract', 'Get textures'], ['build', 'Build HD mod']], o.mode, [], 'modes');
-    const arc = baseName(extract ? o.archive : o.base).toLowerCase();
-    const games = `<div class="games">${[['2 Ship 2 Harkinian', /^mm/], ['Ship of Harkinian', /^oot|^mq/], ['Starship', /^sf64/], ['Other .o2r ports', null]]
-      .map(([g, re]) => `<span class="chip ${re && re.test(arc) ? 'on' : ''}">${g}</span>`).join('')}</div>`;
+    const games = `<div class="games" id="ship-chips">${shipChips()}</div>`;
     const rows = extract
       ? row('Game archive', 'The .o2r the port made from your ROM (for example mm.o2r in the 2Ship folder).', pathField('ports.archive', o.archive, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
         + row('Output folder', 'Gets every texture as a PNG, in the same folders as inside the game.', pathField('ports.output', o.output, [['folder', 'Browse…']]))
@@ -752,13 +767,21 @@ const pages = {
         + row('Save mod as', 'Put it in the port’s mods folder. File names set the load order.', pathField('ports.modOutput', o.modOutput, [['save-o2r', 'Browse…']]))
         + row('In-game switch', 'Players can flip your textures on and off with “Use Alternate Assets” (Tab key).', seg('ports.alt', [['true', 'Add switch'], ['false', 'Always on']], String(o.alt)))
         + row('Compression', 'Store loads fastest and avoids stutter. Deflate makes a smaller file.', seg('ports.compression', [['store', 'Store'], ['deflate', 'Deflate']], o.compression));
-    return `<h2>Ship Mods .o2r</h2><p class="lead">HD textures for the PC ports built from N64 decomps: 2 Ship 2 Harkinian, Ship of Harkinian, Starship and friends.</p>
+    return `<div class="rx sx">
+      <div class="rx-ghost sx-ghost" id="rx-ghost" aria-hidden="true"></div>
+      <div class="rx-head">
+        <div class="rx-title"><h2>Ship Mods .o2r</h2><p class="lead">HD textures for the PC ports Harbour Masters build from N64 decomps. Pick an archive and its game shows up here.</p></div>
+        <div class="sx-id" id="sx-id"></div>
+        <div class="rx-desc" id="rx-desc"><div class="rx-desc-in"></div></div>
+        <div class="rx-art" id="rx-art"></div>
+      </div>
       ${tip(extract ? 'Step 1 of 3. Get the textures out, then <b>1 · Upscale</b> the folder (as PNG), then come back and <b>Build HD mod</b>.' : 'Step 3 of 3. Turn your upscaled PNG folder into a mod the port loads from its <b>mods</b> folder.')}
       ${card()}
       ${row('What to do', '', modes)}
-      ${row('Works with', 'Ports that use .o2r archives.', games)}
+      ${row('Works with', 'Ports that use .o2r archives. The game is read from the archive itself, so new ports work too.', games)}
       ${rows}
-      <div class="log" id="log"></div>`;
+      <div class="log" id="log"></div>
+    </div>`;
   },
   legacy() {
     const g = cfg.legacy, m = g.mode;
@@ -933,6 +956,7 @@ function render() {
   refreshStatus();
   if (page === 'upscale') afterRenderPreview();
   if (page === 'roms') afterRenderRoms();
+  if (page === 'ports') afterRenderShip();
   const th = $('#thumb-img');
   if (th) window.htk.thumbnail(th.dataset.src).then((url) => { if (url && th.isConnected) th.src = url; });
 }
@@ -1244,12 +1268,53 @@ $('#go').addEventListener('click', go);
 $('#save').addEventListener('click', () => save(false));
 $('#quit').addEventListener('click', async () => { if (job.running && !confirm('A process is running. Cancel it and quit?')) return; await save(true); window.htk.quit(); });
 document.addEventListener('keydown', (e) => {
-  if (!$('#splash').hidden) { hideSplash(); return; }
+  if (!$('#splash').hidden) { if (SKIP_KEYS.has(e.key)) { e.preventDefault(); hideSplash(); } return; }
   if (!$('#modal').hidden) { if (e.key === 'Escape') closeModal(); return; }
   if (e.key === 's' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(false); }
   else if (e.key === 'Escape') $('#quit').click();
   else if (e.key === 'Enter' && !e.target.closest('input, button')) { e.preventDefault(); go(); }
 });
+
+// ---------------------------------------------------------------- Ship Mods (4): the game behind the archive
+// The file to look at: the game archive when getting textures; when building, the base archive, or the
+// HD folder (its texture list remembers the game). shipid.js reads the archive's version file (the ROM's CRC1).
+const SHIP = { target: '', id: null, busy: false };
+const shipTarget = () => (cfg.ports.mode === 'extract' ? cfg.ports.archive : cfg.ports.base || cfg.ports.hdInput) || '';
+function shipChips() {
+  const on = SHIP.id && SHIP.id.port ? SHIP.id.port.name : '';
+  return (S.shipPorts || []).map((p) => `<span class="chip ${p.name === on ? 'on' : ''}" title="${esc(p.game ? (p.title || '') : `${p.title} (${p.platform})`)}">${esc(p.name)}${p.platform ? ` <small>${esc(p.platform)}</small>` : ''}</span>`).join('')
+    + '<span class="chip">Other .o2r ports</span>';
+}
+async function afterRenderShip() {
+  const t = shipTarget();
+  if (t !== SHIP.target) {
+    SHIP.target = t; SHIP.id = null;
+    if (t) { SHIP.busy = true; drawShip(); const id = await window.htk.shipIdentify(t); if (SHIP.target !== t) return; SHIP.id = id; }
+    SHIP.busy = false;
+  }
+  drawShip();
+}
+function drawShip() {
+  const card = $('#sx-id'), artEl = $('#rx-art'), ghost = $('#rx-ghost'), desc = $('#rx-desc'); if (!card) return;
+  const chips = $('#ship-chips'); if (chips) chips.innerHTML = shipChips();
+  const id = SHIP.id, g = id && !id.error ? id.game : null, port = id && id.port;
+  let text, cls = '', title, sub;
+  if (!SHIP.target) { title = 'No archive yet'; sub = 'Choose a port’s .o2r below'; text = 'Pick a game archive (like sm64.o2r) and the game it comes from shows up here, box art and all.'; cls = 'muted'; }
+  else if (SHIP.busy || !id) { title = 'Reading…'; sub = baseName(SHIP.target); text = 'Reading the archive…'; cls = 'muted'; }
+  else if (g) { title = g.title; sub = [port && port.name, baseName(SHIP.target)].filter(Boolean).join(' · '); text = g.description || 'No description for this game yet.'; }
+  else if (port && port.title) { title = port.title; sub = `${port.name} · ${port.platform || ''} game`; text = `${port.title} is a ${port.platform} game, so there’s no N64 box art for it.`; cls = 'muted'; }
+  else { title = 'Unknown game'; sub = baseName(SHIP.target); text = 'No ROM match found, what is this game?'; cls = 'nomatch'; }
+  const how = id && !id.error && (g || port) ? `Found from ${id.source || 'the file name'}${id.crc ? ` · CRC1 ${id.crc}` : ''}${id.rom ? ` · ROM: ${id.rom}` : ''}` : '';
+  card.innerHTML = `<div class="rom-item sx-card ${g ? 'on' : ''}">${g ? rowArt(g.art) : ''}<b>${esc(title)}</b><span>${esc(sub)}</span></div>${how ? `<div class="sx-how" title="${esc(how)}">${esc(how)}</div>` : ''}`;
+  const key = g ? g.art : (SHIP.target && id ? '?' : '');
+  if (artEl.dataset.key !== key) {
+    artEl.dataset.key = key;
+    artEl.innerHTML = g ? `<img src="${artUrl(g.art)}" alt="${esc(g.title)} box art">` : `<div class="rx-noart">${key === '?' ? '?' : ''}</div>`;
+    ghost.style.backgroundImage = g ? `url("${artUrl(g.art)}")` : 'none';
+  }
+  const inner = $('.rx-desc-in', desc);
+  if (inner.textContent !== text) { inner.textContent = text; desc.className = 'rx-desc ' + cls; setupDescScroll(); }
+}
 
 // ---------------------------------------------------------------- ROM Tools (6)
 const ROMS = { list: [], folder: '', selected: '', info: null, loading: '', filter: '', matched: 0, libraryCount: 0, error: '', asked: false };
@@ -1550,7 +1615,7 @@ function fillPixelFade() {
   g.putImageData(img, 0, 0);
 }
 
-setTimeout(() => showApp(), 4000);                  // never leave the app hidden, whatever happens during start-up
+setTimeout(() => { if (!$('#splash').hidden) hideSplash(); else showApp(); }, 6000);   // never leave the app hidden, whatever happens during start-up
 (async function init() {
   S = await window.htk.state();
   cfg = withDefaults(S.settings);
@@ -1562,10 +1627,10 @@ setTimeout(() => showApp(), 4000);                  // never leave the app hidde
   page = firstRun || !pages[cfg.page] ? 'welcome' : cfg.page;
   cfg.page = page;
   if (firstRun) { cfg.firstRunDone = true; save(true); }
-  setTimeout(() => askTools(firstRun ? 'welcome' : ''), SHOW_APP_AT + 150);   // after the splash
+  whenSplashGone(() => askTools(firstRun ? 'welcome' : ''));
   render();
   maybeScanRoms();
-  setTimeout(askRomFolder, SHOW_APP_AT + 200);        // after the splash, so the dialog isn't hidden behind it
+  whenSplashGone(askRomFolder);                        // after the splash, so the dialog isn't hidden behind it
   nextHeaderPhrase();
   fillPixelFade();
   showSplash();

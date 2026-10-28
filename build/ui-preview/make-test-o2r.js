@@ -14,5 +14,7 @@ const brick = img(32, 32, (x, y) => { const m = (x + (Math.floor(y / 8) % 2 ? 8 
 add('objects/gameplay_keep/gBrickWallTex', o2r.resource({ type: 2, width: 32, height: 32, data: o2r.encodePixels(brick, 2) }));
 add('objects/gameplay_field_keep/gGrassTex', o2r.resource({ type: 2, width: 16, height: 16, data: o2r.encodePixels(img(16, 16, (x, y) => [40, 120 + ((x * y) % 60), 30, 255]), 2) }));
 add('textures/skybox/gCloudsTex', o2r.resource({ type: 6, width: 16, height: 8, data: Buffer.from([...Array(128).keys()].map((i) => (i * 2) & 255)) }));
-add('version', Buffer.from('1.0'));
+// The version file 2Ship writes: endianness byte (0 = little) + Majora's Mask (USA) CRC1.
+const ver = Buffer.alloc(5); ver.writeUInt32LE(0x5354631c, 1);
+add('version', ver);
 zip.close();
