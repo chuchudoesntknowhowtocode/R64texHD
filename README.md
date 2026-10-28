@@ -104,7 +104,9 @@ packs along, and has a quick ROM explorer for looking inside your N64 ROMs.
   the original size, with the scale the renderer needs); textures that aren't a whole
   multiple are fitted. With **In-game switch** the textures sit under `alt/`, so players
   flip them with "Use Alternate Assets" (Tab). Put the `.o2r` in the port's `mods` folder.
-- Older MPQ `.otr` archives aren't supported; ports make `.o2r` now.
+- Older `.otr` game archives (MPQ, from earlier port versions) work too, for **Extract Textures**, as the
+  base for **Create HD Texture Pack**, and for recognising the game. The pack itself is always made as
+  `.o2r`, so a port old enough to only load `.otr` mods needs updating to use it.
 
 ![Ship Mods knows the game: a Ghostship archive shows Super Mario 64](docs/screenshots/ship-mods-o2r.png)
 
@@ -282,7 +284,7 @@ docs/              README.txt shipped in the release, screenshots
 ## Testing
 
 ```
-node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js tests/rom.test.js tests/shipid.test.js tests/shipfind.test.js
+node --test tests/core.test.js tests/check.test.js tests/o2r.test.js tests/rice.test.js tests/rom.test.js tests/shipid.test.js tests/shipfind.test.js tests/mpq.test.js
 ```
 
 Needs Node 22.15 or newer (the same Node that Electron 38 uses). The tests cover

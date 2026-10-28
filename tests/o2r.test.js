@@ -108,11 +108,6 @@ test('Build without the switch writes the original paths; the game archive is ne
   assert.deepEqual(fs.readFileSync(arc), before);
 });
 
-test('older MPQ .otr archives get a clear message', () => {
-  const f = path.join(tmpDir(), 'oot.otr');
-  fs.writeFileSync(f, Buffer.concat([Buffer.from('MPQ\x1a', 'latin1'), Buffer.alloc(64)]));
-  assert.throws(() => o2r.listTextures(f), /older \.otr archive/);
-});
 
 test('whole flow through the app tasks: Extract Textures -> Upscale (PNG) -> Create HD Texture Pack', async () => {
   const arc = gameArchive(path.join(tmpDir(), 'mm.o2r')), got = path.join(tmpDir(), 'mm-textures'), up = path.join(tmpDir(), 'up'), mod = path.join(tmpDir(), 'Majora HD.o2r');

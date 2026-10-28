@@ -813,10 +813,10 @@ const pages = {
     const modes = seg('ports.mode', [['extract', 'Extract Textures'], ['build', 'Create HD Texture Pack']], o.mode, [], 'modes');
     const games = `<div class="games" id="ship-chips">${shipChips()}</div>`;
     const rows = extract
-      ? row('Game archive', 'The .o2r the port made from your ROM (for example mm.o2r in the 2Ship folder).', pathField('ports.archive', o.archive, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
+      ? row('Game archive', 'The .o2r (or older .otr) the port made from your ROM, for example mm.o2r in the 2Ship folder.', pathField('ports.archive', o.archive, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.otr…'))
         + row('Output folder', 'Gets every texture as a PNG, in the same folders as inside the game.', pathField('ports.output', o.output, [['folder', 'Browse…']]))
       : row('HD texture folder', 'Your upscaled PNGs, in the same folders you got them from.', pathField('ports.hdInput', o.hdInput, [['folder', 'Browse…']], 'Choose your HD texture folder'))
-        + row('Game archive', 'The game’s own .o2r, used to match each texture and check its size.', pathField('ports.base', o.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
+        + row('Game archive', 'The game’s own .o2r or .otr, used to match each texture and check its size.', pathField('ports.base', o.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.otr…'))
         + row('Save pack as', 'Put it in the port’s mods folder. File names set the load order.', pathField('ports.modOutput', o.modOutput, [['save-o2r', 'Browse…']]))
         + row('In-game switch', 'Players can flip your textures on and off with “Use Alternate Assets” (Tab key).', seg('ports.alt', [['true', 'Add switch'], ['false', 'Always on']], String(o.alt)))
         + row('Compression', 'Store loads fastest and avoids stutter. Deflate makes a smaller file.', seg('ports.compression', [['store', 'Store'], ['deflate', 'Deflate']], o.compression));
@@ -854,9 +854,9 @@ const pages = {
         + row('Save as', 'Ends in _HIRESTEXTURES.hts. Goes in the emulator’s cache or hires_texture folder.', pathField('legacy.htsOutput', g.htsOutput, [['save-hts', 'Browse…']]));
     } else {
       lead = 'Turn a classic Rice pack into a mod for 2Ship, Ship of Harkinian and other Ship ports.';
-      tipText = 'Each texture is matched by its Rice ID against the game’s .o2r. Most of a pack usually matches; the log lists anything that didn’t. Turn the textures on in game with “Use Alternate Assets” (Tab).';
+      tipText = 'Each texture is matched by its Rice ID against the game’s .o2r or .otr. Most of a pack usually matches; the log lists anything that didn’t. Turn the textures on in game with “Use Alternate Assets” (Tab).';
       rows = row('Classic pack', 'A Rice texture folder, or a GLideN64 .hts or .htc file.', pathField('legacy.riceInput', g.riceInput, [['folder', 'Folder…'], ['open-hts', 'File…']], 'Choose a folder or .hts / .htc'))
-        + row('Game archive', 'The port’s own .o2r, made from your ROM.', pathField('legacy.base', g.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.o2r…'))
+        + row('Game archive', 'The port’s own .o2r or .otr, made from your ROM.', pathField('legacy.base', g.base, [['open-o2r', 'Browse…']], 'Choose mm.o2r, oot.otr…'))
         + row('Save mod as', 'Put it in the port’s mods folder.', pathField('legacy.modOutput', g.modOutput, [['save-o2r', 'Browse…']]));
     }
     return `<h2>Rice / GLideN64 Packs</h2><p class="lead">${lead}</p>
@@ -973,7 +973,7 @@ const RUN_LABEL = { upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK 
 const RUN_VERB = { upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking', check: 'Checking', fix: 'Fixing', o2rExtract: 'Extracting textures', o2rBuild: 'Creating the HD texture pack', roms: 'Looking for ROMs',
   legacyImport: 'Importing', legacyHts: 'Making .hts', riceToO2r: 'Matching textures' };
 const IDLE_TEXT = { upscale: 'Choose a folder or files to upscale', convert: 'Choose your RT64 texture dump folder', pack: 'Choose the texture folder to pack',
-  unpack: 'Choose the .rtz pack to unpack', check: 'Choose a pack to check', o2rExtract: 'Choose the game’s .o2r archive', o2rBuild: 'Choose your HD texture folder',
+  unpack: 'Choose the .rtz pack to unpack', check: 'Choose a pack to check', o2rExtract: 'Choose the game’s .o2r or .otr archive', o2rBuild: 'Choose your HD texture folder',
   roms: 'Choose the folder with your N64 ROMs', legacyImport: 'Choose a classic texture pack', legacyHts: 'Choose your texture folder', riceToO2r: 'Choose the Rice texture folder' };
 
 // ---------------------------------------------------------------- render

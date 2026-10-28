@@ -11,7 +11,7 @@
 // path (...\Ghostship\mods\...). CRC1 -> game is app/assets/n64/crc.json (see build/n64-library).
 const fs = require('fs');
 const path = require('path');
-const rtz = require('./rtz');
+const archive = require('./archive');
 const rom = require('./rom');
 
 const ASSETS = path.join(__dirname, '..', 'assets', 'n64');
@@ -35,8 +35,8 @@ function readVersion(buf) {
 function readArchive(file) {
   const out = { crc: null, source: '', portArchive: false, manifestName: '' };
   let entries;
-  try { entries = rtz.readEntries(file); } catch { return out; }          // older MPQ .otr: names only
-  const get = (name) => { const e = entries.find((x) => x.name === name); try { return e ? rtz.readEntry(file, e) : null; } catch { return null; } };
+  try { entries = archive.entries(file); } catch { return out; }        // .o2r or the older .otr
+  const get = (name) => { const e = entries.find((x) => x.name === name); try { return e ? archive.read(file, e) : null; } catch { return null; } };
   const v = readVersion(get('version'));
   if (v != null) { out.crc = v; out.source = 'the archive’s version file'; }
   const man = get('manifest.json');

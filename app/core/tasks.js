@@ -182,7 +182,7 @@ function inspect(kind, value) {
     return { state: 'ready', title: 'Ready', text: `Pack folder: ${(c.png + c.dds).toLocaleString()} textures (${c.png.toLocaleString()} PNG, ${c.dds.toLocaleString()} DDS)${c.db ? ' with rt64.json' : ''}\n${p}` };
   }
   if (kind === 'o2rExtract') {
-    if (!st.isFile()) return { state: 'error', title: 'Not a file', text: 'Choose the game’s .o2r archive.\n' + p };
+    if (!st.isFile()) return { state: 'error', title: 'Not a file', text: 'Choose the game’s .o2r or .otr archive.\n' + p };
     try {
       const o = require('./o2r').inspect(p);
       return { state: 'ready', title: 'Ready', text: `${o.game} game archive: ${o.files.toLocaleString()} files, ${(o.size / 1048576).toFixed(0)} MB\n${p}` };
@@ -446,7 +446,7 @@ async function unpackTask(p, ctx) {
 // ---------------------------------------------------------------- 4) Ship port archives (.o2r)
 async function o2rExtractTask(p, ctx) {
   const t0 = Date.now();
-  if (!p.archive || !fs.existsSync(p.archive)) throw new Error('Choose the game’s .o2r archive.');
+  if (!p.archive || !fs.existsSync(p.archive)) throw new Error('Choose the game’s .o2r or .otr archive.');
   if (!p.output) throw new Error('Choose the output folder.');
   const pool = new Pool(1);
   ctx.onCancel(() => pool.close());
@@ -463,7 +463,7 @@ async function o2rExtractTask(p, ctx) {
 async function o2rBuildTask(p, ctx) {
   const t0 = Date.now();
   if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose your HD texture folder.');
-  if (!p.base || !fs.existsSync(p.base)) throw new Error('Choose the game’s own .o2r archive.');
+  if (!p.base || !fs.existsSync(p.base)) throw new Error('Choose the game’s own .o2r or .otr archive.');
   if (!p.output) throw new Error('Choose where to save the mod.');
   if (!/\.o2r$/i.test(p.output)) throw new Error('The mod name must end in .o2r.');
   if (path.resolve(p.output).toLowerCase() === path.resolve(p.base).toLowerCase()) throw new Error('Save the mod as a new file, not over the game archive.');
@@ -475,6 +475,7 @@ async function o2rBuildTask(p, ctx) {
   if (ctx.cancelled()) throw new Cancelled();
   ctx.log(`${r.game} mod: ${r.written.toLocaleString()} HD texture(s)${p.alt !== false ? ', switched with “Use Alternate Assets” (Tab)' : ''}.`);
   if (r.same.length) ctx.log(`${r.same.length.toLocaleString()} are the original size (kept in their own format).`);
+  if (require('./archive').isMpq(p.base)) ctx.log('The game archive is the older .otr kind. The pack is made as .o2r: if your port doesn’t load it, update the port to a version that uses .o2r.');
   if (r.resized.length) { ctx.log(`${r.resized.length.toLocaleString()} weren’t a whole multiple of the original size and were fitted:`); r.resized.slice(0, 10).forEach((x) => ctx.log('  ' + x)); }
   if (r.unmatched.length) { ctx.log(`${r.unmatched.length.toLocaleString()} PNG(s) don’t match a texture in the game and were left out, e.g. ${r.unmatched.slice(0, 3).join(', ')}`); }
   ctx.log('Put the .o2r in the port’s mods folder. File names set the load order.');
@@ -515,7 +516,7 @@ async function legacyHtsTask(p, ctx) {
 async function riceToO2rTask(p, ctx) {
   const t0 = Date.now();
   if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose the classic pack (a Rice folder, or a .hts / .htc file).');
-  if (!p.base || !fs.existsSync(p.base)) throw new Error('Choose the game’s own .o2r archive.');
+  if (!p.base || !fs.existsSync(p.base)) throw new Error('Choose the game’s own .o2r or .otr archive.');
   if (!p.output || !/\.o2r$/i.test(p.output)) throw new Error('Choose where to save the mod (a name ending in .o2r).');
   if (path.resolve(p.output).toLowerCase() === path.resolve(p.base).toLowerCase()) throw new Error('Save the mod as a new file, not over the game archive.');
   const r = await runOne('riceToO2r', { input: p.input, base: p.base, output: p.output, alt: p.alt !== false, compression: p.compression || 'store' }, ctx,

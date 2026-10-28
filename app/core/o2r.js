@@ -35,14 +35,10 @@ function modNote(baseFile) {
   return id.crc ? Buffer.from(JSON.stringify({ tool: 'R64texHD', crc: id.crc, game: id.game ? id.game.title : '', port: id.port ? id.port.name : '', base: path.basename(baseFile) }) + '\n') : null;
 }
 
-function isMpq(file) {
-  const fd = fs.openSync(file, 'r');
-  try { const b = Buffer.alloc(4); fs.readSync(fd, b, 0, 4, 0); return b.toString('latin1') === 'MPQ\x1a'; } finally { fs.closeSync(fd); }
-}
-function openArchive(file) {
-  if (isMpq(file)) throw new Error('This is an older .otr archive (MPQ). R64texHD reads .o2r archives: update the port, or let it make a new .o2r from your ROM.');
-  return rtz.readEntries(file);
-}
+const archive = require('./archive');
+const isMpq = archive.isMpq;
+// .o2r (zip) and the older .otr (MPQ) both work.
+const openArchive = (file) => archive.entries(file);
 
 // Header + texture fields of a resource, or null when it isn't a texture.
 function parseTexture(buf) {
@@ -153,7 +149,7 @@ function listTextures(file, { progress = () => {}, cancelled = () => false } = {
       if (i % 200 === 0) progress(i, entries.length, `Reading ${e.name}`);
       if (e.usize < HEADER + 16 || e.usize > 64 * 1048576) return;
       let t;
-      try { t = parseTexture(rtz.readEntry(file, e, fd)); } catch { return; }
+      try { t = parseTexture(archive.read(file, e, fd)); } catch { return; }
       if (t) out.push({ name: e.name, entry: e, type: t.type, width: t.width, height: t.height, flags: t.flags, hScale: t.hScale, vScale: t.vScale, version: t.version });
     });
   } finally { fs.closeSync(fd); }
@@ -177,7 +173,7 @@ function extract(file, outDir, { progress = () => {}, cancelled = () => false, s
       if (isPal && skipPalette) return;
       const target = path.resolve(root, t.name + '.png');
       if (!target.startsWith(root + path.sep)) return;                     // never write outside the folder
-      const img = decodeTexture(parseTexture(rtz.readEntry(file, t.entry, fd)));
+      const img = decodeTexture(parseTexture(archive.read(file, t.entry, fd)));
       fs.mkdirSync(path.dirname(target), { recursive: true });
       fs.writeFileSync(target + '.part', png.encodePNG(img, 6));
       fs.renameSync(target + '.part', target);
@@ -257,7 +253,7 @@ function readTextures(file, { progress = () => {}, cancelled = () => false } = {
       if (i % 200 === 0) progress(i, entries.length, `Reading ${e.name}`);
       if (e.usize < HEADER + 16 || e.usize > 64 * 1048576) return;
       let t;
-      try { t = parseTexture(rtz.readEntry(file, e, fd)); } catch { return; }
+      try { t = parseTexture(archive.read(file, e, fd)); } catch { return; }
       if (t) out.push({ ...t, name: e.name });
     });
   } finally { fs.closeSync(fd); }

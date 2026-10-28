@@ -155,6 +155,16 @@ module.exports = async ({ app, win }) => {
   check(sb && sb.result && sb.result.written === 3, 'Ship Mods: Create HD Texture Pack (3 textures)');
   const modId = await js(`window.htk.shipIdentify(${JSON.stringify(path.join(out, 'mods', 'Majora HD.o2r'))})`);
   check(modId && modId.key === 'NZS' && modId.kind === 'mod', 'Ship Mods: the built mod remembers its game');
+  // An older .otr (MPQ) game archive: picked, checked again, recognised and extracted.
+  const otr = path.join(out, 'old-port', 'oot-mq.otr');
+  fs.mkdirSync(path.dirname(otr), { recursive: true }); fs.copyFileSync(path.join(__dirname, '..', '..', 'tests', 'fixtures', 'oot-test.otr'), otr);
+  await js(`cfg.ports.mode = 'extract'; cfg.ports.archive = ${JSON.stringify(otr)}; onPath('ports.archive'); document.querySelector('nav button[data-page="ports"]').click()`); await wait(800);
+  check(/Ready/.test(await js("document.querySelector('#status .t').textContent")), 'Ship Mods: an older .otr archive is ready (not "Can’t open")');
+  await js('recheck()'); await wait(600);
+  check(/Ready/.test(await js("document.querySelector('#status .t').textContent")), 'Ship Mods: Check again on a .otr stays ready');
+  check(/Ocarina of Time/.test(await js("document.querySelector('#sx-id').innerText")) && /version file/.test(await js("document.querySelector('#sx-id').innerText")), 'Ship Mods: the .otr’s version file names the game');
+  const ox = await runAndWait(`cfg.ports.output = ${JSON.stringify(path.join(out, 'otr-textures'))}; render();`, 'o2rExtract');
+  check(ox && ox.result && ox.result.written === 3, 'Ship Mods: Extract Textures from a .otr (3 textures)');
   await js(`cfg.ports.mode = 'extract'; cfg.ports.archive = ${JSON.stringify(arc)}; document.querySelector('nav button[data-page="ports"]').click()`); await wait(600);
   // Finding installed ports (HTK_SHIPFIND_ROOTS keeps the search to the test folder): a 2Ship folder
   // with its program and game archive. Then the chips are toggles: green found, red not, purple selected.
@@ -164,7 +174,7 @@ module.exports = async ({ app, win }) => {
   for (let i = 0; i < 50 && (await js('SHIP.finding')); i++) await wait(100);
   const chipState = await js("Object.fromEntries([...document.querySelectorAll('#ship-chips .chip')].map((c) => [c.textContent, c.className.replace('chip ship-port ', '')]))");
   check(chipState['2 Ship 2 Harkinian'] === 'sel' && chipState.Starship === 'missing' && chipState.Ghostship === 'missing', `Ship Mods: found ports become toggles (${JSON.stringify(chipState)})`);
-  check(/Found 1 of 7 ports/.test(await js("document.querySelector('#sx-find').innerText")), 'Ship Mods: says how many ports it found');
+  check(/Found 2 of 7 ports/.test(await js("document.querySelector('#sx-find').innerText")), 'Ship Mods: says how many ports it found (2Ship, and SoH from the .otr)');
   check(await js("getComputedStyle(document.querySelector('.chip-w.sel')).filter.includes('drop-shadow')"), 'Ship Mods: the selected port glows');
   await js(`cfg.ports.archive = ''; render();`); await wait(400);
   check((await js("document.querySelector('[data-port=\"2 Ship 2 Harkinian\"]').className")).includes('have'), 'Ship Mods: an installed port that isn’t selected is green');
