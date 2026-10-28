@@ -191,8 +191,8 @@ The checksum follows `n64crc.c` for CIC-6101/6102 (7101), 6103 (7103), 6105 (710
   upscaling may reach (2048 / 4096 / 8192 px).
 - **Look and feel**:
   - **Splash screen**: On or Off. When on, R64texHD opens with a 5 s intro showing
-    the logo and a random catchphrase, always on one line in the Pixelfy pixel font (at
-    the biggest crisp size that fits); **Enter**, **Space**, **Esc** or a click on the
+    the logo and a random catchphrase: one line in the Pixelfy pixel font at 32.8 px, in two
+    colours (cyan, then a magenta punchline) with a black outline, a glint and a glow; **Enter**, **Space**, **Esc** or a click on the
     logo skips it. When off, the app opens straight away.
   - **Catchphrases**: **Full send** uses the whole list; **Keep it clean** leaves out
     every catchphrase with swearing, both on the splash screen and in the header
