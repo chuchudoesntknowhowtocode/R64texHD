@@ -31,24 +31,24 @@ Click a picture for the full-size screenshot.
 
 <table>
 <tr>
-<td width="33%" valign="top"><a href="docs/screenshots/upscale.png"><img src="docs/screenshots/thumbs/upscale.jpg" alt="Upscale presets"></a><br><b>Upscale presets</b><br>Smart, Faithful, HD, Ultra AI, Pixel-perfect, with an estimate.</td>
-<td width="33%" valign="top"><a href="docs/screenshots/upscale-compare.png"><img src="docs/screenshots/thumbs/upscale-compare.jpg" alt="Before and after"></a><br><b>Before / after</b><br>Drag the line to compare the original and the result.</td>
-<td width="33%" valign="top"><a href="docs/screenshots/convert-rt64-dump.png"><img src="docs/screenshots/thumbs/convert-rt64-dump.jpg" alt="Convert RT64 Dump"></a><br><b>Convert RT64 Dump</b><br>RT64 dumps to PNG / DDS plus rt64.json.</td>
+<td width="33%" valign="top"><a href="docs/screenshots/upscale.png"><img src="docs/screenshots/thumbs/upscale.jpg" alt="Upscale presets"></a><br><b>1a) Upscale presets</b><br>Smart, Faithful, HD, Ultra AI, Pixel-perfect, with an estimate.</td>
+<td width="33%" valign="top"><a href="docs/screenshots/upscale-compare.png"><img src="docs/screenshots/thumbs/upscale-compare.jpg" alt="Before and after"></a><br><b>1b) Before / after</b><br>Drag the line to compare the original and the result.</td>
+<td width="33%" valign="top"><a href="docs/screenshots/convert-rt64-dump.png"><img src="docs/screenshots/thumbs/convert-rt64-dump.jpg" alt="Convert RT64 Dump"></a><br><b>2) Convert RT64 Dump</b><br>RT64 dumps to PNG / DDS plus rt64.json.</td>
 </tr>
 <tr>
-<td valign="top"><a href="docs/screenshots/pack-recomp-info.png"><img src="docs/screenshots/thumbs/pack-recomp-info.jpg" alt="Pack .rtz"></a><br><b>Pack .rtz</b><br>RT64's own layout, with Recomp mod info.</td>
-<td valign="top"><a href="docs/screenshots/check-a-pack.png"><img src="docs/screenshots/thumbs/check-a-pack.jpg" alt="Check a pack"></a><br><b>Check a pack</b><br>Problems first, with a one-click fix.</td>
-<td valign="top"><a href="docs/screenshots/ship-mods-o2r.png"><img src="docs/screenshots/thumbs/ship-mods-o2r.jpg" alt="Ship Mods"></a><br><b>Ship Mods .o2r</b><br>Knows the game, finds your installed ports.</td>
+<td valign="top"><a href="docs/screenshots/pack-recomp-info.png"><img src="docs/screenshots/thumbs/pack-recomp-info.jpg" alt="Pack .rtz"></a><br><b>3a) Pack .rtz</b><br>RT64's own layout, with Recomp mod info.</td>
+<td valign="top"><a href="docs/screenshots/check-a-pack.png"><img src="docs/screenshots/thumbs/check-a-pack.jpg" alt="Check a pack"></a><br><b>3b) Check a pack</b><br>Problems first, with a one-click fix.</td>
+<td valign="top"><a href="docs/screenshots/ship-mods-o2r.png"><img src="docs/screenshots/thumbs/ship-mods-o2r.jpg" alt="Ship Mods"></a><br><b>4) Ship Mods .o2r</b><br>Knows the game, finds your installed ports.</td>
 </tr>
 <tr>
-<td valign="top"><a href="docs/screenshots/rice-gliden64.png"><img src="docs/screenshots/thumbs/rice-gliden64.jpg" alt="Rice / GLideN64"></a><br><b>Rice / GLideN64</b><br>Classic packs into RT64, GLideN64 and Ship ports.</td>
-<td valign="top"><a href="docs/screenshots/rom-tools.png"><img src="docs/screenshots/thumbs/rom-tools.jpg" alt="ROM Tools"></a><br><b>ROM Tools</b><br>Header, CIC, checksum, hashes and box art.</td>
-<td valign="top"><a href="docs/screenshots/settings.png"><img src="docs/screenshots/thumbs/settings.jpg" alt="Settings"></a><br><b>Settings</b><br>A box per area, with the graphics card check.</td>
+<td valign="top"><a href="docs/screenshots/rice-gliden64.png"><img src="docs/screenshots/thumbs/rice-gliden64.jpg" alt="Rice / GLideN64"></a><br><b>5) Rice / GLideN64</b><br>Classic packs into RT64, GLideN64 and Ship ports.</td>
+<td valign="top"><a href="docs/screenshots/rom-tools.png"><img src="docs/screenshots/thumbs/rom-tools.jpg" alt="ROM Tools"></a><br><b>6) ROM Tools</b><br>Header, CIC, checksum, hashes and box art.</td>
+<td valign="top"><a href="docs/screenshots/settings.png"><img src="docs/screenshots/thumbs/settings.jpg" alt="Settings"></a><br><b>Settings: Boxed layout</b><br>A box per area, with the graphics card check.</td>
 </tr>
 <tr>
-<td valign="top"><a href="docs/screenshots/wizard-footer.webp"><img src="docs/screenshots/thumbs/wizard-app.jpg" alt="The wizard footer"></a><br><b>The wizard of R64</b><br>The progress bar, with scenes and fights (animated).</td>
-<td valign="top"><a href="docs/screenshots/settings-sound.png"><img src="docs/screenshots/thumbs/settings-sound.jpg" alt="Sound settings"></a><br><b>Sound and music</b><br>Volumes, now playing, your own sounds.</td>
-<td valign="top"><a href="docs/screenshots/menu-folded.png"><img src="docs/screenshots/thumbs/menu-folded.jpg" alt="Folded menu"></a><br><b>Folded menu</b><br>More room for the page; icons for each section.</td>
+<td valign="top"><a href="docs/screenshots/wizard-footer.webp"><img src="docs/screenshots/thumbs/wizard-app.jpg" alt="The wizard footer"></a><br><b>Footer: The wizard of R64</b><br>The progress bar, with scenes and fights (animated).</td>
+<td valign="top"><a href="docs/screenshots/settings-sound.png"><img src="docs/screenshots/thumbs/settings-sound.jpg" alt="Sound settings"></a><br><b>Settings: Sound and music</b><br>Volumes, now playing, your own sounds.</td>
+<td valign="top"><a href="docs/screenshots/menu-folded.png"><img src="docs/screenshots/thumbs/menu-folded.jpg" alt="Folded menu"></a><br><b>Menu: Folded menu</b><br>More room for the page; icons for each section.</td>
 </tr>
 </table>
 
