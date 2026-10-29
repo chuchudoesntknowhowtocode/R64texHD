@@ -1,0 +1,31 @@
+Free retro/chiptune-style OGG sound effects pack
+Mapped to the requested names for a pixel-art game.
+
+Sources (all free / CC0 or CC-BY with attribution):
+- SubspaceAudio / Juhani Junkala - 512 Sound Effects (8-bit style) [CC0]
+  https://opengameart.org/content/512-sound-effects-8-bit-style
+- leckie1989 - UI Sound Effects Free Sampler [CC-BY 4.0]
+  https://opengameart.org/content/ui-sound-effects-–-free-sampler-clicks-confirms-coins-pops
+  (credit: leckie1989)
+
+All files are mono OGG Vorbis.
+Approximate intended use:
+  job_start    - rising power-up blip (~0.4s)
+  into_pipe    - descending portal/wobble (~0.6s)
+  cancel_burst - soft cancel/pop (~0.3s)
+  error_burst  - harsher error buzz (~0.2s)
+  hit          - short punchy impact (<0.15s)
+  ko           - heavier smash (~0.6s)
+  impact       - low thud (~0.15s)
+  burn         - crackle/fwoosh (~0.8s)
+  vs           - dramatic stinger (~0.7s)
+  honk         - short vehicle/horn-like (~0.3s)
+  rerobe       - rising shimmer (~0.3s)
+  peek         - tiny blip (~0.04s)
+  bubble       - soft pop (~0.08s)
+  poke         - light menu blip (~0.08s)
+  zap          - electric laser-like (~0.4s)
+  trip_start   - warbly portal (~1.4s)
+  bonus        - cheerful power-up (~0.6s)
+
+Feel free to trim further or replace any that don't fit your art style.

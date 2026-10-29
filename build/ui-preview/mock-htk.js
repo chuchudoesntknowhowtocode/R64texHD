@@ -102,6 +102,10 @@
     sceneIndex: async () => { try { const j = async (f) => (await fetch('../assets/scenes/' + f)).json(); return { stage: await j('stage.json'), index: await j('index.json') }; } catch (e) { return { error: String(e) }; } },
     sceneClip: async (id) => { try { return await (await fetch('../assets/scenes/' + id + '/clip.json')).json(); } catch (e) { return { error: String(e) }; } },
     soundList: async () => ({}),
+    audioInfo: async () => ({ music: ['normal-8bit-ree-you-ss-f.ogg', 'dmt-8bit-lat.ogg', 'dmt-8bit-pati.ogg'].map((n) => ({ name: n, url: '../assets/music/' + n, mode: /^dmt/.test(n) ? 'dmt' : 'standard', custom: false })),
+      sfx: {}, customSfx: [], dirs: { music: 'C:\\R64texHD\\data\\music', sounds: 'C:\\R64texHD\\data\\sounds' } }),
+    musicAdd: async () => ({ added: 0 }),
+    gpuInfo: async () => ({ ok: true, loader: true, gpus: [{ name: 'NVIDIA GeForce RTX 3070', vram: 8589934592, vulkan: true }, { name: 'Intel(R) UHD Graphics 630', vram: 134217728, vulkan: false }] }),
     taskbar: async () => true,
     // Ship Mods: looks at each port and the chosen archive again (the real app reads portVersion; core/shipcheck.js).
     shipCheck: async (ports, target) => {

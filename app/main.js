@@ -107,7 +107,7 @@ function createWindow() {
     width: 1280, height: 800, minWidth: 1280, minHeight: 700, show: false,
     title: WINDOW_TITLE, backgroundColor: '#130a22', autoHideMenuBar: true,
     icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false, autoplayPolicy: 'no-user-gesture-required' },
   });
   win.loadFile(path.join(__dirname, 'ui', 'index.html'));
   win.once('ready-to-show', () => win.show());
@@ -337,6 +337,35 @@ function registerIpc() {
     }
     return out;
   });
+  // Background music: app/assets/music (shipped) and the data folder's "music" (yours). Names starting with
+  // "dmt" play in Psychedelic mode, everything else in the normal playlist.
+  const AUDIO_EXT = /\.(ogg|opus|mp3|wav|flac|m4a)$/i;
+  const userDir = (name) => { const d = path.join(DATA_DIR, name); try { fs.mkdirSync(d, { recursive: true }); } catch { /* read-only */ } return d; };
+  ipcMain.handle('audio:info', () => {
+    const url = (f) => require('url').pathToFileURL(f).href;
+    const music = [];
+    for (const [dir, custom] of [[path.join(__dirname, 'assets', 'music'), false], [userDir('music'), true]]) {
+      let names = []; try { names = fs.readdirSync(dir).sort(); } catch { continue; }
+      for (const n of names) if (AUDIO_EXT.test(n)) music.push({ name: n, url: url(path.join(dir, n)), mode: /^dmt/i.test(n) ? 'dmt' : 'standard', custom });
+    }
+    const sfx = {}, yours = [];
+    for (const [dir, custom] of [[path.join(__dirname, 'assets', 'sounds'), false], [userDir('sounds'), true]]) {
+      let names = []; try { names = fs.readdirSync(dir); } catch { continue; }
+      for (const n of names) if (AUDIO_EXT.test(n)) { const slot = n.replace(AUDIO_EXT, '').toLowerCase(); sfx[slot] = url(path.join(dir, n)); if (custom) yours.push(slot); }
+    }
+    return { music, sfx, customSfx: yours, dirs: { music: userDir('music'), sounds: userDir('sounds') } };
+  });
+  ipcMain.handle('music:add', async () => {
+    if (process.env.HTK_SELFTEST) { (global.dialogs = global.dialogs || []).push('music'); return { added: 0 }; }
+    const r = await dialog.showOpenDialog(win, { title: 'Add music', properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Music', extensions: ['ogg', 'opus', 'mp3', 'wav', 'flac', 'm4a'] }] });
+    if (r.canceled) return { added: 0 };
+    const dir = userDir('music'); let added = 0;
+    for (const f of r.filePaths) { try { fs.copyFileSync(f, path.join(dir, path.basename(f))); added++; } catch { /* skip */ } }
+    return { added };
+  });
+  // Graphics cards for the Real-ESRGAN row: name, video memory, Vulkan driver (Windows).
+  ipcMain.handle('gpu:info', async () => { try { return await require('./core/gpuinfo').detect(); } catch (e) { return { ok: false, gpus: [], error: e.message }; } });
   // The Windows taskbar button shows the footer bar too (red when a job fails).
   ipcMain.handle('taskbar', (_e, p, mode) => { try { if (win && !win.isDestroyed()) win.setProgressBar(typeof p === 'number' ? p : -1, { mode: mode === 'error' ? 'error' : 'normal' }); } catch { /* ignore */ } return true; });
   ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task, shipPorts: require('./core/shipid').ports() }));

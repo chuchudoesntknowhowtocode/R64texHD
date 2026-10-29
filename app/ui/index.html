@@ -541,6 +541,31 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .rom-map i { display: block; min-width: 0; background: linear-gradient(180deg, #5b3b81, #3b2756); box-shadow: inset 0 0 0 1px #170c27; overflow: hidden; font-style: normal; }
 .rom-map i:nth-child(2) { background: linear-gradient(180deg, #a865d6, #6e3f97); } .rom-map i:nth-child(3) { background: linear-gradient(180deg, #e9508a, #9e2f5b); }
 .rom-map i span { display: block; padding: 5px 6px; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; text-shadow: 1px 1px 0 #000; }
+
+/* Settings: a lighter box per area, subsections inside */
+.sbox { margin: 14px 0 0; padding: 2px 18px 8px; background: #241740; box-shadow: inset 0 0 0 2px #3f2a5e; clip-path: var(--notch); }
+.sbox > h3.section { margin: 14px 0 2px; }
+.sbox .ssub { margin-top: 10px; }
+.sbox .ssub > h4 { margin: 6px 0 0; font-size: 13.5px; font-weight: 700; color: #f1e4ff; display: flex; align-items: center; gap: 8px; text-shadow: 1px 1px 0 #000; }
+.sbox .ssub > h4::before { content: ""; width: 6px; height: 6px; background: var(--orange); box-shadow: 2px 2px 0 #000; flex: none; }
+.sbox .ssub.d2 { margin-left: 4px; padding-left: 14px; border-left: 2px dotted #4a3270; }
+.sbox .ssub.d2 > h4 { font-size: 12.5px; color: #d9c6f2; }
+.sbox .ssub.d2 > h4::before { background: #c48cff; width: 4px; height: 4px; }
+.sbox .row { padding: 9px 0 10px; }
+.nest { margin: 0 0 0 6px; padding-left: 14px; border-left: 2px solid #4a3270; }
+.nest .row .l b::before { content: "└ "; color: #6d5491; font-weight: 400; }
+.nest.off { opacity: .45; pointer-events: none; filter: saturate(.5); }
+.row .l small code { font: 11px/1 ui-monospace, Consolas, monospace; background: var(--panel-2); color: #e9d9ff; padding: 2px 4px; margin: 2px 1px 0 0; display: inline-block; }
+.slider { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.slider.off { opacity: .45; }
+.slider span { width: 42px; text-align: right; color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.slider input { flex: 1; -webkit-appearance: none; appearance: none; height: 8px; background: linear-gradient(var(--orange), var(--orange)) 0 0 / var(--fill, 50%) 100% no-repeat, #3d2a5e; box-shadow: inset 0 2px 0 rgba(0,0,0,.35); cursor: pointer; margin: 0; }
+.slider input::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 18px; background: var(--orange); box-shadow: inset 0 3px 0 rgba(255,255,255,.35), inset 0 -3px 0 rgba(122,30,52,.55), 2px 2px 0 #000; cursor: pointer; }
+.slider input:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 4px; }
+.tool-state.gpu { margin-bottom: 6px; }
+.tool-state.gpu span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tool-state.gpu.wait { color: var(--muted); }
+#gpu-state { margin-bottom: 2px; }
 </style>
 </head>
 <body>
@@ -601,6 +626,7 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 
 <script src="pixel-icons.js"></script>
 <script src="wizard.js"></script>
+<script src="music.js"></script>
 <script>
 'use strict';
 const $ = (s, r = document) => r.querySelector(s);
@@ -716,6 +742,36 @@ const STATUS_ICON = { ready: ['green', 'play'], running: ['green', 'play'], done
 const statusIcon = (state) => pixelIcon(...(STATUS_ICON[state] || STATUS_ICON.idle));
 const tip = (html) => `<div class="tip"><span class="i">i</span><div>${html}</div></div>`;
 const section = (t) => `<div class="section">${t}</div>`;
+// Settings: a box per area, subsections inside (depth 2 = a subsection of a subsection), volume sliders.
+const sbox = (title, lead, body) => `<section class="sbox"><h3 class="section">${title}</h3>${lead ? `<p class="sbox-lead">${lead}</p>` : ''}${body}</section>`;
+const sub = (title, body, depth = 1) => `<div class="ssub d${depth}"><h4>${title}</h4>${body}</div>`;
+const slider = (key, v, off) => `<div class="slider ${off ? 'off' : ''}"><input type="range" min="0" max="100" step="1" data-range="${key}" value="${Number(v) || 0}" style="--fill:${Number(v) || 0}%" aria-label="Volume"><span>${Number(v) || 0}%</span></div>`;
+const SFX_SLOTS = ['job_start', 'into_pipe', 'cancel_burst', 'error_burst', 'hit', 'ko', 'impact', 'burn', 'vs', 'honk', 'rerobe', 'peek', 'bubble', 'poke', 'zap', 'trip_start', 'bonus'];
+const nowPlaying = (n) => (cfg.musicOn === false ? 'Music is off' : n ? `${n.mode === 'dmt' ? 'Psychedelic · ' : ''}${esc(n.name)}${n.custom ? ' (yours)' : ''}` : 'Nothing to play');
+// The graphics card line above Real-ESRGAN's Downloaded line: Vulkan icon, model, video memory.
+let GPU = null;
+function gpuLines() {
+  if (!GPU) return `<div class="tool-state gpu wait">${pixelIcon('grey', 'menu')}<span>Checking the graphics card…</span></div>`;
+  if (GPU.unsupported) return `<div class="tool-state gpu wait">${pixelIcon('grey', 'menu')}<span>Graphics card check runs on Windows</span></div>`;
+  if (!GPU.gpus || !GPU.gpus.length) return `<div class="tool-state gpu missing">${pixelIcon('red', 'x')}<span>No graphics card found</span></div>`;
+  return GPU.gpus.map((g) => `<div class="tool-state gpu ${g.vulkan ? 'have' : 'missing'}" title="${g.vulkan ? 'Vulkan driver found: the AI upscaler can use this card' : 'No Vulkan driver found for this card: update its graphics driver'}">${pixelIcon(g.vulkan ? 'green' : 'red', g.vulkan ? '' : 'x')}<span>${g.vulkan ? 'Vulkan' : 'No Vulkan'} · ${esc(g.name)}${g.vramText ? ` · ${esc(g.vramText)}` : ''}</span></div>`).join('');
+}
+function fillGpu() {
+  const show = () => { const el = $('#gpu-state'); if (el) el.innerHTML = gpuLines(); };
+  if (GPU) return show();
+  if (fillGpu.busy) return; fillGpu.busy = true;
+  window.htk.gpuInfo().then((r) => {
+    if (r && (r.ok || r.unsupported)) GPU = { ...r, gpus: (r.gpus || []).map((g) => ({ ...g, vramText: vramText(g.vram) })) };
+    else GPU = { gpus: [] };
+    show();
+  }).catch(() => { GPU = { gpus: [] }; show(); }).finally(() => { fillGpu.busy = false; });
+}
+function vramText(bytes) {
+  if (!(bytes > 0)) return '';
+  const gb = bytes / 1073741824;
+  if (gb < 0.95) return Math.round(bytes / 1048576) + ' MB';
+  return (gb >= 10 || Math.abs(gb - Math.round(gb)) < 0.05 ? String(Math.round(gb)) : gb.toFixed(1)) + ' GB';
+}
 const DDS_OPTS = () => [['auto', 'Auto'], ['bc7', 'BC7'], ['bc3', 'BC3'], ['bc1', 'BC1'], ['rgba8', 'None']];
 
 function getVal(key) { return key.split('.').reduce((o, k) => (o == null ? o : o[k]), cfg); }
@@ -732,7 +788,7 @@ function setVal(key, v) {
 // Settings added in 0.7: filled in here so older settings files keep working.
 const NEW_DEFAULTS = {
   splash: true, cleanPhrases: false, aiGpu: 'auto', aiTile: 'auto',
-  sceneAnimations: true, wizFights: true, psychedelic: false, idlePeeks: true, poking: true, soundEffects: false, soundVolume: 60, wizardWins: 0, wizardBonusAt: 0,
+  sceneAnimations: true, wizFights: true, psychedelic: false, idlePeeks: true, poking: true, soundEffects: false, soundVolume: 60, musicOn: true, musicVolume: 35, musicSource: 'all', wizardWins: 0, wizardBonusAt: 0,
   upscale: { keepCoverage: true },
   convert: { wrapInfo: true, rice: true, onlyNew: false },
   pack: { recomp: false, recompName: '', recompAuthor: '', recompVersion: '1.0.0', recompDescription: '', recompThumb: '', recompToggle: true, recompGame: 'mm' },
@@ -898,33 +954,54 @@ const pages = {
   },
   settings() {
     const t = S.tools;
-    const tool = (name, path, label, size) => `<div class="tool-state ${path ? 'have' : 'missing'}">${pixelIcon(path ? 'green' : 'red', path ? '' : 'x')}<span>${path ? 'Downloaded' : 'Not downloaded'}</span></div><div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}<button class="btn" data-browse="exe" data-for="${name}">Locate…</button></div><div class="tool" id="tool-${name}"></div>`;
-    return `<h2>Settings</h2><p class="lead">Default folders, helper tools and how R64texHD looks and runs.</p>
-      ${section('Folders')}
-      ${row('Output folder', 'Default place for new output.', pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']]))}
-      ${section('Helper tools')}
-      ${row('texconv (BC7)', 'From Microsoft. Makes sharp BC7 DDS textures and keeps far-away fences visible.', tool('texconv', t.texconv, 'texconv', TOOL_INFO.texconv.size))}
-      ${row('Real-ESRGAN (AI)', 'For the AI upscale method. Needs a graphics card with Vulkan.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', TOOL_INFO.realesrgan.size))}
-      ${row('Check tools at startup', 'If a tool is missing, R64texHD offers to download it when it starts.', seg('checkTools', [['true', 'On'], ['false', 'Off']], String(cfg.checkTools !== false)))}
-      ${section('AI upscaling')}
-      ${row('AI model', 'General suits most textures. Art suits drawn or cartoon textures.', seg('realesrganModel', [['realesrgan-x4plus', 'General'], ['realesrgan-x4plus-anime', 'Art'], ['realesr-animevideov3', 'Fast art']], cfg.realesrganModel))}
-      ${row('Graphics card', 'Which GPU the AI uses. Auto picks the best one.', seg('aiGpu', [['auto', 'Auto'], ['0', 'GPU 1'], ['1', 'GPU 2']], cfg.aiGpu))}
-      ${row('GPU memory use', 'Pick Low if AI upscaling crashes or your graphics card has little memory.', seg('aiTile', [['auto', 'Auto'], ['256', 'Medium'], ['128', 'Low']], cfg.aiTile))}
-      ${section('Performance')}
-      ${row('Worker threads', `Textures are processed in parallel (${S.cpus} CPU threads).`, seg('workers', [['auto', 'Auto'], ['half', 'Half'], ['one', 'One']], cfg.workers))}
-      ${row('Largest texture', 'Upscaling never goes past this size.', seg('maxSize', [['2048', '2048'], ['4096', '4096'], ['8192', '8192']], cfg.maxSize))}
-      ${section('Look and feel')}
-      ${row('Splash screen', 'The intro with a random catchphrase when R64texHD opens.', seg('splash', [['true', 'On'], ['false', 'Off']], String(cfg.splash !== false)))}
-      ${row('Catchphrases', 'Keep it clean leaves out the swearing ones.', seg('cleanPhrases', [['false', 'Full send'], ['true', 'Keep it clean']], String(cfg.cleanPhrases === true)))}
-      ${row('Scene animations', 'The wizard in the footer while a job runs. Off leaves just the progress bar.', seg('sceneAnimations', [['true', 'On'], ['false', 'Off']], String(cfg.sceneAnimations !== false)))}
-      ${row('Fights', 'Vs. battles and the bonus stage among the scenes.', seg('wizFights', [['true', 'On'], ['false', 'Off']], String(cfg.wizFights !== false)))}
-      ${row('Psychedelic', 'Reality is just a suggestion, mortal — now behold the machine elves!', seg('psychedelic', [['true', 'On'], ['false', 'Off']], String(cfg.psychedelic === true)))}
-      ${row('Idle peeks', 'With nothing running, the wizard pops out of the pipe now and then to say something.', seg('idlePeeks', [['true', 'On'], ['false', 'Off']], String(cfg.idlePeeks !== false)))}
-      ${row('Poking', 'Click the wizard (or whoever he’s fighting) to make them react.', seg('poking', [['true', 'On'], ['false', 'Off']], String(cfg.poking !== false)))}
-      ${row('Sound effects', 'Sounds for the footer scenes. Put .ogg clips in the sounds folder next to your settings.', seg('soundEffects', [['true', 'On'], ['false', 'Off']], String(cfg.soundEffects === true)))}
-      ${row('Sound volume', '', seg('soundVolume', [['25', 'Low'], ['60', 'Medium'], ['100', 'High']], String(cfg.soundVolume)))}
-      ${row('Desktop shortcut', 'Optional shortcut to this portable copy.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)}
-      ${row('Portable data', 'Settings, tools and temporary files. Nothing goes in AppData.', `<div class="path"><div class="tool" style="flex:1">${esc(S.dataDir)}</div><button class="btn" data-open="${esc(S.dataDir)}">Open</button></div>`)}`;
+    const tool = (name, path, label, size, extra = '') => `${extra}<div class="tool-state ${path ? 'have' : 'missing'}">${pixelIcon(path ? 'green' : 'red', path ? '' : 'x')}<span>${path ? 'Downloaded' : 'Not downloaded'}</span></div><div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}<button class="btn" data-browse="exe" data-for="${name}">Locate…</button></div><div class="tool" id="tool-${name}"></div>`;
+    const onOff = (key, v) => seg(key, [['true', 'On'], ['false', 'Off']], String(v));
+    const anim = cfg.sceneAnimations !== false, wins = cfg.wizardWins || 0;
+    const mc = window.Music ? Music.counts() : { yours: 0, yoursDmt: 0 }, now = window.Music && Music.now();
+    const yourSfx = (window.Music && (Music.info().customSfx || [])) || [];
+    const dirs = (window.Music && Music.info().dirs) || {};
+    return `<h2>Settings</h2><p class="lead">Adjust settings for texture tools, AI upscaler, UI extras, sound and portable user data.</p>
+      ${sbox('Folders', '',
+        row('Output folder', 'Default place for new output.', pathField('outputFolder', cfg.outputFolder, [['folder', 'Browse…']])))}
+      ${sbox('Helper tools', '',
+        row('texconv (BC7)', 'From Microsoft. Makes sharp BC7 DDS textures and keeps far-away fences visible.', tool('texconv', t.texconv, 'texconv', TOOL_INFO.texconv.size))
+        + row('Real-ESRGAN (AI)', 'For the AI upscale method. Needs a graphics card with Vulkan.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', TOOL_INFO.realesrgan.size, `<div id="gpu-state">${gpuLines()}</div>`))
+        + row('Check tools at startup', 'If a tool is missing, R64texHD offers to download it when it starts.', onOff('checkTools', cfg.checkTools !== false)))}
+      ${sbox('Upscaling', '',
+        sub('AI upscaling',
+          row('AI model', 'General suits most textures. Art suits drawn or cartoon textures.', seg('realesrganModel', [['realesrgan-x4plus', 'General'], ['realesrgan-x4plus-anime', 'Art'], ['realesr-animevideov3', 'Fast art']], cfg.realesrganModel))
+          + row('Graphics card', 'Which GPU the AI uses. Auto picks the best one.', seg('aiGpu', [['auto', 'Auto'], ['0', 'GPU 1'], ['1', 'GPU 2']], cfg.aiGpu))
+          + row('GPU memory use', 'Pick Low if AI upscaling crashes or your graphics card has little memory.', seg('aiTile', [['auto', 'Auto'], ['256', 'Medium'], ['128', 'Low']], cfg.aiTile)))
+        + sub('Performance',
+          row('Worker threads', `Textures are processed in parallel (${S.cpus} CPU threads).`, seg('workers', [['auto', 'Auto'], ['half', 'Half'], ['one', 'One']], cfg.workers))
+          + row('Largest texture', 'Upscaling never goes past this size.', seg('maxSize', [['2048', '2048'], ['4096', '4096'], ['8192', '8192']], cfg.maxSize))))}
+      ${sbox('Look and feel', '',
+        sub('Splash screen',
+          row('Show at startup', 'The intro with a random catchphrase when R64texHD opens.', onOff('splash', cfg.splash !== false))
+          + sub('Catchphrases', row('Language', 'For the splash screen and the page subtitles. Keep it clean leaves out the swearing ones.', seg('cleanPhrases', [['false', 'Full send'], ['true', 'Keep it clean']], String(cfg.cleanPhrases === true))), 2))
+        + sub('Extras',
+          sub('Wizard of R64',
+            row('Animations', 'The wizard in the footer: scenes while a job runs, peeks when it’s quiet. Off leaves just the progress bar.', onOff('sceneAnimations', anim))
+            + `<div class="nest ${anim ? '' : 'off'}">`
+            + row('Fights', 'Vs. battles and the bonus stage among the scenes.', onOff('wizFights', cfg.wizFights !== false))
+            + row('Idle', 'With nothing running, the wizard pops out of the pipe now and then to say something.', onOff('idlePeeks', cfg.idlePeeks !== false))
+            + row('Poking', 'Click the wizard (or whoever he’s fighting) to make them react.', onOff('poking', cfg.poking !== false))
+            + `</div>`
+            + row('Psychedelic mode', 'Reality is just a suggestion, mortal — now behold the machine elves! Adds the trip scenes, the machine elf fight and the Psychedelic music.', onOff('psychedelic', cfg.psychedelic === true))
+            + row('Fight record', 'Wins are saved between launches. Every third win earns the bonus stage.', `<div class="path"><div class="tool" style="flex:1">${wins} ${wins === 1 ? 'win' : 'wins'} · bonus stage in ${3 - (wins % 3)}</div><button class="btn" id="reset-wins" ${wins ? '' : 'disabled'}>Reset</button></div>`), 2)))}
+      ${sbox('Sound', '',
+        sub('Sound effects (SFX)',
+          row('Play sound effects', 'Hits, zaps, the pipe and the rest of the footer scenes. The slider sets the volume.', onOff('soundEffects', cfg.soundEffects === true) + slider('soundVolume', cfg.soundVolume, cfg.soundEffects !== true)))
+        + sub('Background music (BGM)',
+          row('Play music', 'Chiptune music while you work. Psychedelic mode plays its own playlist. The slider sets the volume.', onOff('musicOn', cfg.musicOn !== false) + slider('musicVolume', cfg.musicVolume, cfg.musicOn === false))
+          + row('Now playing', 'Each playlist cycles through its tracks.', `<div class="path"><div class="tool" style="flex:1" id="now-playing">${nowPlaying(now)}</div><button class="btn" id="music-next" ${cfg.musicOn === false ? 'disabled' : ''}>Next track</button></div>`))
+        + sub('Custom sounds',
+          row('Your music', 'Add .ogg, .mp3 or .wav files. Names that start with dmt play in Psychedelic mode, the rest play normally.', `<div class="path"><div class="tool" style="flex:1">${mc.yours ? `${mc.yours} ${mc.yours === 1 ? 'track' : 'tracks'}${mc.yoursDmt ? ` (${mc.yoursDmt} Psychedelic)` : ''}` : 'None added yet'}</div><button class="btn" id="music-add">Add music…</button><button class="btn" data-open="${esc(dirs.music || '')}">Open</button></div>`)
+          + row('Playlist', 'Play the built-in tracks and yours, or only yours (when you have some for that mode).', seg('musicSource', [['all', 'Built-in + yours'], ['custom', 'Only yours']], cfg.musicSource || 'all'))
+          + row('Your sound effects', `Name a file after the sound it replaces and put it in this folder: ${SFX_SLOTS.map((n) => `<code>${n}</code>`).join(' ')}`, `<div class="path"><div class="tool" style="flex:1">${yourSfx.length ? `${yourSfx.length} replaced` : 'Using the built-in sounds'}</div><button class="btn" id="sounds-rescan">Rescan</button><button class="btn" data-open="${esc(dirs.sounds || '')}">Open</button></div>`)))}
+      ${sbox('App', '',
+        row('Desktop shortcut', 'Optional shortcut to this portable copy.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)
+        + row('Portable data', 'Settings, tools, your sounds and temporary files. Nothing goes in AppData.', `<div class="path"><div class="tool" style="flex:1">${esc(S.dataDir)}</div><button class="btn" data-open="${esc(S.dataDir)}">Open</button></div>`))}`;
   },
   roms() {
     const r = cfg.roms;
@@ -957,6 +1034,7 @@ const pages = {
       <p><b>5 · Rice / GLideN64</b> brings classic texture packs into RT64 and Ship ports, and makes GLideN64 packs for Project64, RetroArch, RMG and BizHawk.</p>
       <p><b>6 · ROM Tools</b> looks inside your N64 ROMs: header, CIC chip, checksum and hashes, with box art and a short description for 303 North American games.</p>
       <p>R64texHD is free software under the GNU GPL, version 2 or later. It uses the Rice texture ID formula from GLideN64 and Rice Video.</p>
+      <p>Sound effects: “512 Sound Effects (8-bit style)” by Juhani Junkala / SubspaceAudio (CC0) and “UI Sound Effects Free Sampler” by leckie1989 (CC BY 4.0), from OpenGameArt.</p>
       <p>Portable: everything stays in the <b>data</b> folder next to the program. Your input folders and packs are only read, never changed.</p>
       <div class="repo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         <div class="rt"><b>GitHub repository</b><span>github.com/chuchudoesntknowhowtocode/R64texHD</span></div>
@@ -988,6 +1066,7 @@ function wizardSettings() {
   return { sceneAnimations: cfg.sceneAnimations, fights: cfg.wizFights, psychedelic: cfg.psychedelic === true, idlePeeks: cfg.idlePeeks,
     poking: cfg.poking, soundEffects: cfg.soundEffects === true, soundVolume: cfg.soundVolume };
 }
+function musicSettings() { return { musicOn: cfg.musicOn !== false, musicVolume: cfg.musicVolume, musicSource: cfg.musicSource || 'all', psychedelic: cfg.psychedelic === true }; }
 // Clicking the empty bar while a job runs goes back to that job's page.
 function goToJobPage() {
   if (!job.running) return;
@@ -1125,6 +1204,7 @@ function render() {
   document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('active', b.dataset.page === page));
   $('#home').classList.toggle('on', page === 'welcome');
   if (window.Wizard) Wizard.settingsChanged();
+  if (window.Music) Music.settingsChanged();
   $('#tools-badge').hidden = !missingTools().length;
   if (!$('#tools-badge').innerHTML) $('#tools-badge').innerHTML = pixelIcon('red', 'x');
   suggest();
@@ -1136,6 +1216,7 @@ function render() {
   refreshStatus();
   if (page === 'upscale') afterRenderPreview();
   if (page === 'roms') afterRenderRoms();
+  if (page === 'settings') fillGpu();
   if (page === 'ports') afterRenderShip(); else SHIP.shown = false;
   const th = $('#thumb-img');
   if (th) window.htk.thumbnail(th.dataset.src).then((url) => { if (url && th.isConnected) th.src = url; });
@@ -1330,6 +1411,10 @@ document.addEventListener('click', async (e) => {
   if (id === 'check-again') { recheck(); return; }
   if (id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }
   if (id === 'open-repo') { window.htk.openRepo(); return; }
+  if (id === 'music-next') { Music.next(); return; }
+  if (id === 'music-add') { const r = await window.htk.musicAdd(); if (r.added) { await Music.reload(); toast(`Added ${r.added} ${r.added === 1 ? 'track' : 'tracks'}`); render(); } return; }
+  if (id === 'sounds-rescan') { await Music.reload(); await Wizard.reloadSounds(); render(); toast('Sounds rescanned'); return; }
+  if (id === 'reset-wins') { cfg.wizardWins = 0; cfg.wizardBonusAt = 0; save(true); render(); return; }
   if (id === 'tools-yes') { installAll(); return; }
   if (id === 'ship-find') { findPorts(); return; }
   const sp = e.target.closest('[data-port]');
@@ -1382,6 +1467,16 @@ document.addEventListener('change', (e) => {
   else setVal(key, v);
   onPath(key); render();
 });
+
+// Volume sliders: heard right away while dragging.
+document.addEventListener('input', (e) => {
+  const r = e.target.closest('[data-range]'); if (!r) return;
+  setVal(r.dataset.range, String(Number(r.value)));
+  if (r.nextElementSibling) r.nextElementSibling.textContent = r.value + '%';
+  r.style.setProperty('--fill', r.value + '%');
+  if (window.Music) Music.settingsChanged(); if (window.Wizard) Wizard.settingsChanged();
+});
+document.addEventListener('change', (e) => { const r = e.target.closest('[data-range="soundVolume"]'); if (r && window.Wizard) Wizard.sfx('poke'); });
 
 async function save(quiet) { await window.htk.saveSettings(cfg); if (!quiet) toast('Settings saved'); }
 
@@ -1874,6 +1969,7 @@ setTimeout(() => { if (!$('#splash').hidden) hideSplash(); else showApp(); }, 60
   whenSplashGone(() => { const shown = askTools(firstRun ? 'welcome' : ''); if (firstRun) { if (shown) geoAfterTools = true; else askGeo(); } });
   Wizard.init({ settings: wizardSettings, wins: () => cfg.wizardWins || 0, addWin: () => { cfg.wizardWins = (cfg.wizardWins || 0) + 1; save(true); },
     bonusAt: () => cfg.wizardBonusAt || 0, setBonusAt: (w) => { cfg.wizardBonusAt = w; save(true); }, goToJob: goToJobPage });
+  Music.init({ settings: musicSettings, onTrack: (n) => { const el = $('#now-playing'); if (el) el.innerHTML = nowPlaying(n); } }).then(() => { if (page === 'settings') render(); });
   render();
   maybeScanRoms();
   whenSplashGone(askRomFolder);                        // after the splash, so the dialog isn't hidden behind it

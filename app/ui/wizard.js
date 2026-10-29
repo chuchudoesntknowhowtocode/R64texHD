@@ -50,7 +50,7 @@
   let sounds = {};
   function sfx(slot) {
     if (!S.soundEffects || !sounds[slot]) return;
-    try { const a = new Audio(sounds[slot]); a.volume = Math.max(0, Math.min(1, (S.soundVolume ?? 60) / 100)); a.play().catch(() => {}); } catch { /* ignore */ }
+    try { const a = new Audio(sounds[slot]); a.volume = Math.pow(Math.max(0, Math.min(100, S.soundVolume ?? 60)) / 100, 2); a.play().catch(() => {}); } catch { /* ignore */ }
   }
 
   // ------------------------------------------------------------------ the bar
@@ -285,7 +285,8 @@
     while (alive()) {
       if (!anim()) { await wait(500); continue; }
       const R = eta(), elapsed = (performance.now() - D.job.t0) / 1000;
-      const pick = R != null && elapsed > 1.5 ? pickScene(R) : null;
+      let pick = R != null && elapsed > 1.5 ? pickScene(R) : null;
+      if (D.eggNext) { D.eggNext = false; pick = { kind: 'fight', id: fightId('elf', !D.inGi), opp: 'elf', egg: true }; }
       if (!pick) { if ((await play('busy_11_peek_buffering')) === 'failed') await wait(1000); continue; }
       if (pick.kind !== 'fight' && D.inGi) { await play('rerobe'); D.inGi = false; if (!alive()) return; }
       if (pick.kind === 'fight') D.lastOpp = pick.opp;
@@ -294,7 +295,7 @@
       if (pick.kind === 'fight' && r === 'ended') {
         D.inGi = true;
         if (pick.opp === 'car') { host.setBonusAt(host.wins()); sfx('bonus'); }
-        else host.addWin();
+        else if (!pick.egg) host.addWin();
       }
       if (!alive()) return;
       // wait, peek, wait (3 s, or until 2 more segments fill if that's sooner; at least 1 s)
@@ -308,7 +309,7 @@
   }
   async function idleLoop() {
     // nothing running: every 20 s (60 s after 5 minutes) he peeks out of the pipe and says something
-    if (D.job || D.busyN || cur || D.peeking || !on('idlePeeks')) return;
+    if (D.job || D.busyN || cur || D.peeking || D.egg || !on('idlePeeks')) return;
     const now = performance.now();
     if (now < D.nextPeekAt) return;
     const idleFor = now - D.idleSince;
@@ -320,6 +321,33 @@
       const r = await play(id);
       if (r === 'stopped' && !D.job && D.deck.length) { await play(D.deck.shift()); }   // poked: a startled "!" and a new phrase
     } finally { D.peeking = false; }
+  }
+
+  // ------------------------------------------------------------------ hidden: 5 clicks on the pipe within 5 s = the machine elf
+  const egg = { times: [] };
+  function onPipeClick() {
+    const now = performance.now(); egg.times = egg.times.filter((t) => now - t < 5000); egg.times.push(now);
+    if (egg.times.length < 5) return;
+    egg.times = [];
+    W.secretElf();
+  }
+  async function secretElf() {
+    if (!IDX || !IDX.fight_elf_robed) return false;
+    addFx((g, k) => { if (k > 18) return false; text(g, '!', ST.mouth + 6, 8 - (k < 4 ? 4 - k : 0), '#c48cff'); return true; });
+    if (D.job && !D.job.ended) {                                     // during a job: it's the next scene
+      D.eggNext = true;
+      if (cur && cur.kind === 'busy') stopClip();
+      return true;
+    }
+    if (D.egg) return false;
+    D.egg = true; D.seq++;
+    try {
+      stopClip();
+      if (D.waitCancel) D.waitCancel();
+      const r = await play(fightId('elf', !D.inGi));
+      if (r === 'ended') D.inGi = true;                              // robe burned: it rebuilds before the next job's first scene
+    } finally { D.egg = false; D.idleSince = performance.now(); D.nextPeekAt = performance.now() + 20000; }
+    return true;
   }
 
   // ------------------------------------------------------------------ ticking
@@ -355,12 +383,13 @@
       ['stage', 'world', 'bar', 'sprite', 'fx', 'click'].forEach((k) => (els[k] = $('#fx-' + k)));
       ['world', 'bar', 'sprite', 'fx'].forEach((k) => { cx[k] = els[k].getContext('2d'); cx[k].imageSmoothingEnabled = false; });
       els.click.addEventListener('click', onStageClick);
+      const pipe = document.querySelector('#home'); if (pipe) pipe.addEventListener('click', onPipeClick);
       S = host.settings();
       try {
         const r = await window.htk.sceneIndex(); ST = r.stage; IDX = r.index || {};
         els.full = await loadImg(host.assets + 'bar_full.png'); els.poses = await loadImg(host.assets + 'poses.png');
       } catch (e) { console.warn('footer scenes unavailable', e); IDX = {}; }
-      try { sounds = (await window.htk.soundList()) || {}; } catch { sounds = {}; }
+      await W.reloadSounds();
       setInterval(tick, 1000 / FPS);
     },
     settingsChanged() { S = host.settings(); if (!anim() && cur && cur.kind !== 'peek') stopClip(); },
@@ -368,7 +397,7 @@
       D.seq++; D.job = { t0: performance.now(), p: 0, rate: 0, lastT: performance.now(), lastP: 0, ended: false };
       bar.mode = 'run'; bar.p = 0; bar.k = 0;
       sfx('job_start');
-      if (cur && (cur.kind === 'peek' || cur.kind === 'busy')) stopClip();
+      if (cur && (cur.kind === 'peek' || cur.kind === 'busy' || D.egg)) { if (D.egg) D.eggNext = true; stopClip(); }
       jobLoop(D.seq);
     },
     progress(done, total) {
@@ -404,9 +433,12 @@
     busy(onOff) {                                                    // work with no percentage (reading, checking...)
       D.busyN = Math.max(0, D.busyN + (onOff ? 1 : -1));
       if (D.job || !anim()) return;
-      if (D.busyN && !cur && !D.busyStarting) { D.busyStarting = true; play('busy_11_peek_buffering', { loop: true }).finally(() => { D.busyStarting = false; }); }
+      if (D.busyN && !cur && !D.busyStarting && !D.egg) { D.busyStarting = true; play('busy_11_peek_buffering', { loop: true }).finally(() => { D.busyStarting = false; }); }
       if (!D.busyN && cur && cur.kind === 'busy' && cur.loop) { cur.loop = false; cur.speed = 2; }
     },
+    secretElf,
+    async reloadSounds() { try { sounds = ((await window.htk.audioInfo()) || {}).sfx || {}; } catch { sounds = {}; } return sounds; },
+    sfx,
     _debug: () => ({ D, bar, cur: cur && { id: cur.id, i: cur.i } }),
   };
   window.Wizard = W;

@@ -329,9 +329,52 @@ module.exports = async ({ app, win }) => {
   check(await js("Wizard._debug().bar.mode === 'fail' && !Wizard._debug().cur"), 'footer: cancel bursts the scene and the bar flashes red');
   await wait(2000);
   check(await js("Wizard._debug().bar.mode === 'idle'"), 'footer: the bar drains back to idle');
-  // Settings: the footer switches, under the splash screen options.
-  await js(`document.querySelector('nav button[data-page="settings"]').click()`); await wait(300);
+  // Settings: a box per area, subsections inside, the wizard switches, sound sliders, the graphics card line.
+  await js(`document.querySelector('nav button[data-page="settings"]').click()`); await wait(600);
   const st = await js("document.querySelector('#page').innerText");
-  check(['Scene animations', 'Fights', 'Psychedelic', 'Idle peeks', 'Poking', 'Sound effects', 'Sound volume'].every((t) => st.includes(t)) && /behold the machine elves/.test(st), 'Settings: footer switches (scenes, fights, Psychedelic, peeks, poking, sound)');
-  app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);
+  const boxes = await js("[...document.querySelectorAll('#page .sbox > h3')].map((h) => h.textContent)");
+  check(JSON.stringify(boxes) === JSON.stringify(['Folders', 'Helper tools', 'Upscaling', 'Look and feel', 'Sound', 'App']), `Settings: boxed sections ${JSON.stringify(boxes)}`);
+  const subs = await js("[...document.querySelectorAll('#page .ssub > h4')].map((h) => h.textContent)");
+  check(['AI upscaling', 'Performance', 'Splash screen', 'Catchphrases', 'Extras', 'Wizard of R64', 'Sound effects (SFX)', 'Background music (BGM)', 'Custom sounds'].every((t) => subs.includes(t)), `Settings: subsections ${JSON.stringify(subs)}`);
+  check(/Adjust settings for texture tools, AI upscaler, UI extras, sound and portable user data/.test(st), 'Settings: new description');
+  check(['Animations', 'Fights', 'Idle', 'Poking', 'Psychedelic mode', 'Fight record', 'Play music', 'Play sound effects', 'Now playing', 'Your music', 'Your sound effects', 'Desktop shortcut', 'Portable data'].every((t) => st.includes(t)) && /behold the machine elves/.test(st), 'Settings: wizard, sound and app rows');
+  const boxBg = await js("getComputedStyle(document.querySelector('.sbox')).backgroundColor + ' on ' + getComputedStyle(document.querySelector('#page')).backgroundColor");
+  check(/rgb\(36, 23, 64\)/.test(boxBg), `Settings: boxes a little lighter than the page (${boxBg})`);
+  for (let i = 0; i < 30 && /Checking the graphics card/.test(await js("document.querySelector('#gpu-state').innerText")); i++) await wait(100);
+  const gpu = await js("(() => { const g = document.querySelector('#gpu-state'); const t = g.closest('.row').querySelector('.tool-state:not(.gpu)'); return { text: g.innerText, above: !!(g.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING), icon: !!g.querySelector('svg') }; })()");
+  check(gpu.above && gpu.icon && /graphics card/i.test(gpu.text), `Settings: graphics card line above Real-ESRGAN's download state (${gpu.text})`);
+  await shot('app-settings-top');
+  await js("document.querySelector('#page').scrollTop = document.querySelector('#page .sbox:nth-of-type(4)').offsetTop - 20"); await wait(200); await shot('app-settings-look');
+  await js("document.querySelector('#page').scrollTop = document.querySelector('#page .sbox:nth-of-type(4)').offsetTop + 300"); await wait(200); await shot('app-settings-wizard');
+  await js("document.querySelector('#page').scrollTop = document.querySelector('#page .sbox:nth-of-type(5)').offsetTop - 20"); await wait(200); await shot('app-settings-soundtop');
+  await js("document.querySelector('#page').scrollTop = 99999"); await wait(200); await shot('app-settings-sound');
+  // Animations off greys out Fights / Idle / Poking
+  await js(`document.querySelector('.seg[data-key="sceneAnimations"] button[data-v="false"]').click()`); await wait(200);
+  check(await js("document.querySelector('.nest').classList.contains('off')"), 'Settings: Animations off greys out Fights, Idle and Poking');
+  await js(`document.querySelector('.seg[data-key="sceneAnimations"] button[data-v="true"]').click()`); await wait(200);
+
+  // Background music: the normal playlist plays, Psychedelic switches to the dmt one, off stops it.
+  let mus = null; for (let i = 0; i < 40; i++) { mus = await js('Music._debug()'); if (mus.track && !mus.paused && mus.time > 0) break; await wait(100); }
+  check(mus.track && /^normal-/.test(mus.track) && !mus.paused && !mus.error, `music: the normal track plays (${JSON.stringify(mus)})`);
+  check(/Ree You Ss F/.test(await js("document.querySelector('#now-playing').innerText")), 'Settings: Now playing shows the track');
+  await js(`document.querySelector('.seg[data-key="psychedelic"] button[data-v="true"]').click()`); await wait(1800);
+  mus = await js('Music._debug()');
+  check(mus.mode === 'dmt' && /^dmt-/.test(mus.track) && !mus.paused, `music: Psychedelic mode plays the dmt playlist (${mus.track})`);
+  const first = mus.track; await js("document.querySelector('#music-next').click()"); await wait(1500);
+  mus = await js('Music._debug()'); check(/^dmt-/.test(mus.track) && mus.track !== first, `music: Next track cycles (${first} -> ${mus.track})`);
+  await js(`document.querySelector('.seg[data-key="psychedelic"] button[data-v="false"]').click()`); await wait(300);
+  await js("(() => { const r = document.querySelector('[data-range=\"musicVolume\"]'); r.value = 70; r.dispatchEvent(new Event('input', { bubbles: true })); })()"); await wait(3500);
+  const vol = await js("({ cfg: cfg.musicVolume, v: Music._debug().volume })");
+  check(vol.cfg === 70 && Math.abs(vol.v - 0.49) < 0.02, `music: the volume slider changes the volume right away (${JSON.stringify(vol)})`);
+  await js(`document.querySelector('.seg[data-key="musicOn"] button[data-v="false"]').click()`); await wait(1000);
+  check(await js('Music._debug().paused'), 'music: off stops it');
+  check(await js("window.htk.audioInfo().then((r) => Object.keys(r.sfx).length === 17)"), 'sound effects: all 17 slots shipped');
+
+  // Hidden: 5 clicks on the pipe within 5 s starts the machine elf fight.
+  await js("Wizard._debug().D.nextPeekAt = performance.now() + 60000");
+  for (let i = 0; i < 5; i++) { await js("document.querySelector('#home').click()"); await wait(250); }
+  let egg = ''; for (let i = 0; i < 30 && !/^fight_elf_/.test(egg); i++) { await wait(100); egg = await js("(Wizard._debug().cur || {}).id || ''"); }
+  check(/^fight_elf_/.test(egg), `hidden: 5 clicks on the pipe start the machine elf fight (${egg})`);
+  await wait(4000); await shot('egg-elf');
+    app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);
 };
