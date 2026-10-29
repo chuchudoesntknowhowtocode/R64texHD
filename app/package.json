@@ -1,7 +1,7 @@
 {
   "name": "hd-texture-toolkit",
   "productName": "R64texHD",
-  "version": "0.7.1.1",
+  "version": "0.8.0.1",
   "description": "HD textures for N64 games: RT64 dumps, .rtz packs, Ship port .o2r mods and classic Rice / GLideN64 packs.",
   "main": "main.js",
   "license": "GPL-2.0-or-later"

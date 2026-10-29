@@ -395,6 +395,7 @@
         els.full = await loadImg(host.assets + 'bar_full.png'); els.poses = await loadImg(host.assets + 'poses.png');
       } catch (e) { console.warn('footer scenes unavailable', e); IDX = {}; }
       await W.reloadSounds();
+      if (host.onLibrary) host.onLibrary(W.library);
       setInterval(tick, 1000 / FPS);
     },
     settingsChanged() { S = host.settings(); if (!anim() && cur && cur.kind !== 'peek') stopClip(); },
@@ -445,6 +446,8 @@
     async reloadSounds() { try { sounds = ((await window.htk.audioInfo()) || {}).sfx || {}; } catch { sounds = {}; } return sounds; },
     sfx,
     _debug: () => ({ D, bar, cur: cur && { id: cur.id, i: cur.i } }),
+    _play: (id, opts) => play(id, opts),                         // screenshots and tests
+    _stop: () => stopClip(),
   };
   window.Wizard = W;
 })();

@@ -71,9 +71,9 @@
   ];
 
   window.htk = {
-    state: async () => ({ settings, dataDir: 'C:\\Tools\\R64texHD-v0.7.1.1\\data', dataWritable: true,
-      tools: noTools ? { texconv: '', realesrgan: '' } : window.__mixedTools ? { texconv: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\texconv.exe', realesrgan: '' } : { texconv: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\texconv.exe', realesrgan: 'C:\\Tools\\R64texHD-v0.7.1.1\\data\\tools\\realesrgan\\realesrgan-ncnn-vulkan.exe' },
-      version: '0.7.1.1', platform: 'win32', cpus: 16, workers: 8, running: null, shipPorts: (window.__SHIP || {}).ports || [] }),
+    state: async () => ({ settings, dataDir: 'C:\\Tools\\R64texHD-v0.8.0.1\\data', dataWritable: true,
+      tools: noTools ? { texconv: '', realesrgan: '' } : window.__mixedTools ? { texconv: 'C:\\Tools\\R64texHD-v0.8.0.1\\data\\tools\\texconv.exe', realesrgan: '' } : { texconv: 'C:\\Tools\\R64texHD-v0.8.0.1\\data\\tools\\texconv.exe', realesrgan: 'C:\\Tools\\R64texHD-v0.8.0.1\\data\\tools\\realesrgan\\realesrgan-ncnn-vulkan.exe' },
+      version: '0.8.0.1', platform: 'win32', cpus: 16, workers: 8, running: null, shipPorts: (window.__SHIP || {}).ports || [] }),
     saveSettings: async () => true,
     dialog: async () => null,
     inspect: async (kind) => { const r = INSPECT[kind] || ['idle', '', '']; return { state: r[0], title: r[1], text: r[2] }; },
@@ -99,7 +99,7 @@
       return { ports, folders: 18342, ms: 640, complete: true };
     },
     // Footer scenes: read straight from app/assets/scenes (serve the app folder over http for previews).
-    sceneIndex: async () => { try { const j = async (f) => (await fetch('../assets/scenes/' + f)).json(); return { stage: await j('stage.json'), index: await j('index.json') }; } catch (e) { return { error: String(e) }; } },
+    sceneIndex: async () => { try { const j = async (f) => (await fetch('../assets/scenes/' + f)).json(); const index = await j('index.json'); return { stage: await j('stage.json'), index, here: Object.keys(index).length, total: Object.keys(index).length, download: { state: 'done' } }; } catch (e) { return { error: String(e) }; } },
     sceneClip: async (id) => { try { return await (await fetch('../assets/scenes/' + id + '/clip.json')).json(); } catch (e) { return { error: String(e) }; } },
     soundList: async () => ({}),
     audioInfo: async () => ({ music: ['normal-8bit-ree-you-ss-f.ogg', 'dmt-8bit-lat.ogg', 'dmt-8bit-pati.ogg'].map((n) => ({ name: n, url: '../assets/music/' + n, mode: /^dmt/.test(n) ? 'dmt' : 'standard', custom: false })),

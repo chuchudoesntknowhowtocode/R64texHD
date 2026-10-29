@@ -397,8 +397,9 @@ module.exports = async ({ app, win }) => {
     // Mute: the speaker in the bottom right corner silences music and effects, and doesn't touch their settings.
   await js(`document.querySelector('nav button[data-page="settings"]').click()`); await wait(400);
   await js(`document.querySelector('.seg[data-key="musicOn"] button[data-v="true"]').click()`); await wait(2500);
-  const mr = await js("(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const m = r('#mute'), g = r('#go'), sv = r('#save'); return { right: Math.round(innerWidth - m.right), bottom: Math.round(innerHeight - m.bottom), gap: Math.round(g.left - sv.right), between: Math.round(m.left - g.right) }; })()");
-  check(mr.right <= 20 && mr.bottom <= 26 && mr.gap > 0 && mr.between > 0, `mute button in the bottom right corner, clear of Save and the big button (${JSON.stringify(mr)})`);
+  const mr = await js("(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const m = r('#mute'), g = r('#go'), sv = r('#save'); return { right: Math.round(innerWidth - m.right), bottom: Math.round(innerHeight - m.bottom), gap: Math.round(g.left - sv.right) }; })()");
+  check(mr.right <= 4 && mr.bottom <= 4 && mr.gap > 0, `mute button in the very bottom right corner (${JSON.stringify(mr)})`);
+  check(await js("(() => { const a = document.querySelector('#mute').getBoundingClientRect(), b = document.querySelector('#go').getBoundingClientRect(); return a.left >= b.right || a.top >= b.bottom; })()"), 'mute button clear of the big button');
   await js("document.querySelector('#mute').click()"); await wait(1000);
   check(await js("cfg.muted === true && Music._debug().paused && cfg.musicOn === true && wizardSettings().soundEffects === false && document.querySelector('#mute').classList.contains('on')"), 'mute: music stops and effects go quiet, settings unchanged');
   await shot('muted');

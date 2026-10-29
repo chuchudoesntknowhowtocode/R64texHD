@@ -1,4 +1,4 @@
-R64texHD v0.7.1.1 - Reimagine Every Pixel  (portable)
+R64texHD v0.8.0.1 - Reimagine Every Pixel  (portable)
 ==================================================
 HD textures for N64 games: RT64 dumps, .rtz packs, Ship port .o2r mods and
 classic Rice / GLideN64 packs.
@@ -14,6 +14,8 @@ Everything the toolkit saves stays in the "data" folder next to the program:
   data\tools\          texconv / Real-ESRGAN if you download them in Settings
   data\chromium\       the window engine's own cache
   data\temp\           scratch files, cleared when you close the toolkit
+  data\scenes\         the footer's fights and trips, downloaded once
+  data\music\, data\sounds\   your own music and sound effects (see Settings > Sound)
 To reset the toolkit, delete the data folder. To remove it, delete this folder.
 To update, unzip the new version next to this one and copy this data folder
 into it to keep your settings and downloaded tools.
@@ -31,6 +33,11 @@ THE PAGES (sidebar)
 
 1  Upscale Textures
    PNG / DDS textures: a whole folder (subfolders kept) or picked files.
+   - Presets: Smart (default: picks a method per texture), Faithful 2x, HD 4x,
+     Ultra AI 4x, Pixel-perfect, or Save as preset for your own. The options
+     below fold away under "Advanced options".
+   - Estimate: disk size, video memory in game and time, before you run.
+   - Before / after preview: drag the line over the picture.
    - Method: Standard (2x steps, sharpened after each step), Smooth,
      Pixel art, or AI (Real-ESRGAN, downloadable in Settings).
    - Size: 2x 3x 4x 6x 8x, or Fit the longest side to 512 - 4096 px.
@@ -41,7 +48,6 @@ THE PAGES (sidebar)
    - Fences far away: keeps fences, grass and leaves from fading out in the
      distance (DDS output).
    - Output: same format as input, PNG or DDS (Auto BC1/BC3, BC7, BC3, BC1, none).
-   - Live preview: the original and the upscaled texture side by side.
    When it finishes it offers to take you to 3 Pack / Check .rtz.
 
 2  Convert RT64 Dump
@@ -86,6 +92,14 @@ THE PAGES (sidebar)
    / SHA-1, and for Zelda 64 games the file table. ROMs are only read.
    303 North American games also show their box art and a short description,
    and the counter says how many of them your folder has.
+
+THE FOOTER (the wizard of R64)
+   The footer is the progress bar. While a job runs the wizard plays scenes,
+   fights and a bonus stage; Psychedelic mode adds trip scenes. With nothing
+   running he peeks out of the pipe now and then; click him to poke him.
+   Background music and sound effects can be set in Settings > Sound, and the
+   speaker in the bottom right corner mutes everything. The fights and trips
+   download once (about 30 MB) the first time you're online.
 
 R64texHD is free software under the GNU General Public License, version 2
 or later (see LICENSE.R64texHD.txt).

@@ -152,10 +152,11 @@ footer { position: relative; height: 100px; flex: none; }
 .stage .home-btn { position: absolute; left: 16px; top: 14px; margin: 0; z-index: 5; }
 .stage #quit { position: absolute; left: 742px; top: 27px; z-index: 5; }
 footer #save { position: absolute; left: 886px; top: 27px; z-index: 5; }
-footer #go { position: absolute; right: 66px; top: 21px; z-index: 5; min-width: 166px; }
+footer #go { position: absolute; right: 26px; top: 21px; z-index: 5; }
 /* Mute: bottom right corner, silences music and sound effects without changing their settings */
-footer #mute { position: absolute; right: 18px; top: 26px; z-index: 5; width: 40px; height: 50px; padding: 0; display: grid; place-items: center; --step: 2px; }
-footer #mute svg { width: 24px; height: 24px; display: block; }
+footer #mute { position: absolute; right: 3px; bottom: 3px; z-index: 6; width: 20px; height: 20px; padding: 0; display: grid; place-items: center; --step: 1px; border-radius: 0; opacity: .8; }
+footer #mute:hover, footer #mute.on { opacity: 1; }
+footer #mute svg { width: 16px; height: 16px; display: block; }
 footer #mute.on { background: #4a1820; box-shadow: inset 0 0 0 2px #7d2a36, inset 0 -3px 0 rgba(0,0,0,.35); }
 body.job-on .stage .fx-click { cursor: pointer; }
 /* While a job runs on this page: its status card stays at the top, its options are locked (Cancel still works). */
