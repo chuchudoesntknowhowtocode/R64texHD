@@ -445,6 +445,7 @@
     secretElf,
     async reloadSounds() { try { sounds = ((await window.htk.audioInfo()) || {}).sfx || {}; } catch { sounds = {}; } return sounds; },
     sfx,
+    sfxAlways(slot) { if (!sounds[slot]) return; try { const a = new Audio(sounds[slot]); a.volume = Math.pow(Math.max(0, Math.min(100, S.soundVolume ?? 60)) / 100, 2) || 0.36; a.play().catch(() => {}); } catch { /* ignore */ } },
     _debug: () => ({ D, bar, cur: cur && { id: cur.id, i: cur.i } }),
     _play: (id, opts) => play(id, opts),                         // screenshots and tests
     _stop: () => stopClip(),

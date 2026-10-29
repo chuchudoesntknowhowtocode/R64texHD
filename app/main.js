@@ -1,7 +1,7 @@
 'use strict';
 // HD Texture Toolkit: Electron main process (window, settings, native dialogs, tasks, tools).
 // R64texHD - Copyright (C) 2026 R64texHD contributors. GPL-2.0-or-later (see LICENSE).
-const { app, BrowserWindow, ipcMain, dialog, shell, Menu, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Menu, nativeTheme, Notification } = require('electron');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -145,14 +145,14 @@ async function runTask(task, params) {
   running = { task, cancel: () => { cancelledFlag = true; hooks.splice(0).forEach((f) => { try { f(); } catch { /* ignore */ } }); } };
   send('task:started', { task });
   const t = tools();
-  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask,
+  const fn = { upscale: tasks.upscaleTask, convert: tasks.convertTask, pack: tasks.packTask, pipeline: tasks.pipelineTask, watch: tasks.watchTask, unpack: tasks.unpackTask, check: tasks.checkTask, fix: tasks.fixTask,
     o2rExtract: tasks.o2rExtractTask, o2rBuild: tasks.o2rBuildTask,
     legacyImport: tasks.legacyImportTask, legacyHts: tasks.legacyHtsTask, riceToO2r: tasks.riceToO2rTask, roms: tasks.romsTask }[task];
   if (!fn) { running = null; return { ok: false, error: 'This part arrives in the next build. Hang tight!' }; }
   (async () => {
     try {
       const p = { ...params };
-      if (task === 'upscale') p.maxSize = settings.maxSize;
+      if (task === 'upscale' || task === 'pipeline' || task === 'watch') p.maxSize = settings.maxSize;
       const result = await fn(p, ctx, t);
       send('task:done', { task, result });
     } catch (e) {
@@ -396,6 +396,15 @@ function registerIpc() {
   });
   // Graphics cards for the Real-ESRGAN row: name, video memory, Vulkan driver (Windows).
   ipcMain.handle('gpu:info', async () => { try { return await require('./core/gpuinfo').detect(); } catch (e) { return { ok: false, gpus: [], error: e.message }; } });
+  // Queue finished: a Windows notification (clicking it brings the window back) and a taskbar flash.
+  ipcMain.handle('notify', (_e, title, body) => {
+    if (process.env.HTK_SELFTEST) { (global.notified = global.notified || []).push(title); return true; }
+    try {
+      if (Notification.isSupported()) { const n = new Notification({ title, body, icon: path.join(__dirname, 'assets', 'icon.ico') }); n.on('click', () => { if (win) { win.show(); win.focus(); } }); n.show(); }
+      if (win && !win.isFocused()) win.flashFrame(true);
+    } catch { /* ignore */ }
+    return true;
+  });
   // The Windows taskbar button shows the footer bar too (red when a job fails).
   ipcMain.handle('taskbar', (_e, p, mode) => { try { if (win && !win.isDestroyed()) win.setProgressBar(typeof p === 'number' ? p : -1, { mode: mode === 'error' ? 'error' : 'normal' }); } catch { /* ignore */ } return true; });
   ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task, shipPorts: require('./core/shipid').ports() }));

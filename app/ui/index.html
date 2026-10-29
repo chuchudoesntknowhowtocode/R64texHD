@@ -620,6 +620,54 @@ main.folded nav button .n:not(.ic) { display: none; }
 main.folded nav button .n.c-only { display: grid; }
 main.folded nav button.active .n.ic { background: rgba(43,11,40,.25); }
 main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
+
+/* Welcome: quick-start tiles, and the strip they fold into */
+.qt-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 14px 0 14px; }
+.qt { position: relative; background: var(--field); padding: 14px 14px 13px 16px; clip-path: var(--notch); --step: 4px; cursor: pointer; min-height: 92px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.06), inset 0 -3px 0 rgba(0,0,0,.35), inset 4px 0 0 var(--acc); }
+.qt:hover { background: var(--field-hover); } .qt:focus-visible, .qs:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: -3px; }
+.qt .top { display: flex; align-items: center; gap: 10px; }
+.qt .num, .qs .num { display: inline-grid; place-items: center; background: var(--acc); color: #1a0d2c; font-weight: 800; flex: none; }
+.qt .num { width: 22px; height: 22px; font-size: 12px; box-shadow: 2px 2px 0 #000; }
+.qt b { font-size: 14.5px; color: #fff; }
+.qt small { display: block; color: var(--muted); font-size: 12px; line-height: 1.45; margin-top: 7px; }
+.qt i { display: block; font-style: normal; margin-top: 8px; font-size: 10px; font-weight: 800; letter-spacing: .6px; color: #9c86bd; }
+.qt-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin: 12px 0 12px; }
+.qs { display: flex; align-items: center; gap: 7px; padding: 7px 8px; background: var(--field); font-size: 12px; font-weight: 600; color: #d9c6f2; clip-path: var(--notch); --step: 2px; cursor: pointer; white-space: nowrap; overflow: hidden; box-shadow: inset 0 -3px 0 var(--acc); }
+.qs:hover { background: var(--field-hover); }
+.qs .num { width: 18px; height: 18px; font-size: 11px; } .qs .nm { overflow: hidden; text-overflow: ellipsis; }
+.qs.on { background: linear-gradient(180deg, #ff9a6a, #f2706b); color: #2b0b28; } .qs.on .num { background: #2b0b28; color: #ff9a6a; }
+.mk-steps { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; flex-wrap: wrap; }
+.mk-steps .st { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: var(--field); font-size: 12.5px; font-weight: 600; color: var(--muted); clip-path: var(--notch); --step: 2px; }
+.mk-steps .st b { display: inline-grid; place-items: center; width: 18px; height: 18px; background: #3d2a5e; color: #fff; font-size: 11px; }
+.mk-steps .st.done { color: var(--good); } .mk-steps .st.done b { background: var(--good); color: #0c2414; }
+.mk-steps .st.now { color: #fff; background: #3a2458; box-shadow: inset 0 0 0 2px var(--orange); } .mk-steps .st.now b { background: var(--orange); color: var(--ink); }
+.mk-steps .arrow { color: #6d5491; font-weight: 700; }
+.mk-big { width: 100%; margin-top: 10px; padding: 12px; font-size: 15px; font-weight: 800; letter-spacing: .5px; }
+.sbox .card { margin: 6px 0 10px; }
+
+.log.feed { font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.75; color: #cdbbe6; min-height: 60px; }
+
+/* Queue: + QUEUE beside the big button, the Queue page */
+footer.q #go { min-width: 0; padding: 0 12px; font-size: 14px; letter-spacing: .2px; }
+footer #qadd { position: absolute; top: 26px; z-index: 5; width: 46px; height: 50px; padding: 0; font-size: 9px; font-weight: 800; letter-spacing: .6px; line-height: 1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; --step: 2px; }
+footer #qadd span { font-size: 19px; line-height: 1; }
+footer #qadd[hidden] { display: none; }
+nav button .qcount { margin-left: auto; background: var(--orange); color: var(--ink); font-size: 11px; font-weight: 800; padding: 1px 7px; }
+main.folded nav button .qcount { position: absolute; top: 2px; right: 6px; font-size: 9px; padding: 0 4px; }
+.qitem { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px auto; align-items: center; gap: 12px; padding: 10px 12px; background: var(--panel-2); margin-top: 6px; clip-path: var(--notch); --step: 3px; }
+.qitem .qn { color: #9c86bd; font-weight: 800; font-size: 13px; }
+.qitem b { display: block; font-size: 13.5px; } .qitem small { color: var(--muted); font-size: 12px; }
+.qitem .tag { font-size: 11px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+.qitem.running { box-shadow: inset 0 0 0 2px var(--orange); } .qitem.running .tag { color: var(--orange); }
+.qitem.waiting .tag { color: #9c86bd; } .qitem.done .tag { color: var(--good); } .qitem.failed .tag, .qitem.cancelled .tag { color: var(--bad); }
+.qitem.done, .qitem.cancelled { opacity: .75; }
+.qitem .bar2 { height: 8px; background: #3d2a5e; } .qitem .bar2 i { display: block; height: 100%; background: var(--orange); }
+.qitem .qbtns { display: flex; gap: 6px; } .qitem .qbtns .btn { padding: 5px 9px; }
+.qchain { color: #c48cff; font-weight: 700; }
+.qhead { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14px; } .qhead .section { margin: 0 0 2px; }
+.path .btn.chain { padding: 0 10px; } .path .btn.chain.on { color: #c48cff; box-shadow: inset 0 0 0 2px #c48cff; }
+.chain-list { display: grid; gap: 6px; margin-top: 10px; } .chain-pick { text-align: left; padding: 8px 12px; } .chain-pick b { display: block; } .chain-pick small { color: var(--muted); font-size: 11.5px; }
 </style>
 </head>
 <body>
@@ -655,6 +703,7 @@ main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
       <div class="grp">ROM Tools</div>
       <button data-page="roms"><span class="n">6</span><span class="n ic c-only" data-icon="roms"></span>ROM Tools</button>
       <div class="spacer"></div>
+      <button data-page="queue"><span class="n ic c-only" data-icon="queue"></span>Queue<span class="qcount" id="qcount" hidden></span></button>
       <button data-page="settings"><span class="n ic c-only" data-icon="settings"></span>Settings<span class="badge" id="tools-badge" hidden title="A helper tool isn’t downloaded yet"></span></button>
       <button data-page="about"><span class="n ic c-only" data-icon="about"></span>About</button>
     </nav>
@@ -673,6 +722,7 @@ main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
     </div>
     <button class="foot-btn" id="save">Save</button>
     <button class="go" id="go">UPSCALE ▶</button>
+    <button class="foot-btn qadd" id="qadd" title="Add this job to the queue" hidden><span>+</span>QUEUE</button>
     <button class="foot-btn mute" id="mute" title="Mute all sound" aria-label="Mute all sound" aria-pressed="false"></button>
   </footer>
 </div>
@@ -789,8 +839,12 @@ function showSplash() {
 const seg = (key, options, value, disabled = [], cls = '') => `<div class="seg ${cls}" data-key="${key}">` + options.map(([v, label]) =>
   `<button data-v="${esc(v)}" class="${String(value) === String(v) ? 'on' : ''}" ${disabled.includes(v) ? 'disabled' : ''}>${label}</button>`).join('') + '</div>';
 const row = (title, desc, control, show = true) => `<div class="row" ${show ? '' : 'hidden'}><div class="l"><b>${title}</b><small>${desc}</small></div><div>${control}</div></div>`;
-const pathField = (key, value, buttons, placeholder = '') => `<div class="path"><input data-path="${key}" value="${esc(Array.isArray(value) ? value.join(' ; ') : value)}" placeholder="${esc(placeholder)}" spellcheck="false">` +
-  buttons.map(([kind, label]) => `<button class="btn" data-browse="${kind}" data-for="${key}">${label}</button>`).join('') + '</div>';
+const pathField = (key, value, buttons, placeholder = '') => {
+  const v = Array.isArray(value) ? value.join(' ; ') : value, ch = typeof chainOf === 'function' && chainOf(Array.isArray(value) ? value[0] : value);
+  const chainBtn = typeof CHAINABLE !== 'undefined' && CHAINABLE.has(key) && pendingOutputs().length ? `<button class="btn chain ${ch ? 'on' : ''}" data-chain="${key}" title="Use the output of a queued job">⛓</button>` : '';
+  return `<div class="path ${ch ? 'chained' : ''}"><input data-path="${key}" value="${esc(v)}" placeholder="${esc(placeholder)}" spellcheck="false">` +
+    buttons.map(([kind, label]) => `<button class="btn" data-browse="${kind}" data-for="${key}">${label}</button>`).join('') + chainBtn + '</div>';
+};
 const textField = (key, value, placeholder = '') => `<input class="text" data-path="${key}" value="${esc(value)}" placeholder="${esc(placeholder)}" spellcheck="false">`;
 const card = () => `<div class="card idle" id="status"><div class="dot"></div><div class="body"><div class="t"></div><div class="p"></div><div class="bar" hidden><i></i></div></div><div class="act"></div></div>`;
 // Status buttons (pixel-icons.js): what each state looks like.
@@ -918,15 +972,16 @@ function setVal(key, v) {
 
 // Settings added in 0.7: filled in here so older settings files keep working.
 const NEW_DEFAULTS = {
-  splash: true, cleanPhrases: false, navFolded: false, muted: false, aiGpu: 'auto', aiTile: 'auto',
+  splash: true, cleanPhrases: false, navFolded: false, muted: false, queueDone: 'sound', aiGpu: 'auto', aiTile: 'auto',
   sceneAnimations: true, wizFights: true, psychedelic: false, idlePeeks: true, poking: true, soundEffects: false, soundVolume: 60, musicOn: true, musicVolume: 35, musicSource: 'all', wizardWins: 0, wizardBonusAt: 0,
   upscale: { keepCoverage: true },
-  convert: { wrapInfo: true, rice: true, onlyNew: false },
+  convert: { wrapInfo: true, rice: true, onlyNew: false, watch: 'off', watchPreset: 'smart', watchRepack: true, watchPack: '' },
   pack: { recomp: false, recompName: '', recompAuthor: '', recompVersion: '1.0.0', recompDescription: '', recompThumb: '', recompToggle: true, recompGame: 'mm' },
   check: { input: '' },
   ports: { mode: 'extract', archive: '', output: '', hdInput: '', base: '', modOutput: '', alt: true, compression: 'store' },
   legacy: { mode: 'import', input: '', dumpDb: '', output: '', htsInput: '', htsName: '', htsOutput: '', riceInput: '', base: '', modOutput: '' },
   roms: { folder: '' },
+  pipeline: { input: '', output: '', preset: 'smart', keep: true },
 };
 function withDefaults(c) {
   if (c.upscale && !c.upscale.presetsSeen) { Object.assign(c.upscale, UP_PRESETS[0].set, { presetsSeen: true }); }
@@ -938,11 +993,60 @@ function withDefaults(c) {
   return c;
 }
 
+// ---------------------------------------------------------------- Welcome: quick starts
+// Six tiles. Tile 1 (Make an HD Pack) opens its form right here, and the tiles fold into a strip above it;
+// the others open their page in the right mode.
+const WEL = { tile: 0 };
+const QUICK = [
+  { n: 1, col: '#ff9a6a', name: 'Make an HD Pack', desc: 'RT64 dump in, finished .rtz out: convert, upscale with a preset, pack. One click.', tag: 'RT64 · RECOMPS' },
+  { n: 2, col: '#ffd166', name: 'Upscale a Folder', desc: 'Any PNG / DDS folder with Smart: the best method for each texture.', tag: 'ANY EMULATOR', go: ['upscale'] },
+  { n: 3, col: '#3fcf7a', name: 'Watch While I Play', desc: 'New dumps are converted, and upscaled if you like, as RT64 writes them.', tag: 'RT64 · RECOMPS', go: ['convert', 'watch'] },
+  { n: 4, col: '#6cc6ff', name: 'Check a Pack', desc: 'Find pop-in, missing textures and wasted memory before you share it.', tag: 'RT64 · RECOMPS', go: ['pack', 'check'] },
+  { n: 5, col: '#c48cff', name: 'Ship Port HD Mod', desc: 'Extract, upscale and rebuild an .o2r mod for 2Ship, Ship of Harkinian…', tag: 'SHIP PORTS', go: ['ports', 'extract'] },
+  { n: 6, col: '#ff6ad5', name: 'Classic Pack to RT64', desc: 'Bring a Rice / GLideN64 pack into RT64, recomps or a Ship port.', tag: 'CLASSIC PACKS', go: ['legacy', 'import'] },
+];
+const quickGrid = () => `<div class="qt-grid">${QUICK.map((q) => `<div class="qt" data-qt="${q.n}" role="button" tabindex="0" style="--acc:${q.col}"><div class="top"><span class="num">${q.n}</span><b>${q.name}</b></div><small>${q.desc}</small><i>${q.tag}</i></div>`).join('')}</div>`;
+const quickStrip = () => `<div class="qt-strip">${QUICK.map((q) => `<div class="qs ${WEL.tile === q.n ? 'on' : ''}" data-qt="${q.n}" role="button" tabindex="0" title="${q.n === WEL.tile ? 'Show all quick starts' : esc(q.name)}" style="--acc:${q.col}"><span class="num">${q.n}</span><span class="nm">${q.name}</span></div>`).join('')}</div>`;
+function openQuick(n) {
+  const q = QUICK[n - 1]; if (!q) return;
+  if (n === 1) { WEL.tile = WEL.tile === 1 ? 0 : 1; render(); return; }
+  const [pg, mode] = q.go;
+  if (pg === 'pack') cfg.pack.mode = mode;
+  if (pg === 'ports') cfg.ports.mode = mode;
+  if (pg === 'legacy') cfg.legacy.mode = mode;
+  if (pg === 'convert' && mode === 'watch') { if ((cfg.convert.watch || 'off') === 'off') cfg.convert.watch = 'upscale'; cfg.convert.onlyNew = true; setTimeout(() => { const b = $('#watch-box'); if (b) b.scrollIntoView({ block: 'center' }); }, 50); }
+  page = pg; cfg.page = page; statusCache = {}; render();
+}
+const STEPS = (now) => `<div class="mk-steps">${['Convert dump', 'Upscale (preset)', 'Pack .rtz'].map((t, i) => `${i ? '<span class="arrow">→</span>' : ''}<div class="st ${now > i + 1 ? 'done' : now === i + 1 ? 'now' : ''}"><b>${now > i + 1 ? '✓' : i + 1}</b>${t}</div>`).join('')}</div>`;
+function pipelineStep() {
+  if (!(job.task === 'pipeline')) return 0;
+  if (job.result) return 4;
+  const m = /Step (\d) of 3/.exec(job.message || ''); return job.running ? (m ? Number(m[1]) : 1) : 0;
+}
+function pipelineForm() {
+  const q = cfg.pipeline, r = cfg.pack;
+  const SHORT = { smart: 'Smart', faithful: 'Faithful', hd: 'HD 4×', ultra: 'Ultra AI', pixel: 'Pixel' };
+  const presets = UP_PRESETS.map((p) => [p.id, SHORT[p.id] || p.name]);
+  return sbox('Make an HD Pack', 'From an RT64 dump to a finished .rtz in one go. Each step still has its own page if you want more control.',
+    card() + STEPS(pipelineStep())
+    + row('RT64 dump folder', 'The folder RT64 dumped into (.tmem and .tile.json files). Played further? Run it again: only the new textures are done.', pathField('pipeline.input', q.input || cfg.convert.input || cfg.dumpFolder, [['folder', 'Browse…']], 'Choose the RT64 texture dump folder'))
+    + row('Preset', 'Smart picks a method per texture. The presets are the ones on 1 · Upscale.', seg('pipeline.preset', presets, q.preset))
+    + row('Save pack as', 'Goes in the recomp’s or emulator’s texture pack folder.', pathField('pipeline.output', q.output, [['save-rtz', 'Browse…']]))
+    + row('Recomp mod info', 'Name, author and picture in the recomp mod menu. The details are the ones on 3 · Pack.', seg('pack.recomp', [['true', 'Add info'], ['false', 'No']], String(r.recomp)))
+    + (r.recomp ? row('Name and author', '', `<div class="pair">${textField('pack.recompName', r.recompName, 'My HD Texture Pack')}${textField('pack.recompAuthor', r.recompAuthor, 'Your name')}</div>`) : '')
+    + row('In-between folders', 'The converted and upscaled textures next to the pack. Keep them to edit textures, or to make the next run quicker.', seg('pipeline.keep', [['true', 'Keep'], ['false', 'Delete after packing']], String(q.keep !== false)))
+    + `<button class="btn primary mk-big" id="pipe-go">${job.running && job.task === 'pipeline' ? 'CANCEL ■' : 'MAKE HD PACK ▶'}</button>
+      <div class="log" id="log"></div>`);
+}
+
 // ---------------------------------------------------------------- pages
 const pages = {
   welcome() {
+    const open = WEL.tile === 1;
     return `<img class="welcome-art" src="welcome.png" alt="RT64, 2 Ship and Majora's Mask over a retro sunset">
-      <h2>Welcome</h2><p class="lead">Lions and Tigers and Textures, oh my!</p>
+      <h2>Welcome</h2><p class="lead">Lions and Tigers and Textures, oh my! Pick a quick start, or use the pages on the left for full control.</p>
+      ${open ? quickStrip() : quickGrid()}
+      ${open ? pipelineForm() : ''}
       ${row('Desktop shortcut', 'Optional. R64texHD is portable: nothing is installed.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)}
       ${row('Settings location', 'Settings, downloads and temporary files stay next to the program.', `<div class="tool">${esc(S.dataDir)}</div>`)}`;
   },
@@ -994,7 +1098,14 @@ const pages = {
       ${row('Remember tiling', 'Saves how each texture repeats, so Upscale can keep it seamless (Edges: Auto).', seg('convert.wrapInfo', [['true', 'Yes'], ['false', 'No']], String(c.wrapInfo)))}
       ${row('Add Rice IDs', 'Also writes the older Rice ID for each texture, so packs made for other emulators can be matched up.', seg('convert.rice', [['true', 'Yes'], ['false', 'No']], String(c.rice)))}
       ${row('Only new textures', 'Skips textures already in the output folder. Great after you play further and dump more.', seg('convert.onlyNew', [['false', 'Convert all'], ['true', 'Only new']], String(c.onlyNew)))}
-      <div class="log" id="log"></div>`;
+      ${section('Watch mode')}
+      <div id="watch-box">
+      ${row('Watch while you play', 'Keep R64texHD open while you play: new textures are handled as RT64 dumps them. Press WATCH to start and STOP when you’re done.', seg('convert.watch', [['off', 'Off'], ['convert', 'Convert new'], ['upscale', 'Convert + upscale']], c.watch || 'off'))}
+      ${row('Upscale preset', 'Used for each new texture. Upscaled textures go in a folder next to the output folder (…-upscaled).', seg('convert.watchPreset', UP_PRESETS.map((p) => [p.id, { smart: 'Smart', faithful: 'Faithful', hd: 'HD 4×', ultra: 'Ultra AI', pixel: 'Pixel' }[p.id]]), c.watchPreset || 'smart'), c.watch === 'upscale')}
+      ${row('When you stop', 'Rebuild the .rtz so the game picks the new textures up.', seg('convert.watchRepack', [['true', 'Repack .rtz'], ['false', 'Nothing']], String(c.watchRepack !== false)), (c.watch || 'off') !== 'off')}
+      ${row('Pack', 'The .rtz to rebuild.', pathField('convert.watchPack', c.watchPack || (c.output ? c.output.replace(/[\\/]+$/, '') + '.rtz' : ''), [['save-rtz', 'Browse…']]), (c.watch || 'off') !== 'off' && c.watchRepack !== false)}
+      </div>
+      <div class="log ${(c.watch || 'off') !== 'off' ? 'feed' : ''}" id="log"></div>`;
   },
   pack() {
     const p = cfg.pack, u = cfg.unpack, k = cfg.check, mode = p.mode;
@@ -1145,6 +1256,30 @@ const pages = {
         row('Desktop shortcut', 'Optional shortcut to this portable copy.', `<button class="btn" id="mk-shortcuts" style="width:100%">Create Desktop shortcut</button>`)
         + row('Portable data', 'Settings, tools, your sounds and temporary files. Nothing goes in AppData.', `<div class="path"><div class="tool" style="flex:1">${esc(S.dataDir)}</div><button class="btn" data-open="${esc(S.dataDir)}">Open</button></div>`))}`;
   },
+  queue() {
+    const items = QUEUE.items, run = items.find((i) => i.status === 'running'), wait = items.filter((i) => i.status === 'waiting');
+    const fin = items.filter((i) => !['running', 'waiting'].includes(i.status));
+    const pct = run && job.fromQueue && job.total ? Math.round((job.done / job.total) * 100) : 0;
+    const qrow = (i, k) => {
+      const tag = { running: 'Running', waiting: 'Waiting', done: 'Done', failed: 'Failed', cancelled: 'Cancelled' }[i.status];
+      const ch = chainOf(i.input) || (QUEUE.items.find((x) => x.id < i.id && x.output && i.input && x.output.toLowerCase() === i.input.toLowerCase()));
+      const info = `${esc(i.summary)}${i.summary ? ' · ' : ''}${ch ? `<span class="qchain">⛓ uses #${ch.id}</span> · ` : ''}<span class="tag">${tag}</span>${i.status === 'done' && i.ended ? ` in ${fmtDur(i.ended - i.started)}` : ''}${i.error && i.status === 'failed' ? ` · ${esc(i.error)}` : ''}`;
+      const mid = i.status === 'running' ? `<div class="bar2"><i style="width:${pct}%"></i></div><small>${pct}%</small>` : '';
+      const btns = i.status === 'running' ? `<button class="btn" data-q="cancel" data-qid="${i.id}" title="Cancel this job">✕</button>`
+        : i.status === 'waiting' ? `<button class="btn" data-q="up" data-qid="${i.id}" title="Earlier" ${k === 0 ? 'disabled' : ''}>▲</button><button class="btn" data-q="down" data-qid="${i.id}" title="Later" ${k === wait.length - 1 ? 'disabled' : ''}>▼</button><button class="btn" data-q="remove" data-qid="${i.id}" title="Remove">✕</button>`
+        : i.result && i.result.output ? `<button class="btn" data-open="${esc(i.result.output)}">Open</button>` : '';
+      return `<div class="qitem ${i.status}"><div class="qn">#${i.id}</div><div class="qt2"><b>${esc(TASK_NAME[i.task])} · ${esc(baseName(i.input))}</b><small>${info}</small></div><div class="qmid">${mid}</div><div class="qbtns">${btns}</div></div>`;
+    };
+    const head = run ? ['running', `Running #${run.id} · ${TASK_NAME[run.task]}`, `${wait.length} waiting${QUEUE.paused ? ' · paused: the next one won’t start' : ''}`]
+      : wait.length ? ['notice', QUEUE.paused ? `Paused · ${wait.length} waiting` : `${wait.length} waiting`, job.running ? 'Starts when the job that’s running now finishes.' : 'Press Resume to start.']
+      : ['idle', items.length ? 'Queue is empty' : 'Nothing queued yet', 'On any job page, set it up and press + QUEUE next to the big button.'];
+    return `<h2>Queue</h2><p class="lead">Line up jobs from any page with <b>+ QUEUE</b> next to the big button. They run one after another, each with the settings it had when you added it.</p>
+      <div class="card ${head[0] === 'running' ? 'running' : head[0] === 'idle' ? 'idle' : 'notice'}" id="qcard"><div class="dot">${statusIcon(head[0])}</div><div class="body"><div class="t">${head[1]}</div><div class="p">${head[2]}</div></div>
+        <div class="act">${items.some((i) => i.status === 'waiting') || run ? `<button class="btn" id="q-pause">${QUEUE.paused ? 'Resume' : 'Pause'}</button>` : ''}</div></div>
+      ${run || wait.length ? `<div class="section">Up next</div>${run ? qrow(run, -1) : ''}${wait.map((i, k) => qrow(i, k)).join('')}` : ''}
+      ${fin.length ? `<div class="qhead"><div class="section">Finished</div><button class="btn" id="q-clear">Clear finished</button></div>${fin.map((i) => qrow(i, 0)).join('')}` : ''}
+      ${row('When the queue is done', 'A Windows notification (even when R64texHD is minimised) and a sound, unless muted.', seg('queueDone', [['sound', 'Sound + notify'], ['nothing', 'Nothing']], cfg.queueDone || 'sound'))}`;
+  },
   roms() {
     const r = cfg.roms;
     return `<div class="rx">
@@ -1228,6 +1363,7 @@ function musicSettings() { return { musicOn: cfg.musicOn !== false && cfg.muted 
 function goToJobPage() {
   if (!job.running) return;
   const tp = TASK_PAGE[job.task]; page = pageOf(job.task); cfg.page = page;
+  if (job.task === 'pipeline') WEL.tile = 1;
   if (tp && page === 'pack') cfg.pack.mode = tp[1];
   if (tp && page === 'ports') cfg.ports.mode = tp[1];
   if (tp && page === 'legacy') cfg.legacy.mode = tp[1];
@@ -1321,20 +1457,22 @@ async function installAll() {
 
 // Each page runs one task, picked by its "What to do" switch.
 function taskOf(pg) {
+  if (pg === 'welcome') return WEL.tile === 1 ? 'pipeline' : 'welcome';
   if (pg === 'pack') return job.task === 'fix' && cfg.pack.mode === 'check' ? 'fix' : { pack: 'pack', unpack: 'unpack', check: 'check' }[cfg.pack.mode];
   if (pg === 'ports') return cfg.ports.mode === 'build' ? 'o2rBuild' : 'o2rExtract';
   if (pg === 'legacy') return { import: 'legacyImport', hts: 'legacyHts', ship: 'riceToO2r' }[cfg.legacy.mode];
   if (pg === 'roms') return 'roms';
+  if (pg === 'convert' && cfg.convert.watch && cfg.convert.watch !== 'off') return 'watch';
   return pg;
 }
 const TASK_PAGE = { unpack: ['pack', 'unpack'], check: ['pack', 'check'], fix: ['pack', 'check'], pack: ['pack', 'pack'], o2rExtract: ['ports', 'extract'], o2rBuild: ['ports', 'build'],
-  legacyImport: ['legacy', 'import'], legacyHts: ['legacy', 'hts'], riceToO2r: ['legacy', 'ship'] };
+  legacyImport: ['legacy', 'import'], legacyHts: ['legacy', 'hts'], riceToO2r: ['legacy', 'ship'], pipeline: ['welcome', ''], watch: ['convert', ''] };
 const pageOf = (task) => (TASK_PAGE[task] ? TASK_PAGE[task][0] : task);
-const RUN_LABEL = { upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK ▶', unpack: 'UNPACK ▶', check: 'CHECK ▶', fix: 'CHECK ▶',
+const RUN_LABEL = { watch: 'WATCH ▶', pipeline: 'MAKE HD PACK ▶', upscale: 'UPSCALE ▶', convert: 'CONVERT ▶', pack: 'PACK ▶', unpack: 'UNPACK ▶', check: 'CHECK ▶', fix: 'CHECK ▶',
   o2rExtract: 'EXTRACT ▶', o2rBuild: 'CREATE PACK ▶', roms: 'SCAN ▶', legacyImport: 'IMPORT ▶', legacyHts: 'MAKE .HTS ▶', riceToO2r: 'BUILD MOD ▶' };
-const RUN_VERB = { upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking', check: 'Checking', fix: 'Fixing', o2rExtract: 'Extracting textures', o2rBuild: 'Creating the HD texture pack', roms: 'Looking for ROMs',
+const RUN_VERB = { watch: 'Watching your dump folder', pipeline: 'Making the HD pack', upscale: 'Upscaling', convert: 'Converting', pack: 'Packing', unpack: 'Unpacking', check: 'Checking', fix: 'Fixing', o2rExtract: 'Extracting textures', o2rBuild: 'Creating the HD texture pack', roms: 'Looking for ROMs',
   legacyImport: 'Importing', legacyHts: 'Making .hts', riceToO2r: 'Matching textures' };
-const IDLE_TEXT = { upscale: 'Choose a folder or files to upscale', convert: 'Choose your RT64 texture dump folder', pack: 'Choose the texture folder to pack',
+const IDLE_TEXT = { watch: 'Choose your RT64 texture dump folder', pipeline: 'Choose your RT64 texture dump folder', upscale: 'Choose a folder or files to upscale', convert: 'Choose your RT64 texture dump folder', pack: 'Choose the texture folder to pack',
   unpack: 'Choose the .rtz pack to unpack', check: 'Choose a pack to check', o2rExtract: 'Choose the game’s .o2r or .otr archive', o2rBuild: 'Choose your HD texture folder',
   roms: 'Choose the folder with your N64 ROMs', legacyImport: 'Choose a classic texture pack', legacyHts: 'Choose your texture folder', riceToO2r: 'Choose the Rice texture folder' };
 
@@ -1368,7 +1506,7 @@ function render() {
   savePreviewScroll();
   $('#page').innerHTML = pages[page]();
   const go = $('#go');
-  go.style.visibility = (page === 'settings' || page === 'about' || page === 'welcome') ? 'hidden' : 'visible';
+  go.style.visibility = (page === 'settings' || page === 'about' || page === 'queue' || (page === 'welcome' && WEL.tile !== 1)) ? 'hidden' : 'visible';
   renderJob();
   refreshStatus();
   if (page === 'upscale') { afterRenderPreview(); refreshEstimate(); }
@@ -1381,7 +1519,7 @@ function render() {
 
 function inputFor() {
   const t = taskOf(page);
-  const v = { upscale: cfg.upscale.inputs, convert: cfg.convert.input || cfg.dumpFolder, pack: cfg.pack.input, unpack: cfg.unpack.input, check: cfg.check.input,
+  const v = { watch: cfg.convert.input || cfg.dumpFolder, pipeline: cfg.pipeline.input || cfg.convert.input || cfg.dumpFolder, upscale: cfg.upscale.inputs, convert: cfg.convert.input || cfg.dumpFolder, pack: cfg.pack.input, unpack: cfg.unpack.input, check: cfg.check.input,
     o2rExtract: cfg.ports.archive, o2rBuild: cfg.ports.hdInput, roms: cfg.roms.folder, legacyImport: cfg.legacy.input, legacyHts: cfg.legacy.htsInput, riceToO2r: cfg.legacy.riceInput }[t];
   return v === undefined ? [null, null] : [t, v];
 }
@@ -1398,6 +1536,8 @@ async function refreshStatus() {
   if (job.task === taskOf(page) && (job.running || job.result || job.error)) return renderJob();
   const [kind, value] = inputFor();
   if (!value || (Array.isArray(value) && !value.length)) return setCard('idle', IDLE_TEXT[taskOf(page)], 'Use Browse… or paste a path.');
+  const ch = chainOf(Array.isArray(value) ? value[0] : value);
+  if (ch) return setCard('notice', `Waiting for queue #${ch.id} · ${TASK_NAME[ch.task]}`, `Its output is this input, so add this job with + QUEUE: it runs right after.\n${ch.output}`);
   const sn = page === 'ports' && shipNotice();
   if (sn) return setCard('notice', sn.title, sn.text, undefined, CHECK_AGAIN);
   const key = kind + '|' + JSON.stringify(value);
@@ -1437,13 +1577,20 @@ function lockPage() {
 function renderJob() {
   lockPage();
   const go = $('#go');
-  if (job.running) { go.textContent = 'CANCEL ■'; go.classList.add('cancel'); }
+  if (job.running) { go.textContent = job.task === 'watch' ? 'STOP ■' : 'CANCEL ■'; go.classList.add('cancel'); }
   else { go.textContent = RUN_LABEL[taskOf(page)] || 'RUN ▶'; go.classList.remove('cancel'); }
+  placeQueueButton();
+  if (page === 'queue' && job.fromQueue) { const b = document.querySelector('.qitem.running .bar2 i'), t = document.querySelector('.qitem.running .qmid small');
+    if (b && job.total) { const pc = Math.round((job.done / job.total) * 100); b.style.width = pc + '%'; if (t) t.textContent = pc + '%'; } }
+  const pg = $('#pipe-go'); if (pg) pg.textContent = job.running && job.task === 'pipeline' ? 'CANCEL ■' : 'MAKE HD PACK ▶';
+  const st = $('.mk-steps'); if (st && taskOf(page) === 'pipeline') st.outerHTML = STEPS(pipelineStep());
   if (job.task !== taskOf(page)) return;
   const log = $('#log');
   if (log) { const t = job.log.join('\n'); if (log.textContent !== t) { log.textContent = t; log.scrollTop = log.scrollHeight; } }
   if (!$('#status')) return;
-  if (job.running) {
+  if (job.running && job.task === 'watch') {
+    setCard('running', 'Watching your dump folder', `${job.message || 'Starting…'}\nPress STOP when you’re done playing.`);
+  } else if (job.running) {
     const count = job.total ? `${job.done.toLocaleString()} / ${job.total.toLocaleString()}` : '';
     setCard('running', `${RUN_VERB[job.task]}… ${count}`, job.message || 'Starting…', job.total ? job.done / job.total : 0);
   } else if (job.result) {
@@ -1477,6 +1624,16 @@ function renderJob() {
 // ---------------------------------------------------------------- dialogs
 function modal(html) { $('#dialog').innerHTML = html; $('#modal').hidden = false; }
 function closeModal() { $('#modal').hidden = true; }
+// + QUEUE sits just left of the big button whenever the page has a job that can be queued.
+function placeQueueButton() {
+  const q = $('#qadd'), g = $('#go'); if (!q || !g) return;
+  const show = QUEUEABLE.has(taskOf(page)) && g.style.visibility !== 'hidden';
+  document.querySelector('footer').classList.toggle('q', show);
+  q.hidden = !show; if (!show) return;
+  const f = document.querySelector('footer').getBoundingClientRect(), r = g.getBoundingClientRect();
+  q.style.right = Math.round(f.right - r.left + 6) + 'px';
+}
+window.addEventListener('resize', () => placeQueueButton());
 function applyNavFold() {
   document.querySelectorAll('nav [data-icon]').forEach((el) => { if (!el.innerHTML) el.innerHTML = navIcon(el.dataset.icon); });
   const f = cfg.navFolded === true, b = $('#nav-fold');
@@ -1491,7 +1648,7 @@ function askPresetName() {
   setTimeout(() => { const i = $('#pname'); if (i) i.focus(); }, 30);
 }
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'pname') $('#pname-ok').click(); });
-document.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('pcard')) { e.preventDefault(); e.target.click(); } });
+document.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && (e.target.classList.contains('pcard') || e.target.classList.contains('qt') || e.target.classList.contains('qs'))) { e.preventDefault(); e.target.click(); } });
 
 function askPack(result) {
   packAfter = result.output;
@@ -1549,6 +1706,31 @@ document.addEventListener('click', async (e) => {
     PV.src = PV.list[n].src; PV.scroll = { x: 0, y: 0 };
     fillPreviewPicker(); drawPreview(); schedulePreview(); return;
   }
+  if (e.target.closest('#qadd')) { queueAdd(); return; }
+  const qb = e.target.closest('[data-q]');
+  if (qb) {
+    const id = Number(qb.dataset.qid), i = QUEUE.items.findIndex((x) => x.id === id), it = QUEUE.items[i];
+    if (!it) return;
+    if (qb.dataset.q === 'cancel') { if (job.running && job.fromQueue) await window.htk.cancel(); return; }
+    if (qb.dataset.q === 'remove') QUEUE.items.splice(i, 1);
+    const w = QUEUE.items.filter((x) => x.status === 'waiting'), k = w.indexOf(it);
+    if (qb.dataset.q === 'up' && k > 0) { const j = QUEUE.items.indexOf(w[k - 1]); QUEUE.items[i] = w[k - 1]; QUEUE.items[j] = it; }
+    if (qb.dataset.q === 'down' && k >= 0 && k < w.length - 1) { const j = QUEUE.items.indexOf(w[k + 1]); QUEUE.items[i] = w[k + 1]; QUEUE.items[j] = it; }
+    updateQueueBadge(); render(); return;
+  }
+  if (e.target.id === 'q-pause') { QUEUE.paused = !QUEUE.paused; if (!QUEUE.paused) pumpQueue(); render(); return; }
+  if (e.target.id === 'q-clear') { QUEUE.items = QUEUE.items.filter((i) => i.status === 'waiting' || i.status === 'running'); render(); return; }
+  const chb = e.target.closest('[data-chain]');
+  if (chb) { askChain(chb.dataset.chain); return; }
+  const cp = e.target.closest('.chain-pick');
+  if (cp) {
+    const key = cp.dataset.chainKey, it = QUEUE.items.find((x) => x.id === Number(cp.dataset.chainId)); closeModal();
+    if (it) { if (key === 'upscale.inputs') cfg.upscale.inputs = [it.output]; else setVal(key, it.output); onPath(key); render(); }
+    return;
+  }
+  const qt = e.target.closest('[data-qt]');
+  if (qt) { openQuick(Number(qt.dataset.qt)); return; }
+  if (e.target.id === 'pipe-go') { go(); return; }
   const pdel = e.target.closest('[data-preset-del]');
   if (pdel) { cfg.userPresets.splice(Number(pdel.dataset.presetDel), 1); render(); return; }
   if (e.target.id === 'preset-save') { askPresetName(); return; }
@@ -1558,7 +1740,7 @@ document.addEventListener('click', async (e) => {
   if (e.target.id === 'pname-ok') { const n = ($('#pname').value || '').trim(); if (!n) return; (cfg.userPresets = cfg.userPresets || []).push({ name: n.slice(0, 40), set: Object.fromEntries(PRESET_KEYS.map((k) => [k, cfg.upscale[k]])) }); closeModal(); save(true); render(); return; }
   if (e.target.id === 'pname-cancel') { closeModal(); return; }
   if (e.target.id === 'ai-get') { closeModal(); page = 'settings'; cfg.page = page; render(); const b = document.querySelector('[data-install="realesrgan"]'); if (b) b.click(); return; }
-  if (e.target.id === 'ai-skip') { closeModal(); AI_ASKED = true; start('upscale'); return; }
+  if (e.target.id === 'ai-skip') { closeModal(); AI_ASKED = true; start(taskOf(page) === 'pipeline' ? 'pipeline' : 'upscale'); return; }
   const sb = e.target.closest('.seg button');
   if (sb && !sb.disabled) { const k = sb.parentElement.dataset.key; setVal(k, sb.dataset.v); clearFinished(); render(); if (k === 'cleanPhrases') { hdrList = []; hdrAt = 0; nextHeaderPhrase(); } return; }
   const br = e.target.closest('[data-browse]');
@@ -1605,7 +1787,7 @@ document.addEventListener('click', async (e) => {
   const sp = e.target.closest('[data-port]');
   if (sp) { selectPort(sp.dataset.port); return; }
   if (id === 'tools-no') { toolsDone(); return; }
-  if (e.target.closest('#home')) { page = 'welcome'; cfg.page = page; render(); nextHeaderPhrase(); return; }
+  if (e.target.closest('#home')) { page = 'welcome'; cfg.page = page; if (job.task === 'pipeline' && (job.running || job.result)) WEL.tile = 1; render(); nextHeaderPhrase(); return; }
   const inst = e.target.closest('[data-install]');
   if (inst) {
     inst.disabled = true; inst.textContent = 'Downloading…';
@@ -1627,6 +1809,7 @@ function onPath(key) {
       cfg.upscale.output = join(out, name + '-upscaled');
     }
     if (key === 'convert.input') cfg.convert.output = join(out, baseName(cfg.convert.input) + '-textures');
+    if (key === 'pipeline.input') cfg.pipeline.output = join(out, baseName(cfg.pipeline.input) + '-hd.rtz');
     if (key === 'pack.input') cfg.pack.output = join(out, baseName(cfg.pack.input) + '.rtz');
     if (key === 'unpack.input') cfg.unpack.output = join(out, baseName(cfg.unpack.input).replace(/\.rtz$/i, '') + '-unpacked');
     if (key === 'ports.archive') cfg.ports.output = join(out, baseName(cfg.ports.archive).replace(/\.(o2r|otr)$/i, '') + '-textures');
@@ -1636,7 +1819,7 @@ function onPath(key) {
     if (key === 'legacy.htsName' && cfg.legacy.htsName) cfg.legacy.htsOutput = join(out, cfg.legacy.htsName.trim() + '_HIRESTEXTURES.hts');
   }
   const fixExt = (k, ext) => { const v = getVal(k); if (v && !new RegExp(`\\${ext}$`, 'i').test(v)) setVal(k, v + ext); };
-  if (key === 'pack.output') fixExt(key, '.rtz');
+  if (key === 'pack.output' || key === 'pipeline.output') fixExt(key, '.rtz');
   if (key === 'ports.modOutput' || key === 'legacy.modOutput') fixExt(key, '.o2r');
   if (key === 'legacy.htsOutput') fixExt(key, '.hts');
   clearFinished();
@@ -1668,6 +1851,15 @@ async function save(quiet) { await window.htk.saveSettings(cfg); if (!quiet) toa
 function params(task) {
   switch (task) {
     case 'upscale': return { ...cfg.upscale, aiOk: aiOk() };
+    case 'watch': {
+      const c = cfg.convert, set = presetSet(c.watchPreset || 'smart') || {};
+      const out = c.output || '';
+      return { input: c.input || cfg.dumpFolder, output: out, format: 'png', rice: c.rice !== false, mode: c.watch, upscale: { ...cfg.upscale, ...set, aiOk: aiOk() },
+        presetName: (UP_PRESETS.find((p) => p.id === (c.watchPreset || 'smart')) || {}).name, repack: c.watchRepack !== false, packOutput: c.watchPack || (out ? out.replace(/[\\/]+$/, '') + '.rtz' : '') };
+    }
+    case 'pipeline': return { ...cfg.upscale, ...presetSet(cfg.pipeline.preset || 'smart'), input: cfg.pipeline.input || cfg.convert.input || cfg.dumpFolder, output: cfg.pipeline.output,
+      keep: cfg.pipeline.keep !== false, aiOk: aiOk(), recomp: cfg.pack.recomp, recompName: cfg.pack.recompName, recompAuthor: cfg.pack.recompAuthor, recompVersion: cfg.pack.recompVersion,
+      recompDescription: cfg.pack.recompDescription, recompGame: cfg.pack.recompGame, recompThumb: cfg.pack.recompThumb, recompToggle: cfg.pack.recompToggle };
     case 'convert': return { ...cfg.convert, input: cfg.convert.input || cfg.dumpFolder };
     case 'unpack': return { ...cfg.unpack };
     case 'check': return { ...cfg.check };
@@ -1682,20 +1874,92 @@ function params(task) {
   }
 }
 
+// ---------------------------------------------------------------- job queue
+// + QUEUE (next to the big button) saves the page's job with its settings as they are now. Jobs run one after
+// another; a job can take its input from a queued job's output (chained). Not kept between launches.
+const QUEUE = { items: [], paused: false, seq: 0, active: null, ran: 0 };
+const QUEUEABLE = new Set(['upscale', 'convert', 'pack', 'unpack', 'check', 'o2rExtract', 'o2rBuild', 'legacyImport', 'legacyHts', 'riceToO2r', 'pipeline']);
+const TASK_NAME = { upscale: 'Upscale', convert: 'Convert', pack: 'Pack .rtz', unpack: 'Unpack .rtz', check: 'Check pack', o2rExtract: 'Extract textures', o2rBuild: 'Create HD texture pack',
+  legacyImport: 'Classic pack → RT64', legacyHts: 'Make GLideN64 .hts', riceToO2r: 'Classic pack → Ship mod', pipeline: 'Make an HD Pack' };
+const qInput = (t, p) => ({ upscale: (p.inputs || [])[0], pipeline: p.input, o2rExtract: p.archive }[t] ?? p.input);
+function qSummary(t, p) {
+  if (t === 'upscale') return `${presetOf(p) === 'custom' ? presetSummary(p) : (UP_PRESETS.find((x) => x.id === presetOf(p)) || { name: 'Your preset' }).name}`;
+  if (t === 'pipeline') return (UP_PRESETS.find((x) => x.id === presetOf(p)) || { name: 'Custom' }).name + ' · Zstandard';
+  if (t === 'convert') return `${String(p.format || 'png').toUpperCase()}${p.onlyNew ? ' · only new' : ''}`;
+  if (t === 'pack') return `${p.compression || 'zstd'}${p.recomp ? ' · Recomp info' : ''}`;
+  return '';
+}
+function queueAdd() {
+  const t = taskOf(page);
+  if (!QUEUEABLE.has(t)) { toast('This job can’t be queued'); return; }
+  const p = params(t), input = qInput(t, p), output = p.output || '';
+  if (!input) { toast('Choose an input first'); return; }
+  if (t !== 'check' && !output) { toast('Choose where it goes first'); return; }
+  const it = { id: ++QUEUE.seq, task: t, params: JSON.parse(JSON.stringify(p)), status: 'waiting', input, output, summary: qSummary(t, p), est: null };
+  QUEUE.items.push(it);
+  toast(`Added to the queue as #${it.id}`);
+  updateQueueBadge(); if (page === 'queue') render();
+  pumpQueue();
+}
+function pumpQueue() {
+  updateQueueBadge();
+  if (job.running || QUEUE.paused || QUEUE.active) return;
+  const next = QUEUE.items.find((i) => i.status === 'waiting');
+  if (!next) return;
+  QUEUE.active = next; next.status = 'running'; next.started = Date.now(); QUEUE.ran++;
+  if (page === 'queue') render();
+  start(next.task, next.params);
+}
+function queueDone(d) {
+  const it = QUEUE.active; QUEUE.active = null;
+  if (it) {
+    it.ended = Date.now();
+    if (d.error) { it.status = d.error === 'Cancelled' ? 'cancelled' : 'failed'; it.error = d.error; }
+    else { it.status = 'done'; it.result = d.result; }
+  }
+  updateQueueBadge(); if (page === 'queue') render();
+  const left = QUEUE.items.some((i) => i.status === 'waiting');
+  if (left && !QUEUE.paused) { setTimeout(pumpQueue, 600); return; }
+  if (!left && QUEUE.ran) {                                        // the queue ran dry: tell the user
+    const done = QUEUE.items.filter((i) => i.ended && i.ended >= (QUEUE.items.find((x) => x.started) || {}).started);
+    const bad = done.filter((i) => i.status === 'failed').length;
+    QUEUE.ran = 0;
+    if ((cfg.queueDone || 'sound') === 'sound') {
+      window.htk.notify(`Queue finished · ${done.length} job${done.length === 1 ? '' : 's'}`, bad ? `${bad} failed: see the Queue page.` : 'Everything finished.');
+      if (!cfg.muted && window.Wizard && Wizard.sfxAlways) Wizard.sfxAlways('bonus');
+    }
+  }
+}
+function updateQueueBadge() {
+  const n = QUEUE.items.filter((i) => i.status === 'waiting' || i.status === 'running').length, b = $('#qcount');
+  if (b) { b.textContent = n; b.hidden = !n; }
+}
+// Outputs a new job can be chained to: queued jobs that haven't finished yet.
+const pendingOutputs = () => QUEUE.items.filter((i) => (i.status === 'waiting' || i.status === 'running') && i.output);
+const chainOf = (path) => path && pendingOutputs().find((i) => i.output.toLowerCase() === String(path).toLowerCase());
+const CHAINABLE = new Set(['upscale.inputs', 'pack.input', 'check.input', 'ports.hdInput', 'legacy.htsInput', 'unpack.input']);
+function askChain(key) {
+  const list = pendingOutputs();
+  modal(`<div class="ask-tools"><h3>Use the output of a queued job</h3><p>It runs right after that job finishes. Add this one with + QUEUE.</p>
+    <div class="chain-list">${list.map((i) => `<button class="btn chain-pick" data-chain-key="${key}" data-chain-id="${i.id}"><b>#${i.id} · ${esc(TASK_NAME[i.task])}</b><small>${esc(i.output)}</small></button>`).join('')}</div>
+    <div class="buttons"><button class="btn" id="m-no">Cancel</button></div></div>`);
+}
+function fmtDur(ms) { const s = Math.round(ms / 1000); return s < 60 ? `${s} s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
+
 let AI_ASKED = false;
-async function start(task) {
-  const um = cfg.upscale.method;
-  if (task === 'upscale' && (um === 'smart' || um === 'ai') && !S.tools.realesrgan && aiOk() && !AI_ASKED) {
+async function start(task, given = null) {
+  const um = task === 'pipeline' ? (presetSet(cfg.pipeline.preset || 'smart') || {}).method : cfg.upscale.method;
+  if (!given && (task === 'upscale' || task === 'pipeline') && (um === 'smart' || um === 'ai') && !S.tools.realesrgan && aiOk() && !AI_ASKED) {
     modal(`<div class="ask-tools"><h3>${um === 'smart' ? 'Smart' : 'AI'} works best with Real-ESRGAN</h3><p>It’s the AI upscaler for big, detailed textures (45 MB). Without it, those textures use HD 4×.</p>
       <div class="buttons"><button class="btn" id="ai-skip">Not now</button><button class="btn primary" id="ai-get">Download</button></div></div>`);
     return;
   }
   await save(true);
-  job = { running: false, task, log: [], result: null, error: null, done: 0, total: 0, message: '' };
-  const r = await window.htk.run(task, params(task));
-  if (!r.ok) { toast(r.error); return; }
+  job = { running: false, task, log: [], result: null, error: null, done: 0, total: 0, message: '', fromQueue: !!given };
+  const r = await window.htk.run(task, given || params(task));
+  if (!r.ok) { toast(r.error); if (given) queueDone({ error: r.error }); return; }
   job.running = true; render();
-  if (window.Wizard) Wizard.jobStart(task);
+  if (window.Wizard && task !== 'watch') Wizard.jobStart(task);   // watching can last hours: the footer stays idle
 }
 
 async function go() {
@@ -1714,6 +1978,7 @@ window.htk.onProgress((p) => {
 });
 window.htk.onDone((d) => {
   job.running = false;
+  const queued = job.fromQueue;
   if (window.Wizard) Wizard.jobEnd(d.error ? (d.error === 'Cancelled' ? 'cancel' : 'error') : 'done');
   if (d.error) { job.error = d.error; job.log.push(d.error === 'Cancelled' ? 'Cancelled.' : 'Error: ' + d.error); if (d.task === 'roms') { ROMS.error = d.error === 'Cancelled' ? 'Scan cancelled.' : d.error; ROMS.list = []; ROMS.folder = cfg.roms.folder; } }
   else {
@@ -1726,6 +1991,7 @@ window.htk.onDone((d) => {
     if (r.written !== undefined) job.log.push(`${r.title} ${r.written} texture(s)${r.failed ? `, ${r.failed} failed` : ''} in ${r.seconds.toFixed(1)} s → ${r.output}`);
   }
   statusCache = {};
+  if (queued) { queueDone(d); render(); return; }
   if (job.task !== taskOf(page)) {
     const tp = TASK_PAGE[job.task];
     page = pageOf(job.task); cfg.page = page;
@@ -1740,6 +2006,7 @@ window.htk.onDone((d) => {
   // A fix makes a new pack: check that one straight away.
   if (d.task === 'fix' && d.result) { cfg.check.input = d.result.output; toast(`Saved as ${baseName(d.result.output)}`); start('check'); }
   if (d.task === 'upscale' && d.result && d.result.packable) askNext(d.result);
+  setTimeout(pumpQueue, 600);                                       // a queue waiting behind this job carries on
 });
 window.htk.onToolProgress((p) => {
   const amount = p.total ? `${Math.round(p.got * 100 / p.total)}%` : `${(p.got / 1048576).toFixed(1)} MB`;

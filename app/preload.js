@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('htk', {
   gpuInfo: () => ipcRenderer.invoke('gpu:info'),
   estimate: (req) => ipcRenderer.invoke('upscale:estimate', req),
   taskbar: (p, mode) => ipcRenderer.invoke('taskbar', p, mode),
+  notify: (title, body) => ipcRenderer.invoke('notify', title, body),
   onStarted: on('task:started'),
   onProgress: on('task:progress'),
   onLog: on('task:log'),

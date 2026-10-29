@@ -159,3 +159,47 @@ test('Real-ESRGAN gets the chosen graphics card and memory use', () => {
     ['-i', 'i', '-o', 'o', '-n', 'realesr-animevideov3', '-s', '4', '-f', 'png', '-g', '1', '-t', '128']);
   assert.deepEqual(tasks.aiArgs('i', 'o', { aiGpu: 'auto', aiTile: 'auto' }).slice(-2), ['-f', 'png']);
 });
+
+// ---------------------------------------------------------------- Make an HD Pack (Welcome)
+test('Make an HD Pack: dump -> convert -> upscale -> .rtz in one job, then only the new textures', async () => {
+  const dump = tmpDir(), out = path.join(tmpDir(), 'majora-hd.rtz');
+  fakeDump(dump);
+  const log = [], steps = [];
+  const ctx = { ...quietCtx(log), progress: (d, t, m) => steps.push([d, t, m]) };
+  const r = await tasks.pipelineTask({ input: dump, output: out, method: 'standard', size: 2, sharpness: 'normal', edges: 'auto', hardAlpha: true,
+    format: 'dds', ddsFormat: 'auto', keepCoverage: true, recomp: false, keep: true, maxSize: 4096 }, ctx, {});
+  assert.equal(r.written, 2);
+  assert.ok(fs.existsSync(out));
+  assert.ok(fs.existsSync(out.replace(/\.rtz$/, '-textures')) && fs.existsSync(out.replace(/\.rtz$/, '-upscaled')));
+  assert.ok(log.some((l) => /^1\/3 Convert:/.test(l)) && log.some((l) => /^2\/3 Upscale:/.test(l)) && log.some((l) => /^3\/3 Pack:/.test(l)), log.join('\n'));
+  assert.ok(steps.every(([, t]) => t === 1000) && steps.some(([, , m]) => /Step 2 of 3 · Upscale/.test(m)));
+  const back = tmpDir(); rtz.unpack(out, back, {});
+  assert.equal(fs.readdirSync(path.join(back, 'textures')).filter((f) => f.endsWith('.dds')).length, 2);
+  // again, with nothing new: convert skips both, upscale skips both, the pack is rebuilt
+  const log2 = [];
+  const r2 = await tasks.pipelineTask({ input: dump, output: out, method: 'standard', size: 2, sharpness: 'normal', format: 'dds', ddsFormat: 'auto', keep: false, maxSize: 4096 }, quietCtx(log2), {});
+  assert.equal(r2.written, 2);
+  assert.ok(log2.some((l) => /Nothing new to convert/.test(l)) && log2.some((l) => /Skipping 2 image/.test(l)), log2.join('\n'));
+  assert.ok(!fs.existsSync(out.replace(/\.rtz$/, '-textures')), 'keep: false removes the in-between folders');
+});
+
+test('Watch mode: converts (and upscales) dumps as they arrive, repacks when stopped', async () => {
+  const dump = tmpDir(), out = path.join(tmpDir(), 'conv'), pack = path.join(tmpDir(), 'live.rtz');
+  fakeDump(dump);
+  const extra = tmpDir(); fakeDump(extra);                      // the same two dumps, renamed below to look new
+  const log = []; let stop = false;
+  const ctx = { workers: 2, cancelled: () => stop, onCancel: () => {}, log: (t) => log.push(t), progress: () => {} };
+  const run = tasks.watchTask({ input: dump, output: out, mode: 'upscale', intervalMs: 300, repack: true, packOutput: pack, presetName: 'HD 4×', maxSize: 4096,
+    upscale: { method: 'standard', size: 2, sharpness: 'normal', edges: 'auto', hardAlpha: true, format: 'png' } }, ctx, {});
+  await new Promise((r) => setTimeout(r, 900));
+  assert.ok(log.some((l) => /Started watching/.test(l)), log.join('\n'));
+  for (const f of fs.readdirSync(extra)) fs.copyFileSync(path.join(extra, f), path.join(dump, f.replace(/^aaaa/, 'cccc').replace(/^bbbb/, 'dddd')));
+  for (let i = 0; i < 60 && !log.some((l) => /\+2 /.test(l)); i++) await new Promise((r) => setTimeout(r, 200));
+  stop = true;
+  const r = await run;
+  assert.ok(log.some((l) => /\+2 .*→ upscaled \(HD 4×\)/.test(l)), log.join('\n'));
+  assert.equal(r.written, 2);
+  assert.ok(fs.existsSync(pack) && /Watched/.test(r.title));
+  assert.equal(fs.readdirSync(path.join(out + '-upscaled', 'textures')).length, 4);
+  assert.equal(Database.load(path.join(out + '-upscaled', 'rt64.json')).textures.length, 4);
+});

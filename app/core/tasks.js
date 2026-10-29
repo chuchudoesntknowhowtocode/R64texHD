@@ -130,6 +130,7 @@ function inspect(kind, value) {
   const missing = list.filter((p) => !fs.existsSync(p));
   if (missing.length) return { state: 'error', title: 'Not found', text: missing[0] };
   if (kind === 'pack-output') return { state: 'ready', title: 'Ready', text: list[0] };
+  if (kind === 'pipeline' || kind === 'watch') kind = 'convert';                       // Make an HD Pack starts from an RT64 dump
   if (kind === 'unpack') {
     if (!fs.statSync(list[0]).isFile()) return { state: 'error', title: 'Not a file', text: 'Choose an .rtz pack file.\n' + list[0] };
     let info;
@@ -436,6 +437,96 @@ async function convertTask(p, ctx, tools) {
   return { title: 'Converted', written, failed: res.failed, output: p.output, packable: written > 0, seconds: (Date.now() - t0) / 1000 };
 }
 
+// ---------------------------------------------------------------- Make an HD Pack (Welcome): dump -> convert -> upscale -> pack
+// One job with one progress bar. The in-between folders sit next to the .rtz (<name>-textures, <name>-upscaled):
+// kept by default, so playing further and running it again only converts and upscales the new textures.
+async function pipelineTask(p, ctx, tools) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose the RT64 texture dump folder.');
+  if (!p.output) throw new Error('Choose where to save the .rtz.');
+  if (!/\.rtz$/i.test(p.output)) throw new Error('The pack name must end in .rtz.');
+  const base = p.output.replace(/\.rtz$/i, ''), converted = base + '-textures', upscaled = base + '-upscaled';
+  const steps = [['Convert', 0, 0.2], ['Upscale', 0.2, 0.9], ['Pack', 0.9, 1]];
+  const sub = (i) => {
+    const [name, a, b] = steps[i];
+    return { ...ctx, log: (t) => ctx.log(`${i + 1}/3 ${name}: ${t}`),
+      progress: (d, t, msg) => ctx.progress(Math.round((a + (b - a) * (t ? d / t : 0)) * 1000), 1000, `Step ${i + 1} of 3 · ${name}${msg ? ' · ' + msg : ''}`) };
+  };
+  const c = await convertTask({ input: p.input, output: converted, format: 'png', ddsFormat: 'auto', wrapInfo: true, rice: true, onlyNew: true }, sub(0), tools);
+  if (ctx.cancelled()) throw new Cancelled();
+  const up = { inputs: [converted], output: upscaled, subfolders: true, existing: 'skip', copyOther: true, maxSize: p.maxSize, aiOk: p.aiOk,
+    method: p.method, size: p.size, fit: p.fit, sharpness: p.sharpness, edges: p.edges || 'auto', hardAlpha: p.hardAlpha, format: p.format, ddsFormat: p.ddsFormat, keepCoverage: p.keepCoverage };
+  const u = await upscaleTask(up, sub(1), tools);
+  if (ctx.cancelled()) throw new Cancelled();
+  const k = await packTask({ input: upscaled, output: p.output, compression: 'zstd', level: 'balanced', lowMipCache: true,
+    recomp: p.recomp, recompName: p.recompName, recompAuthor: p.recompAuthor, recompVersion: p.recompVersion, recompDescription: p.recompDescription,
+    recompGame: p.recompGame, recompThumb: p.recompThumb, recompToggle: p.recompToggle }, sub(2));
+  if (p.keep === false) {
+    for (const d of [converted, upscaled]) fs.rmSync(d, { recursive: true, force: true });
+    ctx.log('Removed the in-between folders.');
+  }
+  ctx.log(`Made ${path.basename(p.output)}: ${c.written.toLocaleString()} converted, ${u.written.toLocaleString()} upscaled, ${k.written.toLocaleString()} textures in the pack.`);
+  return { title: 'Made an HD pack with', written: k.written, failed: (c.failed || 0) + (u.failed || 0), output: k.output, sizeMB: k.sizeMB, checkable: true,
+    folders: p.keep === false ? null : { converted, upscaled }, seconds: (Date.now() - t0) / 1000 };
+}
+
+// ---------------------------------------------------------------- Watch mode (Convert): new dumps as RT64 writes them
+// Runs until stopped. Every few seconds it looks at the dump folder; once new dumps stop arriving for a moment,
+// they're converted (and upscaled with the chosen preset). Stopping can rebuild the .rtz.
+async function watchTask(p, ctx, tools) {
+  const t0 = Date.now();
+  if (!p.input || !fs.existsSync(p.input)) throw new Error('Choose the RT64 texture dump folder.');
+  if (!p.output) throw new Error('Choose the output folder.');
+  const upscaled = p.upscaleOutput || p.output.replace(/[\\/]+$/, '') + '-upscaled';
+  const every = p.intervalMs || 3000, stamp = () => new Date().toTimeString().slice(0, 8);
+  const quiet = { ...ctx, log: () => {}, progress: () => {} };
+  const conv = { input: p.input, output: p.output, format: p.format || 'png', ddsFormat: p.ddsFormat || 'auto', wrapInfo: true, rice: p.rice !== false, onlyNew: true };
+  const listOut = () => new Set(fs.existsSync(path.join(p.output, 'textures')) ? fs.readdirSync(path.join(p.output, 'textures')) : []);
+  let total = 0, upTotal = 0;
+  const batch = async (first) => {
+    const before = listOut();
+    const c = await convertTask(conv, quiet, tools);
+    const fresh = [...listOut()].filter((f) => !before.has(f));
+    if (first) ctx.log(`${stamp()}  Started watching ${p.input} · ${(before.size).toLocaleString()} already converted${fresh.length ? `, ${fresh.length.toLocaleString()} caught up` : ''}`);
+    if (!fresh.length && !first) return;
+    if (!first) total += fresh.length;                               // the catch-up at the start isn't "new this session"
+    let tail = '';
+    if (p.mode === 'upscale' && (fresh.length || first)) {
+      const u = await upscaleTask({ ...p.upscale, inputs: [p.output], output: upscaled, subfolders: true, existing: 'skip', copyOther: false, maxSize: p.maxSize }, quiet, tools);
+      for (const f of [DATABASE, tiling.TILING]) if (fs.existsSync(path.join(p.output, f))) fs.copyFileSync(path.join(p.output, f), path.join(upscaled, f));   // always the newest list
+      upTotal += u.written;
+      tail = ` → upscaled (${p.presetName || 'preset'})`;
+    }
+    if (fresh.length && !first) {
+      const names = fresh.slice(0, 3).map((f) => f.replace(/\.(png|dds)$/i, '')).join(', ');
+      ctx.log(`${stamp()}  +${fresh.length}  ${names}${fresh.length > 3 ? ` and ${fresh.length - 3} more` : ''}${tail}`);
+    }
+    ctx.progress(total, total, `${total.toLocaleString()} new this session${c.failed ? `, ${c.failed} failed` : ''}`);
+  };
+  const sleep = async (ms) => { for (let t = 0; t < ms && !ctx.cancelled(); t += 200) await new Promise((r) => setTimeout(r, 200)); };
+  const count = () => { try { return findDumps(p.input).files.length; } catch { return -1; } };
+  await batch(true);
+  ctx.progress(0, 0, 'Watching for new textures…');
+  let last = count(), pending = false;
+  while (!ctx.cancelled()) {
+    await sleep(every);
+    if (ctx.cancelled()) break;
+    const n = count();
+    if (n > last) { pending = true; last = n; continue; }            // still arriving: wait until it settles
+    if (pending) { pending = false; try { await batch(false); } catch (e) { ctx.log(`${stamp()}  ${e.message}`); } }
+  }
+  // Stopped. Rebuild the pack if asked (not cancellable: it's quick and the user asked for it).
+  const done = { ...ctx, cancelled: () => false, onCancel: () => {} };
+  let pack = null;
+  if (p.repack && p.packOutput && (total || !fs.existsSync(p.packOutput))) {
+    ctx.log(`${stamp()}  Rebuilding ${path.basename(p.packOutput)}…`);
+    pack = await packTask({ input: p.mode === 'upscale' ? upscaled : p.output, output: p.packOutput, compression: 'zstd', level: 'balanced', lowMipCache: true }, done);
+  }
+  ctx.log(`${stamp()}  Stopped watching: ${total.toLocaleString()} new texture(s) this session${upTotal ? `, ${upTotal.toLocaleString()} upscaled` : ''}${pack ? `, packed into ${path.basename(pack.output)}` : ''}.`);
+  return { title: 'Watched:', written: total, failed: 0, output: pack ? pack.output : (p.mode === 'upscale' ? upscaled : p.output), sizeMB: pack ? pack.sizeMB : undefined,
+    checkable: !!pack, packable: !pack && total > 0, seconds: (Date.now() - t0) / 1000 };
+}
+
 // ---------------------------------------------------------------- 3) pack
 async function packTask(p, ctx) {
   const t0 = Date.now();
@@ -734,4 +825,4 @@ async function preview(req, tools) {
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } if (romPool) { const p = romPool; romPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, pipelineTask, watchTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, closePreview, aiArgs, Cancelled, Pool };

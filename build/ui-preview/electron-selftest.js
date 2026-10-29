@@ -336,6 +336,65 @@ module.exports = async ({ app, win }) => {
   await wait(200); await shot('run-rom-tools');
 
   fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n');
+  // v0.8 workflow. Welcome: six quick starts; tile 1 folds them into a strip and opens Make an HD Pack.
+  await js("closeModal(); document.querySelector('#home').click()"); await wait(300);
+  check((await js("document.querySelectorAll('.qt-grid .qt').length")) === 6, 'Welcome: six quick-start tiles');
+  await js("document.querySelector('[data-qt=\"1\"]').click()"); await wait(300);
+  check(await js("!!document.querySelector('.qt-strip .qs.on') && !document.querySelector('.qt-grid') && !!document.querySelector('#pipe-go')"), 'Welcome: tile 1 folds the tiles into a strip and opens Make an HD Pack');
+  await shot('welcome-make-hd-pack');
+  const pipeOut = JSON.stringify(path.join(out, 'pipe', 'majora-hd.rtz'));
+  const pr = await runAndWait(`cfg.pipeline.input = ${dump}; cfg.pipeline.output = ${pipeOut}; cfg.pipeline.preset = 'hd'; cfg.pipeline.keep = true; render();`, 'pipeline');
+  check(pr && pr.result && pr.result.written === 2 && fs.existsSync(path.join(out, 'pipe', 'majora-hd.rtz')), 'Make an HD Pack: dump to .rtz in one job (2 textures)');
+  check(await js("document.querySelectorAll('.mk-steps .st.done').length === 3"), 'Make an HD Pack: all three steps ticked');
+  await shot('welcome-make-hd-pack-done');
+  await js("document.querySelector('[data-qt=\"3\"]').click()"); await wait(400);
+  check(await js("page === 'convert' && cfg.convert.watch === 'upscale' && taskOf(page) === 'watch' && document.querySelector('#go').textContent.startsWith('WATCH')"), 'Welcome tile 3 opens Convert with watch mode on');
+
+  // Watch mode: start, a new dump arrives, it's converted and upscaled; STOP repacks.
+  const wdump = path.join(out, 'watch-dump'); fs.mkdirSync(wdump, { recursive: true });
+  for (const f of fs.readdirSync(process.env.HTK_DUMP)) fs.copyFileSync(path.join(process.env.HTK_DUMP, f), path.join(wdump, f));
+  const wconv = path.join(out, 'watch-conv'), wpack = path.join(out, 'live.rtz');
+  await js(`cfg.convert.input = ${JSON.stringify(wdump)}; cfg.convert.output = ${JSON.stringify(wconv)}; cfg.convert.watchPreset = 'hd'; cfg.convert.watchRepack = true; cfg.convert.watchPack = ${JSON.stringify(wpack)}; render();`); await wait(300);
+  await js("window.__done = null; start('watch')"); await wait(2500);
+  check(await js("job.running && job.task === 'watch' && document.querySelector('#go').textContent.startsWith('STOP') && /Watching your dump folder/.test(document.querySelector('#status').innerText)"), 'Watch: running, the big button says STOP');
+  for (const f of fs.readdirSync(process.env.HTK_DUMP)) fs.copyFileSync(path.join(process.env.HTK_DUMP, f), path.join(wdump, f.replace(/^aaaa/, 'cccc').replace(/^bbbb/, 'dddd')));
+  let fed = false; for (let i = 0; i < 80 && !fed; i++) { await wait(200); fed = await js("job.log.some((l) => /\\+2 .*upscaled/.test(l))"); }
+  check(fed, 'Watch: two new dumps converted and upscaled, in the live feed');
+  await shot('watch-mode');
+  await js("go()"); for (let i = 0; i < 80 && (await js('job.running')); i++) await wait(200);
+  check(fs.existsSync(wpack) && (await js("job.result && job.result.written === 2")), 'Watch: STOP rebuilds the .rtz');
+  await js("cfg.convert.watch = 'off'; render()");
+
+  // Queue: paused, add an upscale and a pack chained to its output, resume; both run; notify at the end.
+  await js("QUEUE.paused = true"); 
+  await js(`document.querySelector('nav button[data-page="upscale"]').click()`); await wait(300);
+  const q1 = path.join(out, 'q-up');
+  await js(`cfg.upscale.inputs = [${conv}]; cfg.upscale.output = ${JSON.stringify(q1)}; document.querySelector('.pcard[data-preset="hd"]').click();`); await wait(400);
+  check(await js("!document.querySelector('#qadd').hidden"), '+ QUEUE shows next to the big button');
+  const qpos = await js("(() => { const q = document.querySelector('#qadd').getBoundingClientRect(), g = document.querySelector('#go').getBoundingClientRect(), v = document.querySelector('#save').getBoundingClientRect(); return { gapSave: Math.round(q.left - v.right), gapGo: Math.round(g.left - q.right) }; })()");
+  check(qpos.gapSave >= 8 && qpos.gapGo >= 4, `+ QUEUE clear of Save and the big button (${JSON.stringify(qpos)})`);
+  for (const pg of ['convert', 'pack', 'ports', 'legacy']) {
+    await js(`document.querySelector('nav button[data-page="${pg}"]').click()`); await wait(250);
+    const g = await js("(() => { const q = document.querySelector('#qadd'); if (q.hidden) return 99; return Math.round(q.getBoundingClientRect().left - document.querySelector('#save').getBoundingClientRect().right); })()");
+    if (g < 8) check(false, `+ QUEUE overlaps Save on ${pg} (${g})`);
+  }
+  await js(`document.querySelector('nav button[data-page="upscale"]').click()`); await wait(250);
+  await js("document.querySelector('#qadd').click()"); await wait(300);
+  await js(`document.querySelector('nav button[data-page="pack"]').click()`); await wait(300);
+  await js(`cfg.pack.mode = 'pack'; cfg.pack.output = ${JSON.stringify(path.join(out, 'q.rtz'))}; render();`); await wait(300);
+  await js("document.querySelector('[data-chain=\"pack.input\"]').click()"); await wait(200);
+  await js("document.querySelector('.chain-pick').click()"); await wait(500);
+  check(/Waiting for queue #1/.test(await js("document.querySelector('#status .t').textContent")), 'Queue: a pack chained to queue #1’s output waits for it');
+  await js("document.querySelector('#qadd').click()"); await wait(300);
+  await js(`document.querySelector('nav button[data-page="queue"]').click()`); await wait(300);
+  check((await js("document.querySelectorAll('.qitem.waiting').length")) === 2 && (await js("document.querySelector('#qcount').textContent")) === '2', 'Queue page: two waiting, count in the menu');
+  await shot('queue-waiting');
+  await js("document.querySelector('#q-pause').click()");
+  for (let i = 0; i < 150 && (await js("QUEUE.items.some((x) => x.status !== 'done' && x.status !== 'failed')")); i++) await wait(200);
+  check(await js("QUEUE.items.every((x) => x.status === 'done')") && fs.existsSync(path.join(out, 'q.rtz')), 'Queue: both jobs ran, the pack used the upscaled output');
+  check(await js("page === 'queue'"), 'Queue: stays on the page you’re on');
+  await shot('queue-done');
+
   // The footer director on a pretend long job: a scene that fits the time left, then the endings.
   await js(`document.querySelector('nav button[data-page="upscale"]').click()`); await wait(300);
   await js("window.__fakeJob = { n: 0 }; Wizard.jobStart('upscale'); window.__fakeT = setInterval(() => { window.__fakeJob.n++; Wizard.progress(window.__fakeJob.n, 400); }, 100)");

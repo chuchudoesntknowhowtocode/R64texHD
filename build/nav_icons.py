@@ -174,6 +174,17 @@ def about():
     return outline(im)
 
 
+def queue():
+    """a list with a play arrow: jobs lined up"""
+    im = new()
+    rows = [(4, (255, 154, 106)), (12, (196, 140, 255)), (20, (196, 140, 255))]
+    for y, c in rows:
+        rect(im, 2, y, 5, y + 4, c + (255,)); rect(im, 8, y + 1, 22, y + 3, (241, 228, 255, 255)); rect(im, 8, y + 3, 22, y + 3, (185, 166, 214, 255))
+    for i in range(7):                                                     # play arrow, right
+        rect(im, 24, 9 + i, 24 + min(i, 6 - i), 9 + i, (63, 207, 122, 255))
+    return outline(im)
+
+
 def cutout(im, step=22):
     """removes the background: everything joined to the border by small colour steps (flat white, or a soft gradient)"""
     from collections import deque
@@ -231,7 +242,7 @@ def from_image(src, label=None, step=22, crop_top=0):
     return out
 
 
-ICONS = {'upscale': upscale, 'rtz': rtz, 'roms': roms, 'settings': settings, 'about': about,
+ICONS = {'queue': queue, 'upscale': upscale, 'rtz': rtz, 'roms': roms, 'settings': settings, 'about': about,
          'rt64': lambda: from_image('rt64-source.png'), 'classic': lambda: from_image('g64-source.png'),
          'ship': lambda: from_image('ship-source.png', '.o2r', step='hue', crop_top=0.16)}
 

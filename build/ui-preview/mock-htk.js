@@ -76,7 +76,7 @@
       version: '0.8.0.1', platform: 'win32', cpus: 16, workers: 8, running: null, shipPorts: (window.__SHIP || {}).ports || [] }),
     saveSettings: async () => true,
     dialog: async () => null,
-    inspect: async (kind) => { const r = INSPECT[kind] || ['idle', '', '']; return { state: r[0], title: r[1], text: r[2] }; },
+    inspect: async (kind) => { const r = INSPECT[kind === 'pipeline' ? 'convert' : kind] || ['idle', '', '']; return { state: r[0], title: r[1], text: r[2] }; },
     run: async (task) => {
       setTimeout(() => {
         const R = window.__ROMS || { list: [], folder: 'D:\\N64\\ROMs' };
@@ -109,6 +109,7 @@
       return { count: 4812, disk: Math.round(2.36e9 * k * (sz / 4) ** 2 * (req.format === 'png' ? 1.7 : 1)), vram: Math.round(6.7e8 * (sz / 4) ** 2 * (req.format === 'png' ? 4 : 1)), seconds: Math.round(370 * k * (sz / 4) ** 2), groups: { hd: 3904, ai: req.aiOk === false ? 0 : 702, pixel: 206 }, smart: req.method === 'smart', aiReady: req.aiOk !== false }; },
     gpuInfo: async () => ({ ok: true, loader: true, gpus: [{ name: 'NVIDIA GeForce RTX 3070', vram: 8589934592, vulkan: true }, { name: 'Intel(R) UHD Graphics 630', vram: 134217728, vulkan: false }] }),
     taskbar: async () => true,
+    notify: async () => true,
     // Ship Mods: looks at each port and the chosen archive again (the real app reads portVersion; core/shipcheck.js).
     shipCheck: async (ports, target) => {
       const id = target ? await window.htk.shipIdentify(target) : null;
