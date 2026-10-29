@@ -89,10 +89,12 @@ def rtz():
         for j in range(i + 1):
             px(im, 21 + j, 2 + i, fold)
     rect(im, 26, 8, 26, 29, shade); rect(im, 5, 29, 26, 29, shade)
-    # zipper teeth down the middle, then the pull
-    for y in range(3, 17):
-        px(im, 14 if y % 2 else 15, y, (80, 60, 30, 255)); px(im, 15 if y % 2 else 14, y, (255, 255, 255, 255))
-    rect(im, 13, 17, 16, 21, (154, 163, 181, 255)); rect(im, 14, 18, 15, 20, (60, 64, 80, 255))
+    # zipper: a dark track with big silver teeth, then a large pull tab
+    rect(im, 12, 2, 18, 15, (60, 40, 20, 255))
+    for y in range(2, 15, 2):
+        rect(im, 12, y, 14, y, (230, 234, 245, 255)); rect(im, 16, y + 1, 18, y + 1, (230, 234, 245, 255))
+    rect(im, 11, 15, 19, 21, (154, 163, 181, 255)); rect(im, 11, 15, 19, 15, (230, 234, 245, 255)); rect(im, 19, 16, 19, 21, (91, 98, 116, 255))
+    rect(im, 14, 17, 16, 19, (40, 30, 50, 255))
     # .rtz label
     rect(im, 3, 22, 28, 29, (242, 112, 107, 255)); rect(im, 3, 29, 28, 29, (168, 50, 60, 255))
     text3(im, '.rtz', 8, 23, (255, 255, 255, 255))
@@ -205,26 +207,33 @@ def cutout_hue(im, lo=42, hi=150, smin=0.22, vmin=0.4):
     return im
 
 
-def from_image(src, label=None, step=22):
+def from_image(src, label=None, step=22, crop_top=0):
     """the owner's image: background removed, cropped, scaled to 32 x 32 (optional label on top)"""
     im = Image.open(os.path.join(HERE, 'nav-src', src)).convert('RGBA')
     im = cutout_hue(im) if step == 'hue' else cutout(im, step)
     im = im.crop(im.getbbox())
-    bw, bh = (32, 24) if label else (30, 30)                          # with a label: leave room for it at the bottom
+    if crop_top:                                                         # e.g. the ship's flag pole, so the ship itself can be bigger
+        im = im.crop((0, round(im.height * crop_top), im.width, im.height)); im = im.crop(im.getbbox())
+    bw, bh = (32, 31) if label else (30, 30)                          # with a label: leave room for it at the bottom
     s = min(bw / im.width, bh / im.height)
     im = im.resize((max(1, round(im.width * s)), max(1, round(im.height * s))), Image.LANCZOS)
-    out = new(); out.alpha_composite(im, ((N - im.width) // 2, 0 if label else (N - im.height) // 2))
+    if crop_top:                                                         # small photo-like art: crisper and punchier at 32 px
+        from PIL import ImageEnhance, ImageFilter
+        a_ = im.split()[3]; rgb = im.convert('RGB').filter(ImageFilter.UnsharpMask(radius=1, percent=70, threshold=2))
+        rgb = ImageEnhance.Contrast(ImageEnhance.Color(rgb).enhance(1.15)).enhance(1.1)
+        im = rgb.convert('RGBA'); im.putalpha(a_)
+    out = new(); out.alpha_composite(im, ((N - im.width) // 2 - (2 if label else 0), 0 if label else (N - im.height) // 2))
     if label:                                                            # e.g. .o2r, like the .rtz icon
         lab = new()
-        rect(lab, 3, 24, 28, 30, (196, 140, 255, 255)); rect(lab, 3, 30, 28, 30, (123, 85, 179, 255))
-        text3(lab, label, 8, 25, (255, 255, 255, 255))
+        rect(lab, 13, 24, 30, 30, (196, 140, 255, 255)); rect(lab, 13, 30, 30, 30, (123, 85, 179, 255))   # small tag, bottom right
+        text3(lab, label, 15, 25, (255, 255, 255, 255))
         out.alpha_composite(outline(lab))
     return out
 
 
 ICONS = {'upscale': upscale, 'rtz': rtz, 'roms': roms, 'settings': settings, 'about': about,
          'rt64': lambda: from_image('rt64-source.png'), 'classic': lambda: from_image('g64-source.png'),
-         'ship': lambda: from_image('ship-source.png', '.o2r', step='hue')}
+         'ship': lambda: from_image('ship-source.png', '.o2r', step='hue', crop_top=0.16)}
 
 if __name__ == '__main__':
     for name, fn in ICONS.items():
