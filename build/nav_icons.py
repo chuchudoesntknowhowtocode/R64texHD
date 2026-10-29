@@ -246,7 +246,18 @@ ICONS = {'queue': queue, 'upscale': upscale, 'rtz': rtz, 'roms': roms, 'settings
          'rt64': lambda: from_image('rt64-source.png'), 'classic': lambda: from_image('g64-source.png'),
          'ship': lambda: from_image('ship-source.png', '.o2r', step='hue', crop_top=0.16)}
 
+def centred(im):
+    """moves the drawing so its visible part sits in the middle of the 32 x 32 square"""
+    box = im.getbbox()
+    if not box: return im
+    dx, dy = (N - (box[2] - box[0])) // 2 - box[0], (N - (box[3] - box[1])) // 2 - box[1]
+    out = new(); out.alpha_composite(im, (dx, dy)) if dx >= 0 and dy >= 0 else out.paste(im, (dx, dy), im)
+    return out
+
+
 if __name__ == '__main__':
     for name, fn in ICONS.items():
-        fn().save(os.path.join(OUT, name + '.png'))
+        im = fn()
+        if name != 'ship': im = centred(im)                     # the ship's .o2r tag sits bottom right on purpose
+        im.save(os.path.join(OUT, name + '.png'))
         print(name)

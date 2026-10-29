@@ -45,9 +45,9 @@ nav button:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: 
 nav .spacer { flex: 1; }
 /* Six pages plus Settings / About: a little tighter so all fit at 800 px high, and never squashed. */
 nav > *, nav button { flex-shrink: 0; }   /* "all: unset" on buttons would bring shrinking back */
-nav { gap: 4px; }
-nav button { padding: 8px 14px; }
-nav .grp { margin-top: 8px; }
+nav { gap: 2px; }
+nav button { padding: 7px 14px; }
+nav .grp { margin-top: 6px; }
 nav.locked button { pointer-events: none; opacity: .45; }
 
 .page { background: var(--panel); border-radius: var(--r); padding: 22px 26px 18px; overflow: auto; min-height: 0; }
@@ -607,19 +607,20 @@ main { --navw: 272px; grid-template-columns: var(--navw) minmax(0, 1fr); transit
 .nav-fold { position: absolute; z-index: 5; left: calc(18px + var(--navw) - 11px); top: 50%; transform: translateY(-50%); width: 22px; height: 54px; padding: 0;
   display: grid; place-items: center; font-size: 10px; color: var(--text); --step: 2px; }
 .nav-fold:active { transform: translateY(calc(-50% + 1px)); }
-nav button .n.c-only { display: none; }
+/* the same icons open and folded: the number chips give way to them */
+nav button .n:not(.ic) { display: none; }
+nav button .n.ic { width: 30px; height: 30px; background: transparent; display: grid; place-items: center; margin: -4px 0; }
+nav button .n.ic img { width: 26px; height: 26px; display: block; }
+nav button.active .n.ic { background: rgba(43,11,40,.25); }
 main.folded { --navw: 64px; }
 main.folded nav { padding: 4px 0; }
 main.folded nav .grp { font-size: 0; height: 2px; margin: 6px 14px 5px; background: #3b2657; }
 main.folded nav .grp:first-child { margin-top: 8px; }
 main.folded nav button { font-size: 0; justify-content: center; padding: 4px 0; gap: 0; position: relative; }
 main.folded nav { overflow: hidden; }
-main.folded nav button .n { width: 36px; height: 36px; }
-main.folded nav button .n.ic img { display: block; }
-main.folded nav button .n:not(.ic) { display: none; }
-main.folded nav button .n.c-only { display: grid; }
-main.folded nav button.active .n.ic { background: rgba(43,11,40,.25); }
-main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
+main.folded nav button .n.ic { width: 36px; height: 36px; margin: 0; }
+main.folded nav button .n.ic img { width: 32px; height: 32px; }
+main.folded nav button .badge { position: absolute; top: 2px; right: 4px; width: 12px !important; height: 12px !important; }
 
 /* Welcome: quick-start tiles, and the strip they fold into */
 .qt-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 14px 0 14px; }
