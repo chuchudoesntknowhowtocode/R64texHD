@@ -605,11 +605,14 @@ main { --navw: 272px; grid-template-columns: var(--navw) minmax(0, 1fr); transit
 nav button .n.c-only { display: none; }
 main.folded { --navw: 64px; }
 main.folded nav { padding: 4px 0; }
-main.folded nav .grp { font-size: 0; height: 2px; margin: 9px 14px 7px; background: #3b2657; }
+main.folded nav .grp { font-size: 0; height: 2px; margin: 6px 14px 5px; background: #3b2657; }
 main.folded nav .grp:first-child { margin-top: 8px; }
-main.folded nav button { font-size: 0; justify-content: center; padding: 8px 0; gap: 0; position: relative; }
-main.folded nav button .n { font-size: 12px; width: 26px; height: 26px; }
+main.folded nav button { font-size: 0; justify-content: center; padding: 4px 0; gap: 0; position: relative; }
+main.folded nav { overflow: hidden; }
+main.folded nav button .n { width: 32px; height: 32px; }
+main.folded nav button .n:not(.ic) { display: none; }
 main.folded nav button .n.c-only { display: grid; }
+main.folded nav button.active .n.ic { background: rgba(43,11,40,.25); }
 main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
 </style>
 </head>
@@ -635,19 +638,19 @@ main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
   <main>
     <nav id="nav">
       <div class="grp">Make it HD</div>
-      <button data-page="upscale"><span class="n">1</span>Upscale Textures</button>
+      <button data-page="upscale"><span class="n">1</span><span class="n ic c-only" data-icon="upscale"></span>Upscale Textures</button>
       <div class="grp">RT64 · Recomps</div>
-      <button data-page="convert"><span class="n">2</span>Convert RT64 Dump</button>
-      <button data-page="pack"><span class="n">3</span>Pack / Check .rtz</button>
+      <button data-page="convert"><span class="n">2</span><span class="n ic c-only" data-icon="rt64"></span>Convert RT64 Dump</button>
+      <button data-page="pack"><span class="n">3</span><span class="n ic c-only" data-icon="rtz"></span>Pack / Check .rtz</button>
       <div class="grp">Ship Ports</div>
-      <button data-page="ports"><span class="n">4</span>Ship Mods .o2r</button>
+      <button data-page="ports"><span class="n">4</span><span class="n ic c-only" data-icon="ship"></span>Ship Mods .o2r</button>
       <div class="grp">Classic Packs</div>
-      <button data-page="legacy"><span class="n">5</span>Rice / GLideN64</button>
+      <button data-page="legacy"><span class="n">5</span><span class="n ic c-only" data-icon="classic"></span>Rice / GLideN64</button>
       <div class="grp">ROM Tools</div>
-      <button data-page="roms"><span class="n">6</span>ROM Tools</button>
+      <button data-page="roms"><span class="n">6</span><span class="n ic c-only" data-icon="roms"></span>ROM Tools</button>
       <div class="spacer"></div>
-      <button data-page="settings"><span class="n c-only">⚙</span>Settings<span class="badge" id="tools-badge" hidden title="A helper tool isn’t downloaded yet"></span></button>
-      <button data-page="about"><span class="n c-only">i</span>About</button>
+      <button data-page="settings"><span class="n ic c-only" data-icon="settings"></span>Settings<span class="badge" id="tools-badge" hidden title="A helper tool isn’t downloaded yet"></span></button>
+      <button data-page="about"><span class="n ic c-only" data-icon="about"></span>About</button>
     </nav>
     <button class="btn nav-fold" id="nav-fold" title="Collapse the menu" aria-label="Collapse the menu" aria-expanded="true">◀</button>
     <section class="page" id="page"></section>
@@ -671,6 +674,7 @@ main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
 <div class="toast" id="toast"></div>
 
 <script src="pixel-icons.js"></script>
+<script src="nav-icons.js"></script>
 <script src="wizard.js"></script>
 <script src="music.js"></script>
 <script>
@@ -1444,6 +1448,7 @@ function renderJob() {
 function modal(html) { $('#dialog').innerHTML = html; $('#modal').hidden = false; }
 function closeModal() { $('#modal').hidden = true; }
 function applyNavFold() {
+  document.querySelectorAll('nav [data-icon]').forEach((el) => { if (!el.innerHTML) el.innerHTML = navIcon(el.dataset.icon); });
   const f = cfg.navFolded === true, b = $('#nav-fold');
   $('main').classList.toggle('folded', f);
   b.textContent = f ? '▶' : '◀'; b.title = f ? 'Show the menu' : 'Collapse the menu'; b.setAttribute('aria-label', b.title); b.setAttribute('aria-expanded', String(!f));
