@@ -1210,8 +1210,8 @@ function wizardSettings() {
 // Pixel speaker for the mute button: sound waves, or a red X when muted.
 function speakerIcon(muted) {
   const rows = muted
-    ? ['............', '.....w......', '....ww......', '.wwwww.r...r', '.wwwww..r.r.', '.wwwww...r..', '.wwwww..r.r.', '.wwwww.r...r', '....ww......', '.....w......', '............', '............']
-    : ['............', '.....w....v.', '....ww..v..v', '.wwwww...v.v', '.wwwww.v..v.', '.wwwww.v..v.', '.wwwww.v..v.', '.wwwww...v.v', '....ww..v..v', '.....w....v.', '............', '............'];
+    ? ['............', '............', '.....w......', '....ww......', '.wwwww.r...r', '.wwwww..r.r.', '.wwwww...r..', '.wwwww..r.r.', '....ww.r...r', '.....w......', '............', '............']
+    : ['............', '............', '.....w...v..', '....ww....v.', '.wwwww.v...v', '.wwwww..v..v', '.wwwww..v..v', '.wwwww.v...v', '....ww....v.', '.....w...v..', '............', '............'];
   const C = { w: '#f1e4ff', v: '#c48cff', r: '#ff6464' };
   let r = ''; rows.forEach((row, y) => [...row].forEach((ch, x) => { if (C[ch]) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${C[ch]}"/>`; }));
   return `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
