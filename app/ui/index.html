@@ -152,7 +152,11 @@ footer { position: relative; height: 100px; flex: none; }
 .stage .home-btn { position: absolute; left: 16px; top: 14px; margin: 0; z-index: 5; }
 .stage #quit { position: absolute; left: 742px; top: 27px; z-index: 5; }
 footer #save { position: absolute; left: 886px; top: 27px; z-index: 5; }
-footer #go { position: absolute; right: 18px; top: 21px; z-index: 5; }
+footer #go { position: absolute; right: 66px; top: 21px; z-index: 5; min-width: 166px; }
+/* Mute: bottom right corner, silences music and sound effects without changing their settings */
+footer #mute { position: absolute; right: 18px; top: 26px; z-index: 5; width: 40px; height: 50px; padding: 0; display: grid; place-items: center; --step: 2px; }
+footer #mute svg { width: 24px; height: 24px; display: block; }
+footer #mute.on { background: #4a1820; box-shadow: inset 0 0 0 2px #7d2a36, inset 0 -3px 0 rgba(0,0,0,.35); }
 body.job-on .stage .fx-click { cursor: pointer; }
 /* While a job runs on this page: its status card stays at the top, its options are locked (Cancel still works). */
 #page.locked #status { position: sticky; top: 0; z-index: 6; }
@@ -668,6 +672,7 @@ main.folded nav button .badge { position: absolute; top: 3px; right: 8px; }
     </div>
     <button class="foot-btn" id="save">Save</button>
     <button class="go" id="go">UPSCALE ▶</button>
+    <button class="foot-btn mute" id="mute" title="Mute all sound" aria-label="Mute all sound" aria-pressed="false"></button>
   </footer>
 </div>
 
@@ -805,7 +810,7 @@ function sceneLibraryControl() {
     : L.total ? `${L.here} of ${L.total} scenes here` : 'Scenes not found';
   return `<div class="path"><div class="tool" style="flex:1" id="scene-lib">${text}</div>${all ? '' : `<button class="btn" id="scenes-get" ${d.state === 'busy' || d.state === 'none' ? 'disabled' : ''}>${d.state === 'failed' ? 'Try again' : 'Download now'}</button>`}</div>`;
 }
-const nowPlaying = (n) => (cfg.musicOn === false ? 'Music is off' : n ? `${n.mode === 'dmt' ? 'Psychedelic · ' : ''}${esc(n.name)}${n.custom ? ' (yours)' : ''}` : 'Nothing to play');
+const nowPlaying = (n) => (cfg.muted === true ? 'Muted (the speaker button, bottom right)' : cfg.musicOn === false ? 'Music is off' : n ? `${n.mode === 'dmt' ? 'Psychedelic · ' : ''}${esc(n.name)}${n.custom ? ' (yours)' : ''}` : 'Nothing to play');
 // The graphics card line above Real-ESRGAN's Downloaded line: Vulkan icon, model, video memory.
 let GPU = null;
 function gpuLines() {
@@ -912,7 +917,7 @@ function setVal(key, v) {
 
 // Settings added in 0.7: filled in here so older settings files keep working.
 const NEW_DEFAULTS = {
-  splash: true, cleanPhrases: false, navFolded: false, aiGpu: 'auto', aiTile: 'auto',
+  splash: true, cleanPhrases: false, navFolded: false, muted: false, aiGpu: 'auto', aiTile: 'auto',
   sceneAnimations: true, wizFights: true, psychedelic: false, idlePeeks: true, poking: true, soundEffects: false, soundVolume: 60, musicOn: true, musicVolume: 35, musicSource: 'all', wizardWins: 0, wizardBonusAt: 0,
   upscale: { keepCoverage: true },
   convert: { wrapInfo: true, rice: true, onlyNew: false },
@@ -1200,9 +1205,24 @@ function toolsDone() { closeModal(); if (toolsBackTo) { page = toolsBackTo; cfg.
 // ---------------------------------------------------------------- the wizard in the footer (wizard.js)
 function wizardSettings() {
   return { sceneAnimations: cfg.sceneAnimations, fights: cfg.wizFights, psychedelic: cfg.psychedelic === true, idlePeeks: cfg.idlePeeks,
-    poking: cfg.poking, soundEffects: cfg.soundEffects === true, soundVolume: cfg.soundVolume };
+    poking: cfg.poking, soundEffects: cfg.soundEffects === true && cfg.muted !== true, soundVolume: cfg.soundVolume };
 }
-function musicSettings() { return { musicOn: cfg.musicOn !== false, musicVolume: cfg.musicVolume, musicSource: cfg.musicSource || 'all', psychedelic: cfg.psychedelic === true }; }
+// Pixel speaker for the mute button: sound waves, or a red X when muted.
+function speakerIcon(muted) {
+  const rows = muted
+    ? ['............', '.....w......', '....ww......', '.wwwww.r...r', '.wwwww..r.r.', '.wwwww...r..', '.wwwww..r.r.', '.wwwww.r...r', '....ww......', '.....w......', '............', '............']
+    : ['............', '.....w....v.', '....ww..v..v', '.wwwww...v.v', '.wwwww.v..v.', '.wwwww.v..v.', '.wwwww.v..v.', '.wwwww...v.v', '....ww..v..v', '.....w....v.', '............', '............'];
+  const C = { w: '#f1e4ff', v: '#c48cff', r: '#ff6464' };
+  let r = ''; rows.forEach((row, y) => [...row].forEach((ch, x) => { if (C[ch]) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${C[ch]}"/>`; }));
+  return `<svg viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+function applyMute() {
+  const b = $('#mute'), m = cfg.muted === true;
+  b.innerHTML = speakerIcon(m); b.classList.toggle('on', m);
+  b.title = m ? 'Sound is muted: click to unmute' : 'Mute all sound'; b.setAttribute('aria-label', b.title); b.setAttribute('aria-pressed', String(m));
+  if (window.Music) Music.settingsChanged(); if (window.Wizard) Wizard.settingsChanged();
+}
+function musicSettings() { return { musicOn: cfg.musicOn !== false && cfg.muted !== true, musicVolume: cfg.musicVolume, musicSource: cfg.musicSource || 'all', psychedelic: cfg.psychedelic === true }; }
 // Clicking the empty bar while a job runs goes back to that job's page.
 function goToJobPage() {
   if (!job.running) return;
@@ -1572,6 +1592,7 @@ document.addEventListener('click', async (e) => {
   if (id === 'check-again') { recheck(); return; }
   if (id === 'mk-shortcuts') { const r = await window.htk.createShortcuts(); toast(r.ok ? 'Desktop shortcut created' : (r.error || 'Could not create the shortcut')); return; }
   if (id === 'open-repo') { window.htk.openRepo(); return; }
+  if (e.target.closest('#mute')) { cfg.muted = !cfg.muted; applyMute(); save(true); return; }
   if (e.target.closest('#nav-fold')) { cfg.navFolded = !cfg.navFolded; applyNavFold(); save(true); setTimeout(() => { if (page === 'upscale') drawPreview(); }, 220); return; }
   if (id === 'music-next') { Music.next(); return; }
   if (id === 'music-add') { const r = await window.htk.musicAdd(); if (r.added) { await Music.reload(); toast(`Added ${r.added} ${r.added === 1 ? 'track' : 'tracks'}`); render(); } return; }
@@ -2136,7 +2157,7 @@ setTimeout(() => { if (!$('#splash').hidden) hideSplash(); else showApp(); }, 60
   S = await window.htk.state();
   cfg = withDefaults(S.settings);
   $('#ver').textContent = 'v' + S.version;
-  applyNavFold();
+  applyNavFold(); applyMute();
   if (!Array.isArray(cfg.upscale.inputs)) cfg.upscale.inputs = cfg.upscale.inputs ? [cfg.upscale.inputs] : [];
   if (cfg.page === 'unpack') { cfg.page = 'pack'; cfg.pack.mode = 'unpack'; }
   if (cfg.page === 'setup') cfg.page = 'welcome';

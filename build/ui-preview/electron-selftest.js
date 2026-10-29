@@ -394,7 +394,18 @@ module.exports = async ({ app, win }) => {
   let egg = ''; for (let i = 0; i < 30 && !/^fight_elf_/.test(egg); i++) { await wait(100); egg = await js("(Wizard._debug().cur || {}).id || ''"); }
   check(/^fight_elf_/.test(egg), `hidden: 5 clicks on the pipe start the machine elf fight (${egg})`);
   await wait(4000); await shot('egg-elf');
-    // The left pane folds to a rail of number chips (and back), and remembers it.
+    // Mute: the speaker in the bottom right corner silences music and effects, and doesn't touch their settings.
+  await js(`document.querySelector('nav button[data-page="settings"]').click()`); await wait(400);
+  await js(`document.querySelector('.seg[data-key="musicOn"] button[data-v="true"]').click()`); await wait(2500);
+  const mr = await js("(() => { const r = (s) => document.querySelector(s).getBoundingClientRect(); const m = r('#mute'), g = r('#go'), sv = r('#save'); return { right: Math.round(innerWidth - m.right), bottom: Math.round(innerHeight - m.bottom), gap: Math.round(g.left - sv.right), between: Math.round(m.left - g.right) }; })()");
+  check(mr.right <= 20 && mr.bottom <= 26 && mr.gap > 0 && mr.between > 0, `mute button in the bottom right corner, clear of Save and the big button (${JSON.stringify(mr)})`);
+  await js("document.querySelector('#mute').click()"); await wait(1000);
+  check(await js("cfg.muted === true && Music._debug().paused && cfg.musicOn === true && wizardSettings().soundEffects === false && document.querySelector('#mute').classList.contains('on')"), 'mute: music stops and effects go quiet, settings unchanged');
+  await shot('muted');
+  await js("document.querySelector('#mute').click()"); await wait(2500);
+  check(await js("cfg.muted === false && !Music._debug().paused"), 'unmute: the music comes back');
+  await js(`document.querySelector('.seg[data-key="musicOn"] button[data-v="false"]').click()`); await wait(300);
+  // The left pane folds to a rail of number chips (and back), and remembers it.
   await js("document.querySelector('#nav-fold').click()"); await wait(400);
   const fold = await js("({ w: Math.round(document.querySelector('nav').getBoundingClientRect().width), f: cfg.navFolded, tip: document.querySelector('nav button[data-page=\"upscale\"]').title })");
   check(fold.f === true && fold.w <= 70 && fold.tip === 'Upscale Textures', `menu folds to a rail (${JSON.stringify(fold)})`);
