@@ -798,6 +798,13 @@ const sbox = (title, lead, body) => `<section class="sbox"><h3 class="section">$
 const sub = (title, body, depth = 1) => `<div class="ssub d${depth}"><h4>${title}</h4>${body}</div>`;
 const slider = (key, v, off) => `<div class="slider ${off ? 'off' : ''}"><input type="range" min="0" max="100" step="1" data-range="${key}" value="${Number(v) || 0}" style="--fill:${Number(v) || 0}%" aria-label="Volume"><span>${Number(v) || 0}%</span></div>`;
 const SFX_SLOTS = ['job_start', 'into_pipe', 'cancel_burst', 'error_burst', 'hit', 'ko', 'impact', 'burn', 'vs', 'honk', 'rerobe', 'peek', 'bubble', 'poke', 'zap', 'trip_start', 'bonus'];
+function sceneLibraryControl() {
+  const L = (window.Wizard && Wizard.library) || {}, d = L.download || {};
+  const all = L.total && L.here >= L.total;
+  const text = all ? `All ${L.total} scenes here` : d.state === 'busy' ? `Downloading fights and trips…` : d.state === 'failed' ? `Download failed: ${esc(d.error || '')}`
+    : L.total ? `${L.here} of ${L.total} scenes here` : 'Scenes not found';
+  return `<div class="path"><div class="tool" style="flex:1" id="scene-lib">${text}</div>${all ? '' : `<button class="btn" id="scenes-get" ${d.state === 'busy' || d.state === 'none' ? 'disabled' : ''}>${d.state === 'failed' ? 'Try again' : 'Download now'}</button>`}</div>`;
+}
 const nowPlaying = (n) => (cfg.musicOn === false ? 'Music is off' : n ? `${n.mode === 'dmt' ? 'Psychedelic · ' : ''}${esc(n.name)}${n.custom ? ' (yours)' : ''}` : 'Nothing to play');
 // The graphics card line above Real-ESRGAN's Downloaded line: Vulkan icon, model, video memory.
 let GPU = null;
@@ -1116,6 +1123,7 @@ const pages = {
             + row('Poking', 'Click the wizard (or whoever he’s fighting) to make them react.', onOff('poking', cfg.poking !== false))
             + `</div>`
             + row('Psychedelic mode', 'Reality is just a suggestion, mortal — now behold the machine elves! Adds the trip scenes, the machine elf fight and the Psychedelic music.', onOff('psychedelic', cfg.psychedelic === true))
+            + row('Scenes', 'The classic scenes come with R64texHD. The fights and Psychedelic trips download once (about 30 MB) and stay in the data folder.', sceneLibraryControl())
             + row('Fight record', 'Wins are saved between launches. Every third win earns the bonus stage.', `<div class="path"><div class="tool" style="flex:1">${wins} ${wins === 1 ? 'win' : 'wins'} · bonus stage in ${3 - (wins % 3)}</div><button class="btn" id="reset-wins" ${wins ? '' : 'disabled'}>Reset</button></div>`), 2)))}
       ${sbox('Sound', '',
         sub('Sound effects (SFX)',
@@ -1568,6 +1576,7 @@ document.addEventListener('click', async (e) => {
   if (id === 'music-next') { Music.next(); return; }
   if (id === 'music-add') { const r = await window.htk.musicAdd(); if (r.added) { await Music.reload(); toast(`Added ${r.added} ${r.added === 1 ? 'track' : 'tracks'}`); render(); } return; }
   if (id === 'sounds-rescan') { await Music.reload(); await Wizard.reloadSounds(); render(); toast('Sounds rescanned'); return; }
+  if (id === 'scenes-get') { e.target.disabled = true; $('#scene-lib').textContent = 'Downloading fights and trips…'; window.htk.scenesDownload(); return; }
   if (id === 'reset-wins') { cfg.wizardWins = 0; cfg.wizardBonusAt = 0; save(true); render(); return; }
   if (id === 'tools-yes') { installAll(); return; }
   if (id === 'ship-find') { findPorts(); return; }
@@ -2137,7 +2146,8 @@ setTimeout(() => { if (!$('#splash').hidden) hideSplash(); else showApp(); }, 60
   if (firstRun) { cfg.firstRunDone = true; save(true); }
   whenSplashGone(() => { const shown = askTools(firstRun ? 'welcome' : ''); if (firstRun) { if (shown) geoAfterTools = true; else askGeo(); } });
   Wizard.init({ settings: wizardSettings, wins: () => cfg.wizardWins || 0, addWin: () => { cfg.wizardWins = (cfg.wizardWins || 0) + 1; save(true); },
-    bonusAt: () => cfg.wizardBonusAt || 0, setBonusAt: (w) => { cfg.wizardBonusAt = w; save(true); }, goToJob: goToJobPage });
+    bonusAt: () => cfg.wizardBonusAt || 0, setBonusAt: (w) => { cfg.wizardBonusAt = w; save(true); }, goToJob: goToJobPage,
+    onLibrary: () => { if (page === 'settings') render(); } });
   fillGpu();
   Music.init({ settings: musicSettings, onTrack: (n) => { const el = $('#now-playing'); if (el) el.innerHTML = nowPlaying(n); } }).then(() => { if (page === 'settings') render(); });
   render();

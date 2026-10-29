@@ -35,8 +35,9 @@
     if (clipCache.has(id)) { const p = clipCache.get(id); clipCache.delete(id); clipCache.set(id, p); return p; }
     const p = window.htk.sceneClip(id).then((meta) => {
       if (!meta || meta.error) throw new Error((meta && meta.error) || 'no clip ' + id);
-      return Promise.all(meta.atlases.map((a) => loadImg(host.assets + id + '/' + a)))
-        .then((imgs) => ({ meta, imgs, opp: meta.kind === 'fight' ? loadImg(host.assets + id + '/opponent.png').catch(() => null) : null }));
+      const base = (IDX && IDX[id] && IDX[id].base) || host.assets + id + '/';   // starter clips in the app, the rest in data\scenes
+      return Promise.all(meta.atlases.map((a) => loadImg(base + a)))
+        .then((imgs) => ({ meta, imgs, opp: meta.kind === 'fight' ? loadImg(base + 'opponent.png').catch(() => null) : null }));
     });
     clipCache.set(id, p);
     while (clipCache.size > 6) { const k = clipCache.keys().next().value; clipCache.delete(k); }
@@ -386,7 +387,11 @@
       const pipe = document.querySelector('#home'); if (pipe) pipe.addEventListener('click', onPipeClick);
       S = host.settings();
       try {
-        const r = await window.htk.sceneIndex(); ST = r.stage; IDX = r.index || {};
+        const r = await window.htk.sceneIndex(); ST = r.stage; IDX = r.index || {}; W.library = { here: r.here, total: r.total, download: r.download };
+        if (window.htk.onScenesUpdated) window.htk.onScenesUpdated(async (d) => {
+          try { const n = await window.htk.sceneIndex(); IDX = n.index || IDX; W.library = { here: n.here, total: n.total, download: d }; } catch { /* keep what we have */ }
+          if (host.onLibrary) host.onLibrary(W.library);
+        });
         els.full = await loadImg(host.assets + 'bar_full.png'); els.poses = await loadImg(host.assets + 'poses.png');
       } catch (e) { console.warn('footer scenes unavailable', e); IDX = {}; }
       await W.reloadSounds();

@@ -76,3 +76,27 @@ test('estimate: counts, disk, video memory and the Smart split', async () => {
   assert.ok(e.seconds >= 0);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('scenes: the index lists only clips that are here; a downloaded pack fills in the rest', () => {
+  const fs = require('fs'), os = require('os'), path = require('path');
+  const scenes = require('../app/core/scenes');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'scn-')), appDir = path.join(root, 'app'), data = path.join(root, 'data');
+  fs.mkdirSync(path.join(appDir, 'classic_01'), { recursive: true });
+  fs.writeFileSync(path.join(appDir, 'classic_01', 'clip.json'), '{}');
+  fs.writeFileSync(path.join(appDir, 'index.json'), JSON.stringify({ classic_01: { kind: 'classic' }, fight_goblin_robed: { kind: 'fight' } }));
+  let r = scenes.index(appDir, data);
+  assert.deepStrictEqual([Object.keys(r.index), r.here, r.total], [['classic_01'], 1, 2]);
+  assert.ok(r.index.classic_01.base.startsWith('file://') && r.index.classic_01.base.endsWith('/classic_01/'));
+  assert.deepStrictEqual(scenes.missing(appDir, data), ['fight_goblin_robed']);
+  const got = scenes.install([
+    { name: 'fight_goblin_robed/clip.json', data: () => Buffer.from('{}') },
+    { name: 'fight_goblin_robed/atlas_0.webp', data: () => Buffer.from('x') },
+    { name: '../evil/clip.json', data: () => Buffer.from('{}') },
+    { name: 'Fight/x.exe', data: () => Buffer.from('x') }], data);
+  assert.deepStrictEqual(got, { files: 2, clips: 1 });
+  r = scenes.index(appDir, data);
+  assert.strictEqual(r.here, 2);
+  assert.ok(scenes.clipFile('fight_goblin_robed', appDir, data).startsWith(data));
+  assert.strictEqual(scenes.clipFile('../x', appDir, data), null);
+  fs.rmSync(root, { recursive: true, force: true });
+});

@@ -32,6 +32,27 @@ python3 "$HERE/build/set_version.py" "$OUT/icon.tmp.exe" "$OUT/R64texHD.exe"
 rm "$OUT/electron.exe" "$OUT/icon.tmp.exe"
 mkdir -p "$OUT/resources/app"
 cp -r "$HERE/app/main.js" "$HERE/app/preload.js" "$HERE/app/package.json" "$HERE/app/core" "$HERE/app/ui" "$HERE/app/assets" "$OUT/resources/app/"
+# Smaller download: English is the only UI language, so the other Chromium locales go (~40 MB unpacked).
+find "$OUT/locales" -name '*.pak' ! -name 'en-US.pak' -delete
+# Footer scenes: the starter set (classics, peeks, busy, re-robe) stays in the app; fights and trips go in a
+# separate pack attached to the GitHub release. The app downloads it once (assets/scenes/remote.json).
+REPO_URL="https://github.com/chuchudoesntknowhowtocode/R64texHD"
+# The pack's URL: the release tagged v<version>. Set SCENES_URL to use another tag.
+SCENES_URL="${SCENES_URL:-$REPO_URL/releases/download/v$VERSION/$NAME-scenes.zip}"
+python3 - "$OUT/resources/app/assets/scenes" "$HERE/dist/$NAME-scenes.zip" "$SCENES_URL" <<'PY'
+import hashlib, json, os, shutil, sys, zipfile
+src, out, url = sys.argv[1:4]
+for f in os.listdir(src):
+    if f.startswith('index_') and f.endswith('.json'): os.remove(os.path.join(src, f))
+moved = [d for d in sorted(os.listdir(src)) if os.path.isdir(os.path.join(src, d)) and d.split('_')[0] in ('fight', 'trip')]
+with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+    for d in moved:
+        for f in sorted(os.listdir(os.path.join(src, d))): z.write(os.path.join(src, d, f), f'{d}/{f}')
+for d in moved: shutil.rmtree(os.path.join(src, d))
+data = open(out, 'rb').read()
+json.dump({'url': url, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(data), 'clips': len(moved)}, open(os.path.join(src, 'remote.json'), 'w'), indent=1)
+print(f'scenes pack: {len(moved)} clips, {len(data) / 1e6:.1f} MB')
+PY
 sed 's/$/\r/' "$HERE/docs/README.txt" > "$OUT/README.txt"
 cp "$HERE/LICENSE" "$OUT/LICENSE.R64texHD.txt"
 cp "$HERE/THIRD_PARTY_NOTICES.md" "$OUT/THIRD_PARTY_NOTICES.md"
@@ -42,4 +63,4 @@ with zipfile.ZipFile('$NAME-Windows.zip', 'w', zipfile.ZIP_DEFLATED, compresslev
         for f in sorted(files):
             z.write(os.path.join(root, f))
 " )
-echo "Done: $HERE/dist/$NAME-Windows.zip"
+echo "Done: $HERE/dist/$NAME-Windows.zip and $HERE/dist/$NAME-scenes.zip (attach both to the release)"

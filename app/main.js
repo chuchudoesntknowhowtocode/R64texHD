@@ -225,6 +225,34 @@ async function installTool(name) {
   return tools();
 }
 
+// ---------------------------------------------------------------- footer scenes: the rest download once
+// The release build ships the starter set (classic scenes, peeks) plus assets/scenes/remote.json naming the
+// pack with the fights and trips (made by build/package.sh, attached to the GitHub release next to the exe).
+// It downloads in the background a little after start-up, into data\scenes; a failed try is repeated later.
+const scenes = require('./core/scenes');
+const SCENES_APP = path.join(__dirname, 'assets', 'scenes');
+const SCENES_DATA = path.join(DATA_DIR, 'scenes');
+let sceneDl = { state: 'idle' };
+async function downloadScenes(now = false) {
+  if (sceneDl.state === 'busy') return;
+  let remote; try { remote = JSON.parse(fs.readFileSync(path.join(SCENES_APP, 'remote.json'), 'utf8')); } catch { sceneDl = { state: 'none' }; return; }
+  const need = scenes.missing(SCENES_APP, SCENES_DATA);
+  if (!need.length) { sceneDl = { state: 'done' }; return; }
+  sceneDl = { state: 'busy', got: 0, total: remote.size || 0 };
+  const zip = path.join(TEMP_DIR, 'htk-scenes.zip');
+  try {
+    await download(remote.url, zip, (got, total) => { sceneDl = { state: 'busy', got, total: total || remote.size || 0 }; });
+    checkSha(zip, remote.sha256);
+    const r = scenes.install(rtz.readEntries(zip).map((e) => ({ name: e.name, data: () => rtz.readEntry(zip, e) })), SCENES_DATA);
+    sceneDl = { state: 'done', clips: r.clips };
+    send('scenes:updated', sceneDl);
+  } catch (e) {
+    sceneDl = { state: 'failed', error: e.message, at: Date.now() };
+    send('scenes:updated', sceneDl);
+    if (!now) setTimeout(() => downloadScenes(), 10 * 60000);           // try again in 10 minutes
+  } finally { fs.rmSync(zip, { force: true }); }
+}
+
 // ---------------------------------------------------------------- desktop shortcut (Windows)
 // Only a Desktop shortcut: the Start menu folder is inside AppData, which a portable tool leaves alone.
 function createShortcuts() {
@@ -320,14 +348,15 @@ function registerIpc() {
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));
   ipcMain.handle('upscale:estimate', (_e, req) => tasks.estimate({ ...req, maxSize: settings.maxSize }, tools(), Math.max(1, workerCount() - 1)).catch((e) => ({ error: e.message })));
   // Footer scenes (app/assets/scenes, made by build/wizard/export_app.py) and the owner's sound clips.
-  const SCENES = path.join(__dirname, 'assets', 'scenes');
+  const SCENES = SCENES_APP;
   ipcMain.handle('scenes:index', () => {
-    try { return { stage: JSON.parse(fs.readFileSync(path.join(SCENES, 'stage.json'), 'utf8')), index: JSON.parse(fs.readFileSync(path.join(SCENES, 'index.json'), 'utf8')) }; }
+    try { const r = scenes.index(SCENES, SCENES_DATA); return { stage: JSON.parse(fs.readFileSync(path.join(SCENES, 'stage.json'), 'utf8')), ...r, download: sceneDl }; }
     catch (e) { return { error: e.message }; }
   });
+  ipcMain.handle('scenes:download', () => { downloadScenes(true); return sceneDl; });
   ipcMain.handle('scenes:clip', (_e, id) => {
     if (typeof id !== 'string' || !/^[a-z0-9_]+$/.test(id)) return { error: 'bad clip id' };
-    try { return JSON.parse(fs.readFileSync(path.join(SCENES, id, 'clip.json'), 'utf8')); } catch (e) { return { error: e.message }; }
+    try { return JSON.parse(fs.readFileSync(scenes.clipFile(id, SCENES, SCENES_DATA), 'utf8')); } catch (e) { return { error: e.message }; }
   });
   // Sound slots: <slot>.ogg in the data folder's "sounds" (yours) or app/assets/sounds (shipped). Missing = silent.
   ipcMain.handle('sounds:list', () => {
@@ -426,6 +455,7 @@ else {
         detail: `Settings and downloads cannot be saved in ${DATA_DIR}.\nMove the R64texHD folder somewhere you can write to (for example C:\\Tools or your Documents).` });
     }
     selfTest();
+    if (!process.env.HTK_SELFTEST) setTimeout(() => downloadScenes(), 15000);   // after the splash, quietly
   });
   app.on('window-all-closed', () => { cancelTask(); app.quit(); });
   app.on('will-quit', () => { try { fs.rmSync(TEMP_DIR, { recursive: true, force: true }); } catch { /* in use */ } });

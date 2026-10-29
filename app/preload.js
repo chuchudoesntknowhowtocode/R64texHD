@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('htk', {
   shipCheck: (ports, target) => ipcRenderer.invoke('ship:check', { ports, target }),
   sceneIndex: () => ipcRenderer.invoke('scenes:index'),
   sceneClip: (id) => ipcRenderer.invoke('scenes:clip', id),
+  scenesDownload: () => ipcRenderer.invoke('scenes:download'),
+  onScenesUpdated: on('scenes:updated'),
   soundList: () => ipcRenderer.invoke('sounds:list'),
   audioInfo: () => ipcRenderer.invoke('audio:info'),
   musicAdd: () => ipcRenderer.invoke('music:add'),

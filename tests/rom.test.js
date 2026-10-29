@@ -152,7 +152,7 @@ test('N64 library: box art and description by game ID, any region', () => {
     assert.ok(fs.existsSync(path.join(__dirname, '..', 'app', 'assets', 'n64', 'boxart', g.art)), `box art for ${key}: ${g.art}`);
   }
   const pm = rom.libraryGame('NMQE');
-  assert.equal(pm.title, 'Paper Mario'); assert.equal(pm.art, 'Paper Mario (USA).png'); assert.match(pm.description, /paper-styled/);
+  assert.equal(pm.title, 'Paper Mario'); assert.equal(pm.art, 'Paper Mario (USA).webp'); assert.match(pm.description, /paper-styled/);
   assert.equal(rom.libraryGame('NMQJ'), pm, 'a Japanese copy finds the same game');
   assert.equal(rom.libraryGame('NG5E').title, 'Mystical Ninja Starring Goemon');
   assert.equal(rom.libraryGame('NGME').title, "Goemon's Great Adventure");
