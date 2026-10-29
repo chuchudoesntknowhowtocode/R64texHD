@@ -1,0 +1,79 @@
+{
+ "classic_18_rune_circle_frog": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_18_rune_circle_frog",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    105,
+    114
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_20_fireball": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_20_fireball",
+  "frames": 136,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    18,
+    26
+   ],
+   [
+    82,
+    106
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    26
+   ],
+   [
+    64,
+    67
+   ]
+  ],
+  "events": {}
+ },
+ "classic_21_hourglass_time_stop": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_21_hourglass_time_stop",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp"
+  ],
+  "hidePipe": [
+   [
+    44,
+    100
+   ],
+   [
+    105,
+    106
+   ]
+  ],
+  "hideQuit": [
+   [
+    42,
+    96
+   ]
+  ],
+  "events": {}
+ }
+}

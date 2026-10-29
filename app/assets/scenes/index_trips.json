@@ -1,0 +1,680 @@
+{
+ "trip_22_trip_rainbow_melt": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_22_trip_rainbow_melt",
+  "frames": 128,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    7,
+    40
+   ],
+   [
+    41,
+    80
+   ],
+   [
+    81,
+    120
+   ],
+   [
+    121,
+    125
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    80
+   ],
+   [
+    81,
+    120
+   ],
+   [
+    121,
+    125
+   ]
+  ],
+  "events": {}
+ },
+ "trip_23_trip_breathing_world": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_23_trip_breathing_world",
+  "frames": 124,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    121
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    121
+   ]
+  ],
+  "events": {}
+ },
+ "trip_24_trip_kaleidoscope": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_24_trip_kaleidoscope",
+  "frames": 124,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    60
+   ],
+   [
+    61,
+    120
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    60
+   ],
+   [
+    61,
+    120
+   ]
+  ],
+  "events": {}
+ },
+ "trip_25_trip_prism_rainbow_dash": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_25_trip_prism_rainbow_dash",
+  "frames": 126,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    123
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    90
+   ],
+   [
+    91,
+    123
+   ]
+  ],
+  "events": {}
+ },
+ "trip_26_trip_the_pipe_is_alive": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_26_trip_the_pipe_is_alive",
+  "frames": 130,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    127
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    72
+   ],
+   [
+    73,
+    127
+   ]
+  ],
+  "events": {}
+ },
+ "trip_27_trip_hypno_spin": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_27_trip_hypno_spin",
+  "frames": 124,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    122
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    121
+   ]
+  ],
+  "events": {}
+ },
+ "trip_28_trip_grow_shrink": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_28_trip_grow_shrink",
+  "frames": 126,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    123
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    123
+   ]
+  ],
+  "events": {}
+ },
+ "trip_29_trip_pixel_swarm_snake": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_29_trip_pixel_swarm_snake",
+  "frames": 126,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    123
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    123
+   ]
+  ],
+  "events": {}
+ },
+ "trip_30_trip_disco_moonwalk": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_30_trip_disco_moonwalk",
+  "frames": 130,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    127
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    127
+   ]
+  ],
+  "events": {}
+ },
+ "trip_31_trip_upside_down_world": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_31_trip_upside_down_world",
+  "frames": 132,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    129
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    129
+   ]
+  ],
+  "events": {}
+ },
+ "trip_32_dmt_flower_of_life": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_32_dmt_flower_of_life",
+  "frames": 138,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    135
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    135
+   ]
+  ],
+  "events": {}
+ },
+ "trip_33_dmt_metatrons_cube": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_33_dmt_metatrons_cube",
+  "frames": 142,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    139
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    139
+   ]
+  ],
+  "events": {}
+ },
+ "trip_34_dmt_the_shaman": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_34_dmt_the_shaman",
+  "frames": 154,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp"
+  ],
+  "hidePipe": [
+   [
+    51,
+    151
+   ]
+  ],
+  "hideQuit": [
+   [
+    51,
+    151
+   ]
+  ],
+  "events": {}
+ },
+ "trip_35_dmt_spirit_molecule": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_35_dmt_spirit_molecule",
+  "frames": 148,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    145
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    145
+   ]
+  ],
+  "events": {}
+ },
+ "trip_36_dmt_third_eye_sri_yantra": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_36_dmt_third_eye_sri_yantra",
+  "frames": 146,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    143
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    143
+   ]
+  ],
+  "events": {}
+ },
+ "trip_37_dmt_hyperspace_tunnel": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_37_dmt_hyperspace_tunnel",
+  "frames": 142,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    11,
+    139
+   ]
+  ],
+  "hideQuit": [
+   [
+    11,
+    139
+   ]
+  ],
+  "events": {}
+ },
+ "trip_38_dmt_machine_elves": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_38_dmt_machine_elves",
+  "frames": 158,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    155
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    155
+   ]
+  ],
+  "events": {}
+ },
+ "trip_39_dmt_torus_field": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_39_dmt_torus_field",
+  "frames": 144,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    141
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    141
+   ]
+  ],
+  "events": {}
+ },
+ "trip_40_dmt_platonic_tesseract": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_40_dmt_platonic_tesseract",
+  "frames": 150,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    147
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    147
+   ]
+  ],
+  "events": {}
+ },
+ "trip_41_dmt_merkaba_breakthrough": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_41_dmt_merkaba_breakthrough",
+  "frames": 158,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    155
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    155
+   ]
+  ],
+  "events": {}
+ },
+ "trip_43_dmt_machine_elf_sacred_warp": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_43_dmt_machine_elf_sacred_warp",
+  "frames": 300,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp",
+   "atlas_11.webp",
+   "atlas_12.webp"
+  ],
+  "hidePipe": [
+   [
+    15,
+    297
+   ]
+  ],
+  "hideQuit": [
+   [
+    15,
+    297
+   ]
+  ],
+  "events": {}
+ }
+}

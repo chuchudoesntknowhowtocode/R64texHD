@@ -1,0 +1,1605 @@
+{
+ "fight_goblin_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   184,
+   258
+  ],
+  "robedUntil": 140,
+  "endsRobed": false,
+  "id": "fight_goblin_robed",
+  "frames": 341,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    278,
+    283
+   ],
+   [
+    325,
+    329
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    143,
+    154
+   ],
+   [
+    172,
+    181
+   ]
+  ],
+  "events": {
+   "hit": [
+    186,
+    188,
+    190,
+    192,
+    194,
+    196,
+    198,
+    200,
+    202,
+    204,
+    206,
+    208,
+    210,
+    212,
+    214,
+    216,
+    218,
+    220,
+    222,
+    224,
+    226,
+    230
+   ],
+   "impact": [
+    258
+   ],
+   "ko": [
+    258
+   ],
+   "vs": [
+    26
+   ],
+   "burn": [
+    122
+   ]
+  }
+ },
+ "fight_goblin_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   184,
+   258
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_goblin_gi",
+  "frames": 341,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    278,
+    283
+   ],
+   [
+    325,
+    329
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    112,
+    116
+   ],
+   [
+    133,
+    140
+   ],
+   [
+    143,
+    154
+   ],
+   [
+    172,
+    181
+   ]
+  ],
+  "events": {
+   "hit": [
+    186,
+    188,
+    190,
+    192,
+    194,
+    196,
+    198,
+    200,
+    202,
+    204,
+    206,
+    208,
+    210,
+    212,
+    214,
+    216,
+    218,
+    220,
+    222,
+    224,
+    226,
+    230
+   ],
+   "impact": [
+    258
+   ],
+   "ko": [
+    258
+   ],
+   "vs": [
+    26
+   ]
+  }
+ },
+ "fight_golem_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   226,
+   300
+  ],
+  "robedUntil": 130,
+  "endsRobed": false,
+  "id": "fight_golem_robed",
+  "frames": 387,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    371,
+    375
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    188
+   ],
+   [
+    214,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    272
+   ],
+   "impact": [
+    300
+   ],
+   "ko": [
+    300
+   ],
+   "vs": [
+    30
+   ],
+   "burn": [
+    112
+   ]
+  }
+ },
+ "fight_golem_robed_odd_hit": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   229,
+   303
+  ],
+  "robedUntil": 130,
+  "endsRobed": false,
+  "id": "fight_golem_robed_odd_hit",
+  "frames": 390,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    374,
+    378
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    195
+   ],
+   [
+    217,
+    226
+   ]
+  ],
+  "events": {
+   "hit": [
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    271,
+    275
+   ],
+   "impact": [
+    303,
+    182
+   ],
+   "ko": [
+    303
+   ],
+   "vs": [
+    30
+   ],
+   "burn": [
+    112
+   ]
+  }
+ },
+ "fight_golem_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   226,
+   300
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_golem_gi",
+  "frames": 387,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    371,
+    375
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    102,
+    104
+   ],
+   [
+    123,
+    130
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    188
+   ],
+   [
+    214,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    272
+   ],
+   "impact": [
+    300
+   ],
+   "ko": [
+    300
+   ],
+   "vs": [
+    30
+   ]
+  }
+ },
+ "fight_golem_gi_odd_hit": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   229,
+   303
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_golem_gi_odd_hit",
+  "frames": 390,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    374,
+    378
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    102,
+    104
+   ],
+   [
+    123,
+    130
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    195
+   ],
+   [
+    217,
+    226
+   ]
+  ],
+  "events": {
+   "hit": [
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    271,
+    275
+   ],
+   "impact": [
+    303,
+    182
+   ],
+   "ko": [
+    303
+   ],
+   "vs": [
+    30
+   ]
+  }
+ },
+ "fight_robot_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   224,
+   298
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_robot_robed",
+  "frames": 385,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    369,
+    373
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    212,
+    220
+   ]
+  ],
+  "events": {
+   "hit": [
+    226,
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    270
+   ],
+   "impact": [
+    298
+   ],
+   "ko": [
+    298
+   ],
+   "vs": [
+    24
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_robot_robed_odd_hit": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   227,
+   301
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_robot_robed_odd_hit",
+  "frames": 388,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    372,
+    376
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    178,
+    184
+   ],
+   [
+    215,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    229,
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    273
+   ],
+   "impact": [
+    301,
+    173
+   ],
+   "ko": [
+    301
+   ],
+   "vs": [
+    24
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_robot_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   224,
+   298
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_robot_gi",
+  "frames": 385,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    369,
+    373
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    98,
+    100
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    212,
+    220
+   ]
+  ],
+  "events": {
+   "hit": [
+    226,
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    270
+   ],
+   "impact": [
+    298
+   ],
+   "ko": [
+    298
+   ],
+   "vs": [
+    24
+   ]
+  }
+ },
+ "fight_robot_gi_odd_hit": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   227,
+   301
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_robot_gi_odd_hit",
+  "frames": 388,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    372,
+    376
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    98,
+    100
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    178,
+    184
+   ],
+   [
+    215,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    229,
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    273
+   ],
+   "impact": [
+    301,
+    173
+   ],
+   "ko": [
+    301
+   ],
+   "vs": [
+    24
+   ]
+  }
+ },
+ "fight_twin_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   254,
+   328
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_twin_robed",
+  "frames": 415,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    371
+   ],
+   [
+    399,
+    403
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    371
+   ]
+  ],
+  "events": {
+   "hit": [
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    270,
+    272,
+    274,
+    276,
+    278,
+    280,
+    282,
+    284,
+    286,
+    288,
+    290,
+    292,
+    294,
+    296,
+    300
+   ],
+   "impact": [
+    328
+   ],
+   "ko": [
+    328
+   ],
+   "vs": [
+    20
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_twin_robed_twin_wins_r1": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": true,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   395,
+   469
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_twin_robed_twin_wins_r1",
+  "frames": 556,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp",
+   "atlas_11.webp",
+   "atlas_12.webp",
+   "atlas_13.webp",
+   "atlas_14.webp",
+   "atlas_15.webp",
+   "atlas_16.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    512
+   ],
+   [
+    540,
+    544
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    512
+   ]
+  ],
+  "events": {
+   "hit": [
+    397,
+    399,
+    401,
+    403,
+    405,
+    407,
+    409,
+    411,
+    413,
+    415,
+    417,
+    419,
+    421,
+    423,
+    425,
+    427,
+    429,
+    431,
+    433,
+    435,
+    437,
+    441
+   ],
+   "impact": [
+    469
+   ],
+   "ko": [
+    469
+   ],
+   "vs": [
+    20
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_twin_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   254,
+   328
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_twin_gi",
+  "frames": 415,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    371
+   ],
+   [
+    399,
+    403
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    96,
+    98
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    371
+   ]
+  ],
+  "events": {
+   "hit": [
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    270,
+    272,
+    274,
+    276,
+    278,
+    280,
+    282,
+    284,
+    286,
+    288,
+    290,
+    292,
+    294,
+    296,
+    300
+   ],
+   "impact": [
+    328
+   ],
+   "ko": [
+    328
+   ],
+   "vs": [
+    20
+   ]
+  }
+ },
+ "fight_twin_gi_twin_wins_r1": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": true,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   395,
+   469
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_twin_gi_twin_wins_r1",
+  "frames": 556,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp",
+   "atlas_11.webp",
+   "atlas_12.webp",
+   "atlas_13.webp",
+   "atlas_14.webp",
+   "atlas_15.webp",
+   "atlas_16.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    512
+   ],
+   [
+    540,
+    544
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    96,
+    98
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    512
+   ]
+  ],
+  "events": {
+   "hit": [
+    397,
+    399,
+    401,
+    403,
+    405,
+    407,
+    409,
+    411,
+    413,
+    415,
+    417,
+    419,
+    421,
+    423,
+    425,
+    427,
+    429,
+    431,
+    433,
+    435,
+    437,
+    441
+   ],
+   "impact": [
+    469
+   ],
+   "ko": [
+    469
+   ],
+   "vs": [
+    20
+   ]
+  }
+ },
+ "fight_car_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": true,
+  "combo": [
+   153,
+   225
+  ],
+  "robedUntil": 94,
+  "endsRobed": false,
+  "id": "fight_car_robed",
+  "frames": 312,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    296,
+    300
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    97,
+    108
+   ]
+  ],
+  "events": {
+   "hit": [
+    153,
+    155,
+    157,
+    159,
+    161,
+    163,
+    165,
+    167,
+    169,
+    171,
+    173,
+    175,
+    177,
+    179,
+    181,
+    183,
+    185,
+    187,
+    189,
+    191,
+    193,
+    197
+   ],
+   "impact": [
+    132,
+    225
+   ],
+   "ko": [
+    132
+   ],
+   "burn": [
+    76
+   ],
+   "honk": [
+    30,
+    44,
+    58
+   ]
+  }
+ },
+ "fight_car_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": true,
+  "combo": [
+   153,
+   225
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_car_gi",
+  "frames": 312,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    296,
+    300
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    87,
+    94
+   ],
+   [
+    97,
+    108
+   ]
+  ],
+  "events": {
+   "hit": [
+    153,
+    155,
+    157,
+    159,
+    161,
+    163,
+    165,
+    167,
+    169,
+    171,
+    173,
+    175,
+    177,
+    179,
+    181,
+    183,
+    185,
+    187,
+    189,
+    191,
+    193,
+    197
+   ],
+   "impact": [
+    132,
+    225
+   ],
+   "ko": [
+    132
+   ],
+   "honk": [
+    30,
+    44,
+    58
+   ]
+  }
+ },
+ "fight_elf_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": true,
+  "bonus": false,
+  "combo": [
+   344,
+   416
+  ],
+  "robedUntil": 130,
+  "endsRobed": false,
+  "id": "fight_elf_robed",
+  "frames": 503,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp"
+  ],
+  "hidePipe": [
+   [
+    437,
+    447
+   ],
+   [
+    487,
+    491
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    158,
+    167
+   ]
+  ],
+  "events": {
+   "hit": [
+    344,
+    346,
+    348,
+    350,
+    352,
+    354,
+    356,
+    358,
+    360,
+    362,
+    364,
+    366,
+    368,
+    370,
+    372,
+    374,
+    376,
+    378,
+    380,
+    382,
+    384,
+    388
+   ],
+   "impact": [
+    416,
+    170,
+    209
+   ],
+   "ko": [
+    416
+   ],
+   "vs": [
+    36
+   ],
+   "burn": [
+    112
+   ]
+  }
+ },
+ "fight_elf_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": true,
+  "bonus": false,
+  "combo": [
+   344,
+   416
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_elf_gi",
+  "frames": 503,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp"
+  ],
+  "hidePipe": [
+   [
+    437,
+    447
+   ],
+   [
+    487,
+    491
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    106,
+    108
+   ],
+   [
+    123,
+    130
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    158,
+    167
+   ]
+  ],
+  "events": {
+   "hit": [
+    344,
+    346,
+    348,
+    350,
+    352,
+    354,
+    356,
+    358,
+    360,
+    362,
+    364,
+    366,
+    368,
+    370,
+    372,
+    374,
+    376,
+    378,
+    380,
+    382,
+    384,
+    388
+   ],
+   "impact": [
+    416,
+    170,
+    209
+   ],
+   "ko": [
+    416
+   ],
+   "vs": [
+    36
+   ]
+  }
+ }
+}

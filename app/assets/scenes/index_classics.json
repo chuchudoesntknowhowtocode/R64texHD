@@ -1,0 +1,272 @@
+{
+ "classic_01_portal_hop": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_01_portal_hop",
+  "frames": 100,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    77,
+    86
+   ],
+   [
+    88,
+    97
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_02_quit_button_bunny_hops": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_02_quit_button_bunny_hops",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    99,
+    111
+   ]
+  ],
+  "hideQuit": [
+   [
+    6,
+    13
+   ],
+   [
+    14,
+    17
+   ],
+   [
+    19,
+    39
+   ]
+  ],
+  "events": {}
+ },
+ "classic_03_pixel_rain_pipe_comes_to_him": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_03_pixel_rain_pipe_comes_to_him",
+  "frames": 118,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    42,
+    110
+   ]
+  ],
+  "hideQuit": [
+   [
+    42,
+    62
+   ]
+  ],
+  "events": {}
+ },
+ "classic_04_smoke_bomb_flying_carpet": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_04_smoke_bomb_flying_carpet",
+  "frames": 112,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    91,
+    93
+   ],
+   [
+    94,
+    110
+   ]
+  ],
+  "hideQuit": [
+   [
+    32,
+    43
+   ],
+   [
+    54,
+    60
+   ]
+  ],
+  "events": {}
+ },
+ "classic_05_lightning_pipe_teleport": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_05_lightning_pipe_teleport",
+  "frames": 106,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    7,
+    9
+   ],
+   [
+    10,
+    11
+   ],
+   [
+    33,
+    35
+   ],
+   [
+    36,
+    38
+   ],
+   [
+    39,
+    100
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    9
+   ],
+   [
+    10,
+    11
+   ],
+   [
+    28,
+    62
+   ]
+  ],
+  "events": {}
+ },
+ "classic_06_hat_trick_shrink_dash": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_06_hat_trick_shrink_dash",
+  "frames": 112,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    96,
+    108
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_07_bubble_float": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_07_bubble_float",
+  "frames": 106,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    86,
+    96
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_08_illusion_clone_conga": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_08_illusion_clone_conga",
+  "frames": 104,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    64,
+    90
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_09_magic_puddle_vacuum_pipe": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_09_magic_puddle_vacuum_pipe",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    51,
+    108
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    38
+   ],
+   [
+    70,
+    71
+   ],
+   [
+    73,
+    76
+   ],
+   [
+    78,
+    80
+   ],
+   [
+    82,
+    84
+   ]
+  ],
+  "events": {}
+ },
+ "classic_10_thought_cloud_rocket_dash": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_10_thought_cloud_rocket_dash",
+  "frames": 108,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    88,
+    104
+   ]
+  ],
+  "hideQuit": [
+   [
+    64,
+    73
+   ]
+  ],
+  "events": {}
+ }
+}

@@ -1,0 +1,3075 @@
+{
+ "classic_01_portal_hop": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_01_portal_hop",
+  "frames": 100,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    77,
+    86
+   ],
+   [
+    88,
+    97
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_02_quit_button_bunny_hops": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_02_quit_button_bunny_hops",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    99,
+    111
+   ]
+  ],
+  "hideQuit": [
+   [
+    6,
+    13
+   ],
+   [
+    14,
+    17
+   ],
+   [
+    19,
+    39
+   ]
+  ],
+  "events": {}
+ },
+ "classic_03_pixel_rain_pipe_comes_to_him": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_03_pixel_rain_pipe_comes_to_him",
+  "frames": 118,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    42,
+    110
+   ]
+  ],
+  "hideQuit": [
+   [
+    42,
+    62
+   ]
+  ],
+  "events": {}
+ },
+ "classic_04_smoke_bomb_flying_carpet": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_04_smoke_bomb_flying_carpet",
+  "frames": 112,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    91,
+    93
+   ],
+   [
+    94,
+    110
+   ]
+  ],
+  "hideQuit": [
+   [
+    32,
+    43
+   ],
+   [
+    54,
+    60
+   ]
+  ],
+  "events": {}
+ },
+ "classic_05_lightning_pipe_teleport": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_05_lightning_pipe_teleport",
+  "frames": 106,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    7,
+    9
+   ],
+   [
+    10,
+    11
+   ],
+   [
+    33,
+    35
+   ],
+   [
+    36,
+    38
+   ],
+   [
+    39,
+    100
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    9
+   ],
+   [
+    10,
+    11
+   ],
+   [
+    28,
+    62
+   ]
+  ],
+  "events": {}
+ },
+ "classic_06_hat_trick_shrink_dash": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_06_hat_trick_shrink_dash",
+  "frames": 112,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    96,
+    108
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_07_bubble_float": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_07_bubble_float",
+  "frames": 106,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    86,
+    96
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_08_illusion_clone_conga": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_08_illusion_clone_conga",
+  "frames": 104,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    64,
+    90
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_09_magic_puddle_vacuum_pipe": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_09_magic_puddle_vacuum_pipe",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    51,
+    108
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    38
+   ],
+   [
+    70,
+    71
+   ],
+   [
+    73,
+    76
+   ],
+   [
+    78,
+    80
+   ],
+   [
+    82,
+    84
+   ]
+  ],
+  "events": {}
+ },
+ "classic_10_thought_cloud_rocket_dash": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_10_thought_cloud_rocket_dash",
+  "frames": 108,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    88,
+    104
+   ]
+  ],
+  "hideQuit": [
+   [
+    64,
+    73
+   ]
+  ],
+  "events": {}
+ },
+ "busy_11_peek_buffering": {
+  "kind": "busy",
+  "robed": true,
+  "endsRobed": true,
+  "id": "busy_11_peek_buffering",
+  "frames": 138,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    7,
+    8
+   ],
+   [
+    9,
+    10
+   ],
+   [
+    11,
+    12
+   ],
+   [
+    13,
+    14
+   ],
+   [
+    15,
+    125
+   ],
+   [
+    128,
+    132
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "rerobe": {
+  "kind": "rerobe",
+  "robed": false,
+  "endsRobed": true,
+  "id": "rerobe",
+  "frames": 68,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    49,
+    52
+   ]
+  ],
+  "events": {}
+ },
+ "peek_01": {
+  "kind": "peek",
+  "phrase": "From Potato to HD",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_01",
+  "frames": 180,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    167
+   ],
+   [
+    168,
+    172
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_02": {
+  "kind": "peek",
+  "phrase": "Nintendo Forgot",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_02",
+  "frames": 176,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    163
+   ],
+   [
+    164,
+    168
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_03": {
+  "kind": "peek",
+  "phrase": "Pixels on Steroids",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_03",
+  "frames": 182,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    169
+   ],
+   [
+    170,
+    174
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_04": {
+  "kind": "peek",
+  "phrase": "Retro, Unblurred",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_04",
+  "frames": 178,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    165
+   ],
+   [
+    166,
+    170
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_05": {
+  "kind": "peek",
+  "phrase": "N64 Evolved",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_05",
+  "frames": 168,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    155
+   ],
+   [
+    156,
+    160
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_06": {
+  "kind": "peek",
+  "phrase": "Blurry Wasn't Better",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_06",
+  "frames": 186,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    173
+   ],
+   [
+    174,
+    178
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_07": {
+  "kind": "peek",
+  "phrase": "More Pixels!",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_07",
+  "frames": 170,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    157
+   ],
+   [
+    158,
+    162
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_08": {
+  "kind": "peek",
+  "phrase": "Nostalgia, Upscaled",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_08",
+  "frames": 184,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    171
+   ],
+   [
+    172,
+    176
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_09": {
+  "kind": "peek",
+  "phrase": "Childhood, Patched",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_09",
+  "frames": 182,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    169
+   ],
+   [
+    170,
+    174
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_10": {
+  "kind": "peek",
+  "phrase": "Low Poly, High Standards",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_10",
+  "frames": 194,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    181
+   ],
+   [
+    182,
+    186
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "peek_11": {
+  "kind": "peek",
+  "phrase": "N64 but better",
+  "robed": true,
+  "endsRobed": true,
+  "id": "peek_11",
+  "frames": 174,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    6
+   ],
+   [
+    7,
+    161
+   ],
+   [
+    162,
+    166
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_18_rune_circle_frog": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_18_rune_circle_frog",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    105,
+    114
+   ]
+  ],
+  "hideQuit": [],
+  "events": {}
+ },
+ "classic_20_fireball": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_20_fireball",
+  "frames": 136,
+  "atlases": [
+   "atlas_0.webp"
+  ],
+  "hidePipe": [
+   [
+    18,
+    26
+   ],
+   [
+    82,
+    106
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    26
+   ],
+   [
+    64,
+    67
+   ]
+  ],
+  "events": {}
+ },
+ "classic_21_hourglass_time_stop": {
+  "kind": "classic",
+  "endsRobed": true,
+  "robed": true,
+  "id": "classic_21_hourglass_time_stop",
+  "frames": 116,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp"
+  ],
+  "hidePipe": [
+   [
+    44,
+    100
+   ],
+   [
+    105,
+    106
+   ]
+  ],
+  "hideQuit": [
+   [
+    42,
+    96
+   ]
+  ],
+  "events": {}
+ },
+ "fight_goblin_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   184,
+   258
+  ],
+  "robedUntil": 140,
+  "endsRobed": false,
+  "id": "fight_goblin_robed",
+  "frames": 341,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    278,
+    283
+   ],
+   [
+    325,
+    329
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    143,
+    154
+   ],
+   [
+    172,
+    181
+   ]
+  ],
+  "events": {
+   "hit": [
+    186,
+    188,
+    190,
+    192,
+    194,
+    196,
+    198,
+    200,
+    202,
+    204,
+    206,
+    208,
+    210,
+    212,
+    214,
+    216,
+    218,
+    220,
+    222,
+    224,
+    226,
+    230
+   ],
+   "impact": [
+    258
+   ],
+   "ko": [
+    258
+   ],
+   "vs": [
+    26
+   ],
+   "burn": [
+    122
+   ]
+  }
+ },
+ "fight_goblin_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   184,
+   258
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_goblin_gi",
+  "frames": 341,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    278,
+    283
+   ],
+   [
+    325,
+    329
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    112,
+    116
+   ],
+   [
+    133,
+    140
+   ],
+   [
+    143,
+    154
+   ],
+   [
+    172,
+    181
+   ]
+  ],
+  "events": {
+   "hit": [
+    186,
+    188,
+    190,
+    192,
+    194,
+    196,
+    198,
+    200,
+    202,
+    204,
+    206,
+    208,
+    210,
+    212,
+    214,
+    216,
+    218,
+    220,
+    222,
+    224,
+    226,
+    230
+   ],
+   "impact": [
+    258
+   ],
+   "ko": [
+    258
+   ],
+   "vs": [
+    26
+   ]
+  }
+ },
+ "fight_golem_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   226,
+   300
+  ],
+  "robedUntil": 130,
+  "endsRobed": false,
+  "id": "fight_golem_robed",
+  "frames": 387,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    371,
+    375
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    188
+   ],
+   [
+    214,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    272
+   ],
+   "impact": [
+    300
+   ],
+   "ko": [
+    300
+   ],
+   "vs": [
+    30
+   ],
+   "burn": [
+    112
+   ]
+  }
+ },
+ "fight_golem_robed_odd_hit": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   229,
+   303
+  ],
+  "robedUntil": 130,
+  "endsRobed": false,
+  "id": "fight_golem_robed_odd_hit",
+  "frames": 390,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    374,
+    378
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    195
+   ],
+   [
+    217,
+    226
+   ]
+  ],
+  "events": {
+   "hit": [
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    271,
+    275
+   ],
+   "impact": [
+    303,
+    182
+   ],
+   "ko": [
+    303
+   ],
+   "vs": [
+    30
+   ],
+   "burn": [
+    112
+   ]
+  }
+ },
+ "fight_golem_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   226,
+   300
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_golem_gi",
+  "frames": 387,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    371,
+    375
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    102,
+    104
+   ],
+   [
+    123,
+    130
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    188
+   ],
+   [
+    214,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    272
+   ],
+   "impact": [
+    300
+   ],
+   "ko": [
+    300
+   ],
+   "vs": [
+    30
+   ]
+  }
+ },
+ "fight_golem_gi_odd_hit": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   229,
+   303
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_golem_gi_odd_hit",
+  "frames": 390,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    374,
+    378
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    102,
+    104
+   ],
+   [
+    123,
+    130
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    187,
+    195
+   ],
+   [
+    217,
+    226
+   ]
+  ],
+  "events": {
+   "hit": [
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    271,
+    275
+   ],
+   "impact": [
+    303,
+    182
+   ],
+   "ko": [
+    303
+   ],
+   "vs": [
+    30
+   ]
+  }
+ },
+ "fight_robot_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   224,
+   298
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_robot_robed",
+  "frames": 385,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    369,
+    373
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    212,
+    220
+   ]
+  ],
+  "events": {
+   "hit": [
+    226,
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    270
+   ],
+   "impact": [
+    298
+   ],
+   "ko": [
+    298
+   ],
+   "vs": [
+    24
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_robot_robed_odd_hit": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   227,
+   301
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_robot_robed_odd_hit",
+  "frames": 388,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    372,
+    376
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    178,
+    184
+   ],
+   [
+    215,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    229,
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    273
+   ],
+   "impact": [
+    301,
+    173
+   ],
+   "ko": [
+    301
+   ],
+   "vs": [
+    24
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_robot_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   224,
+   298
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_robot_gi",
+  "frames": 385,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    369,
+    373
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    98,
+    100
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    212,
+    220
+   ]
+  ],
+  "events": {
+   "hit": [
+    226,
+    228,
+    230,
+    232,
+    234,
+    236,
+    238,
+    240,
+    242,
+    244,
+    246,
+    248,
+    250,
+    252,
+    254,
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    270
+   ],
+   "impact": [
+    298
+   ],
+   "ko": [
+    298
+   ],
+   "vs": [
+    24
+   ]
+  }
+ },
+ "fight_robot_gi_odd_hit": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": true,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   227,
+   301
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_robot_gi_odd_hit",
+  "frames": 388,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    8,
+    12
+   ],
+   [
+    372,
+    376
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    98,
+    100
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    178,
+    184
+   ],
+   [
+    215,
+    223
+   ]
+  ],
+  "events": {
+   "hit": [
+    229,
+    231,
+    233,
+    235,
+    237,
+    239,
+    241,
+    243,
+    245,
+    247,
+    249,
+    251,
+    253,
+    255,
+    257,
+    259,
+    261,
+    263,
+    265,
+    267,
+    269,
+    273
+   ],
+   "impact": [
+    301,
+    173
+   ],
+   "ko": [
+    301
+   ],
+   "vs": [
+    24
+   ]
+  }
+ },
+ "fight_twin_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   254,
+   328
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_twin_robed",
+  "frames": 415,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    371
+   ],
+   [
+    399,
+    403
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    371
+   ]
+  ],
+  "events": {
+   "hit": [
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    270,
+    272,
+    274,
+    276,
+    278,
+    280,
+    282,
+    284,
+    286,
+    288,
+    290,
+    292,
+    294,
+    296,
+    300
+   ],
+   "impact": [
+    328
+   ],
+   "ko": [
+    328
+   ],
+   "vs": [
+    20
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_twin_robed_twin_wins_r1": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": true,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   395,
+   469
+  ],
+  "robedUntil": 128,
+  "endsRobed": false,
+  "id": "fight_twin_robed_twin_wins_r1",
+  "frames": 556,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp",
+   "atlas_11.webp",
+   "atlas_12.webp",
+   "atlas_13.webp",
+   "atlas_14.webp",
+   "atlas_15.webp",
+   "atlas_16.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    512
+   ],
+   [
+    540,
+    544
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    512
+   ]
+  ],
+  "events": {
+   "hit": [
+    397,
+    399,
+    401,
+    403,
+    405,
+    407,
+    409,
+    411,
+    413,
+    415,
+    417,
+    419,
+    421,
+    423,
+    425,
+    427,
+    429,
+    431,
+    433,
+    435,
+    437,
+    441
+   ],
+   "impact": [
+    469
+   ],
+   "ko": [
+    469
+   ],
+   "vs": [
+    20
+   ],
+   "burn": [
+    110
+   ]
+  }
+ },
+ "fight_twin_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   254,
+   328
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_twin_gi",
+  "frames": 415,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    371
+   ],
+   [
+    399,
+    403
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    96,
+    98
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    371
+   ]
+  ],
+  "events": {
+   "hit": [
+    256,
+    258,
+    260,
+    262,
+    264,
+    266,
+    268,
+    270,
+    272,
+    274,
+    276,
+    278,
+    280,
+    282,
+    284,
+    286,
+    288,
+    290,
+    292,
+    294,
+    296,
+    300
+   ],
+   "impact": [
+    328
+   ],
+   "ko": [
+    328
+   ],
+   "vs": [
+    20
+   ]
+  }
+ },
+ "fight_twin_gi_twin_wins_r1": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": true,
+  "psychedelic": false,
+  "bonus": false,
+  "combo": [
+   395,
+   469
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_twin_gi_twin_wins_r1",
+  "frames": 556,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp",
+   "atlas_11.webp",
+   "atlas_12.webp",
+   "atlas_13.webp",
+   "atlas_14.webp",
+   "atlas_15.webp",
+   "atlas_16.webp"
+  ],
+  "hidePipe": [
+   [
+    151,
+    512
+   ],
+   [
+    540,
+    544
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    96,
+    98
+   ],
+   [
+    121,
+    128
+   ],
+   [
+    131,
+    142
+   ],
+   [
+    151,
+    512
+   ]
+  ],
+  "events": {
+   "hit": [
+    397,
+    399,
+    401,
+    403,
+    405,
+    407,
+    409,
+    411,
+    413,
+    415,
+    417,
+    419,
+    421,
+    423,
+    425,
+    427,
+    429,
+    431,
+    433,
+    435,
+    437,
+    441
+   ],
+   "impact": [
+    469
+   ],
+   "ko": [
+    469
+   ],
+   "vs": [
+    20
+   ]
+  }
+ },
+ "fight_car_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": true,
+  "combo": [
+   153,
+   225
+  ],
+  "robedUntil": 94,
+  "endsRobed": false,
+  "id": "fight_car_robed",
+  "frames": 312,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    296,
+    300
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    97,
+    108
+   ]
+  ],
+  "events": {
+   "hit": [
+    153,
+    155,
+    157,
+    159,
+    161,
+    163,
+    165,
+    167,
+    169,
+    171,
+    173,
+    175,
+    177,
+    179,
+    181,
+    183,
+    185,
+    187,
+    189,
+    191,
+    193,
+    197
+   ],
+   "impact": [
+    132,
+    225
+   ],
+   "ko": [
+    132
+   ],
+   "burn": [
+    76
+   ],
+   "honk": [
+    30,
+    44,
+    58
+   ]
+  }
+ },
+ "fight_car_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": false,
+  "bonus": true,
+  "combo": [
+   153,
+   225
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_car_gi",
+  "frames": 312,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp"
+  ],
+  "hidePipe": [
+   [
+    296,
+    300
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    87,
+    94
+   ],
+   [
+    97,
+    108
+   ]
+  ],
+  "events": {
+   "hit": [
+    153,
+    155,
+    157,
+    159,
+    161,
+    163,
+    165,
+    167,
+    169,
+    171,
+    173,
+    175,
+    177,
+    179,
+    181,
+    183,
+    185,
+    187,
+    189,
+    191,
+    193,
+    197
+   ],
+   "impact": [
+    132,
+    225
+   ],
+   "ko": [
+    132
+   ],
+   "honk": [
+    30,
+    44,
+    58
+   ]
+  }
+ },
+ "fight_elf_robed": {
+  "kind": "fight",
+  "robed": true,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": true,
+  "bonus": false,
+  "combo": [
+   344,
+   416
+  ],
+  "robedUntil": 130,
+  "endsRobed": false,
+  "id": "fight_elf_robed",
+  "frames": 503,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp"
+  ],
+  "hidePipe": [
+   [
+    437,
+    447
+   ],
+   [
+    487,
+    491
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    158,
+    167
+   ]
+  ],
+  "events": {
+   "hit": [
+    344,
+    346,
+    348,
+    350,
+    352,
+    354,
+    356,
+    358,
+    360,
+    362,
+    364,
+    366,
+    368,
+    370,
+    372,
+    374,
+    376,
+    378,
+    380,
+    382,
+    384,
+    388
+   ],
+   "impact": [
+    416,
+    170,
+    209
+   ],
+   "ko": [
+    416
+   ],
+   "vs": [
+    36
+   ],
+   "burn": [
+    112
+   ]
+  }
+ },
+ "fight_elf_gi": {
+  "kind": "fight",
+  "robed": false,
+  "oddHit": false,
+  "twinWinsR1": false,
+  "psychedelic": true,
+  "bonus": false,
+  "combo": [
+   344,
+   416
+  ],
+  "robedUntil": 0,
+  "endsRobed": false,
+  "id": "fight_elf_gi",
+  "frames": 503,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp"
+  ],
+  "hidePipe": [
+   [
+    437,
+    447
+   ],
+   [
+    487,
+    491
+   ]
+  ],
+  "hideQuit": [
+   [
+    4,
+    5
+   ],
+   [
+    106,
+    108
+   ],
+   [
+    123,
+    130
+   ],
+   [
+    133,
+    144
+   ],
+   [
+    158,
+    167
+   ]
+  ],
+  "events": {
+   "hit": [
+    344,
+    346,
+    348,
+    350,
+    352,
+    354,
+    356,
+    358,
+    360,
+    362,
+    364,
+    366,
+    368,
+    370,
+    372,
+    374,
+    376,
+    378,
+    380,
+    382,
+    384,
+    388
+   ],
+   "impact": [
+    416,
+    170,
+    209
+   ],
+   "ko": [
+    416
+   ],
+   "vs": [
+    36
+   ]
+  }
+ },
+ "trip_22_trip_rainbow_melt": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_22_trip_rainbow_melt",
+  "frames": 128,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    7,
+    40
+   ],
+   [
+    41,
+    80
+   ],
+   [
+    81,
+    120
+   ],
+   [
+    121,
+    125
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    80
+   ],
+   [
+    81,
+    120
+   ],
+   [
+    121,
+    125
+   ]
+  ],
+  "events": {}
+ },
+ "trip_23_trip_breathing_world": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_23_trip_breathing_world",
+  "frames": 124,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    121
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    121
+   ]
+  ],
+  "events": {}
+ },
+ "trip_24_trip_kaleidoscope": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_24_trip_kaleidoscope",
+  "frames": 124,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    60
+   ],
+   [
+    61,
+    120
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    60
+   ],
+   [
+    61,
+    120
+   ]
+  ],
+  "events": {}
+ },
+ "trip_25_trip_prism_rainbow_dash": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_25_trip_prism_rainbow_dash",
+  "frames": 126,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    123
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    90
+   ],
+   [
+    91,
+    123
+   ]
+  ],
+  "events": {}
+ },
+ "trip_26_trip_the_pipe_is_alive": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_26_trip_the_pipe_is_alive",
+  "frames": 130,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    127
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    72
+   ],
+   [
+    73,
+    127
+   ]
+  ],
+  "events": {}
+ },
+ "trip_27_trip_hypno_spin": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_27_trip_hypno_spin",
+  "frames": 124,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    122
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    121
+   ]
+  ],
+  "events": {}
+ },
+ "trip_28_trip_grow_shrink": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_28_trip_grow_shrink",
+  "frames": 126,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    123
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    123
+   ]
+  ],
+  "events": {}
+ },
+ "trip_29_trip_pixel_swarm_snake": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_29_trip_pixel_swarm_snake",
+  "frames": 126,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    123
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    123
+   ]
+  ],
+  "events": {}
+ },
+ "trip_30_trip_disco_moonwalk": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_30_trip_disco_moonwalk",
+  "frames": 130,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    127
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    127
+   ]
+  ],
+  "events": {}
+ },
+ "trip_31_trip_upside_down_world": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "LSD",
+  "id": "trip_31_trip_upside_down_world",
+  "frames": 132,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    129
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    129
+   ]
+  ],
+  "events": {}
+ },
+ "trip_32_dmt_flower_of_life": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_32_dmt_flower_of_life",
+  "frames": 138,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    135
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    135
+   ]
+  ],
+  "events": {}
+ },
+ "trip_33_dmt_metatrons_cube": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_33_dmt_metatrons_cube",
+  "frames": 142,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    139
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    139
+   ]
+  ],
+  "events": {}
+ },
+ "trip_34_dmt_the_shaman": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_34_dmt_the_shaman",
+  "frames": 154,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp"
+  ],
+  "hidePipe": [
+   [
+    51,
+    151
+   ]
+  ],
+  "hideQuit": [
+   [
+    51,
+    151
+   ]
+  ],
+  "events": {}
+ },
+ "trip_35_dmt_spirit_molecule": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_35_dmt_spirit_molecule",
+  "frames": 148,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    145
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    145
+   ]
+  ],
+  "events": {}
+ },
+ "trip_36_dmt_third_eye_sri_yantra": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_36_dmt_third_eye_sri_yantra",
+  "frames": 146,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    143
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    143
+   ]
+  ],
+  "events": {}
+ },
+ "trip_37_dmt_hyperspace_tunnel": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_37_dmt_hyperspace_tunnel",
+  "frames": 142,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp"
+  ],
+  "hidePipe": [
+   [
+    11,
+    139
+   ]
+  ],
+  "hideQuit": [
+   [
+    11,
+    139
+   ]
+  ],
+  "events": {}
+ },
+ "trip_38_dmt_machine_elves": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_38_dmt_machine_elves",
+  "frames": 158,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    155
+   ]
+  ],
+  "hideQuit": [
+   [
+    7,
+    155
+   ]
+  ],
+  "events": {}
+ },
+ "trip_39_dmt_torus_field": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_39_dmt_torus_field",
+  "frames": 144,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    141
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    141
+   ]
+  ],
+  "events": {}
+ },
+ "trip_40_dmt_platonic_tesseract": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_40_dmt_platonic_tesseract",
+  "frames": 150,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    147
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    147
+   ]
+  ],
+  "events": {}
+ },
+ "trip_41_dmt_merkaba_breakthrough": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_41_dmt_merkaba_breakthrough",
+  "frames": 158,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp"
+  ],
+  "hidePipe": [
+   [
+    5,
+    155
+   ]
+  ],
+  "hideQuit": [
+   [
+    5,
+    155
+   ]
+  ],
+  "events": {}
+ },
+ "trip_43_dmt_machine_elf_sacred_warp": {
+  "kind": "trip",
+  "psychedelic": true,
+  "endsRobed": true,
+  "robed": true,
+  "set": "DMT",
+  "id": "trip_43_dmt_machine_elf_sacred_warp",
+  "frames": 300,
+  "atlases": [
+   "atlas_0.webp",
+   "atlas_1.webp",
+   "atlas_2.webp",
+   "atlas_3.webp",
+   "atlas_4.webp",
+   "atlas_5.webp",
+   "atlas_6.webp",
+   "atlas_7.webp",
+   "atlas_8.webp",
+   "atlas_9.webp",
+   "atlas_10.webp",
+   "atlas_11.webp",
+   "atlas_12.webp"
+  ],
+  "hidePipe": [
+   [
+    15,
+    297
+   ]
+  ],
+  "hideQuit": [
+   [
+    15,
+    297
+   ]
+  ],
+  "events": {}
+ }
+}
