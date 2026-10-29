@@ -40,8 +40,20 @@ module.exports = async ({ app, win }) => {
   check((await js('page')) === 'welcome', 'first launch opens on the Welcome page (nothing to fill in)');
   const toolsAsk = await js("(() => { const m = document.querySelector('#modal'); return m && !m.hidden ? m.innerText : ''; })()");
   check(/New install, who dis\?/.test(toolsAsk) && /Download Helper Tools\?/.test(toolsAsk) && /texconv/.test(toolsAsk) && /Real-ESRGAN/.test(toolsAsk), 'helper tools question lists the tools');
-  await js("document.querySelector('#tools-no').click()"); await wait(300);
-  check((await js("document.querySelector('#modal').hidden")) && (await js('page')) === 'welcome', 'No closes it and stays on Welcome');
+  await js("document.querySelector('#tools-no').click()"); await wait(400);
+  // New installs then get the Sacred Geometry question (Psychedelic scenes). No: "Maybe next time", the box goes.
+  const geoAsk = await js("(() => { const m = document.querySelector('#modal'); return m && !m.hidden ? m.innerText : ''; })()");
+  check(/Battle the secrets of Sacred Geometry\?/.test(geoAsk) && /machine elves/.test(geoAsk), 'first launch asks about Sacred Geometry after the tools');
+  await js("document.querySelector('#geo-no').click()"); await wait(1500);
+  check(/Maybe next time/.test(await js("document.querySelector('.geo-ask .later') ? getComputedStyle(document.querySelector('.geo-ask .later')).opacity + document.querySelector('.geo-ask .later').textContent : ''")), 'No: "Maybe next time….." steps in');
+  for (let i = 0; i < 40 && !(await js("document.querySelector('#modal').hidden")); i++) await wait(100);
+  check((await js("document.querySelector('#modal').hidden")) && (await js('page')) === 'welcome' && (await js('cfg.psychedelic')) === false, 'No closes it, stays on Welcome, Psychedelic off');
+  // The footer: the scene stage with the real buttons on top, the clip library loaded.
+  const stage = await js(`(() => { const r = (s) => { const b = document.querySelector(s).getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)]; };
+    return { stage: r('#fx-stage'), quit: r('#quit'), home: r('#home'), clips: Object.keys((window.Wizard && Wizard._debug && window.__idx) || {}).length }; })()`);
+  check(stage.stage[2] === 890 && stage.stage[3] === 100 && stage.quit[0] === 742 && stage.home[0] === 16, `footer stage 890 x 100, Quit and the pipe where the scenes expect them (${JSON.stringify(stage)})`);
+  const lib = await js("window.htk.sceneIndex().then((r) => Object.values(r.index || {}).reduce((a, c) => { a[c.kind] = (a[c.kind] || 0) + 1; return a; }, {}))");
+  check(lib.fight >= 18 && lib.classic >= 13 && lib.trip >= 21 && lib.peek === 11 && lib.busy === 1 && lib.rerobe === 1, `scene library: ${JSON.stringify(lib)}`);
   await shot('first-launch-welcome');
   await js(`document.querySelector('nav button[data-page="convert"]').click()`); await wait(200);
   await js("document.querySelector('#home').click()"); await wait(300);
@@ -91,6 +103,7 @@ module.exports = async ({ app, win }) => {
   await js(`document.querySelector('nav button[data-page="convert"]').click()`); await wait(300);
   const c = await runAndWait(`cfg.convert.input = ${dump}; cfg.convert.output = ${conv}; cfg.convert.format = 'png'; cfg.convert.wrapInfo = true; render();`, 'convert');
   check(c && c.result && c.result.written === 2, 'Convert RT64 Dump: 2 textures');
+  check(await js("(() => { const d = Wizard._debug(); return !d.D.job && ['done', 'idle'].includes(d.bar.mode); })()"), 'footer: the job ended and the bar shows it done');
   check(fs.existsSync(path.join(out, 'converted', 'r64texhd-tiling.json')), 'tiling file written');
   await wait(300);
   check((global.opened || []).some((p) => path.resolve(p.replace(/\\/g, '/')) === path.resolve(out, 'converted', 'textures')), 'after Convert the converted textures folder opens');
@@ -305,5 +318,20 @@ module.exports = async ({ app, win }) => {
   await wait(200); await shot('run-rom-tools');
 
   fs.writeFileSync(path.join(shots, 'selftest.txt'), report.join('\n') + '\n');
+  // The footer director on a pretend long job: a scene that fits the time left, then the endings.
+  await js(`document.querySelector('nav button[data-page="upscale"]').click()`); await wait(300);
+  await js("window.__fakeJob = { n: 0 }; Wizard.jobStart('upscale'); window.__fakeT = setInterval(() => { window.__fakeJob.n++; Wizard.progress(window.__fakeJob.n, 400); }, 100)");
+  let playing = ''; for (let i = 0; i < 80 && !/^(fight|classic|trip)_/.test(playing); i++) { await wait(100); playing = await js("(Wizard._debug().cur || {}).id || ''"); }
+  check(/^(fight|classic|trip)_/.test(playing), `footer: a scene plays once the job's pace is known (${playing})`);
+  await wait(1200); await shot('footer-scene');
+  const barRun = await js("Wizard._debug().bar"); check(barRun.mode === 'run' && barRun.p > 0, `footer: the bar fills (${(barRun.p * 100).toFixed(0)}%)`);
+  await js("clearInterval(window.__fakeT); Wizard.jobEnd('cancel')"); await wait(250); await shot('footer-cancel-burst');
+  check(await js("Wizard._debug().bar.mode === 'fail' && !Wizard._debug().cur"), 'footer: cancel bursts the scene and the bar flashes red');
+  await wait(2000);
+  check(await js("Wizard._debug().bar.mode === 'idle'"), 'footer: the bar drains back to idle');
+  // Settings: the footer switches, under the splash screen options.
+  await js(`document.querySelector('nav button[data-page="settings"]').click()`); await wait(300);
+  const st = await js("document.querySelector('#page').innerText");
+  check(['Scene animations', 'Fights', 'Psychedelic', 'Idle peeks', 'Poking', 'Sound effects', 'Sound volume'].every((t) => st.includes(t)) && /behold the machine elves/.test(st), 'Settings: footer switches (scenes, fights, Psychedelic, peeks, poking, sound)');
   app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);
 };

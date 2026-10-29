@@ -158,8 +158,7 @@ class Scene:
     def __init__(self, **kw): self.__dict__.update(kw)
 
 def arena(fr, f, aa, crowd_x=420, torches=(330, 1300)):
-    if aa <= 0: return
-    cr = U(FA.crowd(f, 30, seed=2)); cr = bayer_mask(cr, aa) if aa < 1 else cr; fr.paste(cr, (crowd_x, FLOOR - cr.height - 64), cr)
+    if aa <= 0: return                                                         # torches only: the crowd read as grey flames (owner, 2026-10-28)
     for tx_ in torches:
         t_ = U(FA.torch(f + tx_)); t_ = bayer_mask(t_, aa) if aa < 1 else t_; fr.paste(t_, (tx_, FLOOR - t_.height), t_)
 
@@ -215,7 +214,7 @@ def goblin(robed=True, **_):
     def actors(f):
         x = WX - min(C.hits_before(f), 14) * 2 if f >= OP0 else SX
         return x, G0 - 30 - min(C.hits_before(f), 14) * 2, U(FA.goblin('hit', f))
-    return Scene(name='goblin', label='GOBLIN', N=N, draw=draw, V0=26, impacts=[IMP], actors=actors, props=props,
+    return Scene(C=C, B0=B0, name='goblin', label='GOBLIN', N=N, draw=draw, V0=26, impacts=[IMP], actors=actors, props=props,
                  combo=(OP0 + 12, IMP), robed=robed, odd=[] if robed else [62])
 
 def golem(robed=True, odd_hit=False, **_):
@@ -291,7 +290,7 @@ def golem(robed=True, odd_hit=False, **_):
         callouts(fr, f, ([('UNLEASHED!', B0 + 18, B0 + 40, 5)] if robed else []) + [('FIGHT!', B0 + 40, 112, 7), ('K.O.', IMP + 2, IMP + 26, 8), (f'{n} HIT COMBO!', IMP + 26, E0 + 6, 4)])
         return finish(fr)
     def actors(f): return (WX if f >= OP0 else SX), O, U(OP.golem('hit', f))
-    return Scene(name='golem', label='GOLEM', N=N, draw=draw, V0=30, impacts=[IMP] + ([HIT0] if odd_hit else []), actors=actors,
+    return Scene(C=C, B0=B0, name='golem', label='GOLEM', N=N, draw=draw, V0=30, impacts=[IMP] + ([HIT0] if odd_hit else []), actors=actors,
                  props=lambda fr, f, a=None: None, combo=(OP0 + 12, IMP), robed=robed)
 
 def robot(robed=True, odd_hit=False, **_):
@@ -373,7 +372,7 @@ def robot(robed=True, odd_hit=False, **_):
         callouts(fr, f, ([('UNLEASHED!', B0 + 18, B0 + 40, 5)] if robed else []) + [('FIGHT!', B0 + 40, 110, 7), ('K.O.', IMP + 2, IMP + 26, 8), (f'{n} HIT COMBO!', IMP + 26, E0 + 6, 4)])
         return finish(fr)
     def actors(f): return (WX if f >= OP0 else SX), O, U(OP.robot('hit', f))
-    return Scene(name='robot', label='ROBOT', N=N, draw=draw, V0=24, impacts=[IMP] + ([HIT0] if odd_hit else []), actors=actors,
+    return Scene(C=C, B0=B0, name='robot', label='ROBOT', N=N, draw=draw, V0=24, impacts=[IMP] + ([HIT0] if odd_hit else []), actors=actors,
                  props=lambda fr, f, a=None: None, combo=(OP0 + 12, IMP), robed=robed)
 
 def _dorb(fr, x, y, f, a=1.0, hot=False): UL._dorb(fr, x, y, f, a, hot)
@@ -506,7 +505,7 @@ def twin(robed=True, twin_wins_r1=False, **_):
     def actors(f):
         x = WX - min(C.hits_before(f), 14) * 2 if f >= OP0 else SX
         return x, O - min(C.hits_before(f), 14) * 2, M.rig('hit', True, 'dark', True)[0]
-    sc = Scene(name='twin', label='DARK TWIN', N=N, draw=draw, V0=20, impacts=[IMP], actors=actors, props=lambda fr, f, a=None: None,
+    sc = Scene(C=C, B0=B0, name='twin', label='DARK TWIN', N=N, draw=draw, V0=20, impacts=[IMP], actors=actors, props=lambda fr, f, a=None: None,
                combo=(OP0 + 12, IMP), robed=robed, inserts=[])
     if twin_wins_r1: sc.inserts = [(R1AT, R1N, r1, [C2END + 12])]                  # (clock, length, draw, impacts inside)
     return sc
@@ -573,7 +572,7 @@ def car(robed=False, **_):
         callouts(fr, f, [('BONUS STAGE', 6, 28, 5)] + ([('UNLEASHED!', B0 + 18, B0 + 40, 5)] if robed else []) + [('PERFECT!', IMP + 4, IMP + 28, 7), (f'{n} HIT COMBO!', IMP + 28, E0 + 6, 4)])
         return finish(fr)
     def actors(f): return (WX if f >= 140 else SX), CX, U(FA.car(3))
-    return Scene(name='car', label='BONUS CAR', N=N, draw=draw, V0=None, impacts=[132, IMP], actors=actors, props=lambda fr, f, a=None: None,
+    return Scene(C=C, B0=B0, name='car', label='BONUS CAR', N=N, draw=draw, V0=None, impacts=[132, IMP], actors=actors, props=lambda fr, f, a=None: None,
                  combo=(150, IMP), robed=robed)
 
 SCENES = {'goblin': goblin, 'golem': golem, 'robot': robot, 'twin': twin, 'car': car}
@@ -637,36 +636,40 @@ def shake_frame(img, dx):
     band = a[t:b]; sh = np.roll(band, dx, axis=1)
     out[t:b, 190:1460] = sh[:, 190:1460]
     return Image.fromarray(out)
-def hitstop(frames, impacts, freeze=3, shake=(8, -6, 4, -2)):
+def hitstop(frames, impacts, freeze=3, shake=(8, -6, 4, -2), trace=None):
     """big impacts: hold the frame for a beat, then shake (no white flash)"""
-    out = []; imp = set(impacts); sh_left = []
+    out = []; tr = []; imp = set(impacts); sh_left = []
     for i, fr in enumerate(frames):
         if sh_left: fr = shake_frame(fr, sh_left.pop(0))
-        out.append(fr)
+        out.append(fr); tr.append(trace[i] if trace else None)
         if i in imp:
-            out.extend([fr] * freeze); sh_left = list(shake)
+            out.extend([fr] * freeze); tr.extend([trace[i] if trace else None] * freeze); sh_left = list(shake)
+    if trace is not None: trace[:] = tr
     return out
-def assemble(sc, vs=True, end=None):
+def assemble(sc, vs=True, end=None, trace=None):
     """frames for a scene: base clock with the VS card held at V0 and any inserted segments; end=(kind, at clock)
-    cuts it short with an early ending ('exit', 'cancel', 'error')."""
-    frames = []; impacts = []
+    cuts it short with an early ending ('exit', 'cancel', 'error'). trace (a list) gets, per frame,
+    ('base'|'vs'|'ins'|'end', clock, k)."""
+    frames = []; impacts = []; tr = []
     ins = {c: (n, fn, imps) for (c, n, fn, imps) in getattr(sc, 'inserts', [])}
     stop = sc.N if end is None else end[1]
     for c in range(stop):
         if vs and sc.V0 is not None and c == sc.V0:
             base = sc.draw(c)
-            for k in range(VL): fr = base.copy(); vs_card(fr, k, sc.label); frames.append(finish(fr))
+            for k in range(VL): fr = base.copy(); vs_card(fr, k, sc.label); frames.append(finish(fr)); tr.append(('vs', c, k))
         if c in ins:
             n, fn, imps = ins[c]
             for k in range(n):
                 if k in imps: impacts.append(len(frames))
-                frames.append(fn(k))
+                frames.append(fn(k)); tr.append(('ins', c, k))
         if c in sc.impacts: impacts.append(len(frames))
-        frames.append(sc.draw(c))
+        frames.append(sc.draw(c)); tr.append(('base', c, 0))
     if end is not None:
         kind, at = end
-        frames += instant_exit(sc, at) if kind == 'exit' else burst_end(sc, at, kind)
-    return hitstop(frames, impacts)
+        extra = instant_exit(sc, at) if kind == 'exit' else burst_end(sc, at, kind)
+        frames += extra; tr += [('end', at, k) for k in range(len(extra))]
+    if trace is not None: trace[:] = tr
+    return hitstop(frames, impacts, trace=trace)
 
 def render(name, **kw):
     vs = kw.pop('vs', True); end = kw.pop('end', None)

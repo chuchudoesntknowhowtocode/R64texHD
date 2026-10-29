@@ -318,6 +318,27 @@ function registerIpc() {
   ipcMain.handle('ship:identify', (_e, file) => { try { return require('./core/shipid').identify(file); } catch (e) { return { error: e.message || String(e) }; } });
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));
+  // Footer scenes (app/assets/scenes, made by build/wizard/export_app.py) and the owner's sound clips.
+  const SCENES = path.join(__dirname, 'assets', 'scenes');
+  ipcMain.handle('scenes:index', () => {
+    try { return { stage: JSON.parse(fs.readFileSync(path.join(SCENES, 'stage.json'), 'utf8')), index: JSON.parse(fs.readFileSync(path.join(SCENES, 'index.json'), 'utf8')) }; }
+    catch (e) { return { error: e.message }; }
+  });
+  ipcMain.handle('scenes:clip', (_e, id) => {
+    if (typeof id !== 'string' || !/^[a-z0-9_]+$/.test(id)) return { error: 'bad clip id' };
+    try { return JSON.parse(fs.readFileSync(path.join(SCENES, id, 'clip.json'), 'utf8')); } catch (e) { return { error: e.message }; }
+  });
+  // Sound slots: <slot>.ogg in the data folder's "sounds" (yours) or app/assets/sounds (shipped). Missing = silent.
+  ipcMain.handle('sounds:list', () => {
+    const out = {};
+    for (const dir of [path.join(__dirname, 'assets', 'sounds'), path.join(DATA_DIR, 'sounds')]) {
+      let names = []; try { names = fs.readdirSync(dir); } catch { continue; }
+      for (const n of names) if (/\.ogg$/i.test(n)) out[n.replace(/\.ogg$/i, '').toLowerCase()] = require('url').pathToFileURL(path.join(dir, n)).href;
+    }
+    return out;
+  });
+  // The Windows taskbar button shows the footer bar too (red when a job fails).
+  ipcMain.handle('taskbar', (_e, p, mode) => { try { if (win && !win.isDestroyed()) win.setProgressBar(typeof p === 'number' ? p : -1, { mode: mode === 'error' ? 'error' : 'normal' }); } catch { /* ignore */ } return true; });
   ipcMain.handle('state', () => ({ settings, dataDir: DATA_DIR, dataWritable, tools: tools(), version: app.getVersion(), platform: process.platform, cpus: os.cpus().length, workers: workerCount(), running: running && running.task, shipPorts: require('./core/shipid').ports() }));
   ipcMain.handle('settings:save', (_e, s) => { settings = { ...settings, ...s }; saveSettings(); return true; });
   ipcMain.handle('dialog', async (_e, { kind, title, defaultPath }) => {

@@ -147,7 +147,7 @@ def elf(robed=True, **_):
         return finish(fr)
     def actors(f):
         return (WX if f >= CL0 else SX), elf_x(f), elf_img(f)
-    return Scene(name='elf', label='MACHINE ELF', N=N, draw=draw, V0=36, impacts=[IMP, SH0 + 12, 160], actors=actors,
+    return Scene(C=C, B0=B0, name='elf', label='MACHINE ELF', N=N, draw=draw, V0=36, impacts=[IMP, SH0 + 12, 160], actors=actors,
                  props=lambda fr, f, a=None: None, combo=(OP0 + 12, IMP), robed=robed)
 
 FT.SCENES['elf'] = elf

@@ -333,6 +333,19 @@ def s29():
     return out
 
 # ---------------- 30. Disco moonwalk ----------------
+def twinkles(fr, f, I, n=22, seed=30):
+    """4-point twinkling stars scattered over the bar, each fading in and out on its own beat"""
+    rng = random.Random(seed)
+    for k in range(n):
+        x = rng.uniform(120, FW - 360); y = rng.uniform(SAFE + 14, BOTTOM - 24); per = rng.choice((16, 20, 24)); off = rng.randrange(per)
+        ph = (f + off) % per; t = ph / per
+        if t > 0.6: continue
+        a = 255 * I * math.sin(math.pi * t / 0.6)
+        col = WHITE if k % 3 == 0 else rb(k / n + f * 0.01, 0.5, 1.0)
+        arm = 2 + int(3 * math.sin(math.pi * t / 0.6))
+        px(fr, x - 2, y - 2, 4, col, a)
+        for j in range(1, arm + 1):
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)): px(fr, x - 2 + dx * j * 2, y - 2 + dy * j * 2, 2, col, a * (1 - j / (arm + 1)))
 def s30():
     out = []; N = 130
     dance = [('H', False), ('B', False), ('E', False), ('B', True), ('H', False), ('D', False), ('E', False), ('B', True)]
@@ -342,7 +355,7 @@ def s30():
             for x in range(96, FW - 340, 48):
                 for y in range(252, 372, 40):
                     if ((x // 48) + (y // 40) + beat) % 3 == 0: rect(fr, x, y, 44, 36, rb((x + y) / 900 + beat * 0.13), 110 * I)
-            if f % 8 == 0 and f < N - 20: rect(fr, 0, SAFE, FW, BOTTOM - SAFE, WHITE, 40 * I)
+            twinkles(fr, f, I)                                       # sparkles instead of the strobe flash (owner, 2026-10-28)
         dy = pipe_bounce(f - 106)
         if 24 <= f < 104 and f % 8 < 2: dy = min(dy, -4)
         draw_pipe(fr, 0, dy)

@@ -98,6 +98,11 @@
         : { name: p.name, game: p.game, installed: false });
       return { ports, folders: 18342, ms: 640, complete: true };
     },
+    // Footer scenes: read straight from app/assets/scenes (serve the app folder over http for previews).
+    sceneIndex: async () => { try { const j = async (f) => (await fetch('../assets/scenes/' + f)).json(); return { stage: await j('stage.json'), index: await j('index.json') }; } catch (e) { return { error: String(e) }; } },
+    sceneClip: async (id) => { try { return await (await fetch('../assets/scenes/' + id + '/clip.json')).json(); } catch (e) { return { error: String(e) }; } },
+    soundList: async () => ({}),
+    taskbar: async () => true,
     // Ship Mods: looks at each port and the chosen archive again (the real app reads portVersion; core/shipcheck.js).
     shipCheck: async (ports, target) => {
       const id = target ? await window.htk.shipIdentify(target) : null;
