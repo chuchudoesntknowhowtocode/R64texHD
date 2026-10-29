@@ -566,6 +566,36 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .tool-state.gpu span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tool-state.gpu.wait { color: var(--muted); }
 #gpu-state { margin-bottom: 2px; }
+
+/* Upscale: preset cards, estimate, Advanced options */
+.presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 6px 0 12px; }
+.pcard { position: relative; background: var(--field); padding: 10px 12px 11px; clip-path: var(--notch); --step: 3px; cursor: pointer; min-height: 88px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.06), inset 0 -3px 0 rgba(0,0,0,.35); }
+.pcard:hover { background: var(--field-hover); }
+.pcard:focus-visible { outline: 2px solid var(--orange-hi); outline-offset: -4px; }
+.pcard b { display: block; font-size: 13.5px; color: #fff; padding-right: 14px; }
+.pcard small { display: block; color: var(--muted); font-size: 11.5px; line-height: 1.4; margin-top: 4px; }
+.pcard i { font-style: normal; display: inline-block; margin-top: 7px; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; color: #c48cff; }
+.pcard.on { background: linear-gradient(180deg, #ff9a6a, #f2706b); box-shadow: inset 0 3px 0 rgba(255,255,255,.35), inset 0 -4px 0 rgba(122,30,52,.55); cursor: default; }
+.pcard.on b, .pcard.on small, .pcard.on i { color: #2b0b28; }
+.pcard .pdel { position: absolute; top: 6px; right: 6px; border: 0; background: transparent; color: inherit; opacity: .55; cursor: pointer; font-size: 12px; padding: 2px 4px; }
+.pcard .pdel:hover { opacity: 1; }
+.pcard.custom .btn { margin-top: 8px; padding: 5px 10px; font-size: 12px; }
+.est { display: flex; gap: 6px 18px; flex-wrap: wrap; padding: 9px 14px; background: var(--panel-2); box-shadow: inset 0 0 0 2px #3b2657; font-size: 12.5px; color: var(--muted); margin-bottom: 12px; clip-path: var(--notch); min-height: 18px; }
+.est b { color: #fff; font-weight: 700; } .est em { font-style: normal; color: #ffb38a; } .est .upd { color: #9c86bd; }
+.adv-toggle { display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px 14px; background: #241740; color: var(--text); border: 0; box-shadow: inset 0 0 0 2px #3f2a5e; font: inherit; cursor: pointer; clip-path: var(--notch); text-align: left; }
+.adv-toggle b { font-weight: 700; flex: none; } .adv-toggle span { flex: 1; color: var(--muted); font-size: 12.5px; text-align: right; } .adv-toggle i { font-style: normal; color: var(--orange); }
+.adv-toggle:hover { background: #2b1c4a; }
+.adv { padding: 2px 14px 4px; margin-top: 2px; box-shadow: inset 2px 0 0 #3f2a5e; }
+.adv[hidden] { display: none; }
+/* Upscale preview: before / after with a drag line */
+.pv-caps { display: flex; gap: 14px; margin-bottom: 6px; } .pv-caps .pv-cap { flex: 1; margin: 0; } .pv-caps .pv-cap.r { text-align: right; }
+.pv-cmp { position: relative; flex: none; cursor: ew-resize; touch-action: none; user-select: none; }
+.pv-cmp canvas { position: absolute; left: 0; top: 0; }
+.pv-cmp #pv-o { clip-path: inset(0 calc(100% - var(--x)) 0 0); }
+.pv-line { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.7); pointer-events: none; }
+.pv-line i { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--orange); color: var(--ink); font: 800 10px/1 system-ui, sans-serif; font-style: normal; padding: 5px 6px; white-space: nowrap; box-shadow: 2px 2px 0 #000; }
+.pv-view.z1 .pv-cmp { margin: 0 auto; }
 </style>
 </head>
 <body>
@@ -757,7 +787,7 @@ function gpuLines() {
   return GPU.gpus.map((g) => `<div class="tool-state gpu ${g.vulkan ? 'have' : 'missing'}" title="${g.vulkan ? 'Vulkan driver found: the AI upscaler can use this card' : 'No Vulkan driver found for this card: update its graphics driver'}">${pixelIcon(g.vulkan ? 'green' : 'red', g.vulkan ? '' : 'x')}<span>${g.vulkan ? 'Vulkan' : 'No Vulkan'} · ${esc(g.name)}${g.vramText ? ` · ${esc(g.vramText)}` : ''}</span></div>`).join('');
 }
 function fillGpu() {
-  const show = () => { const el = $('#gpu-state'); if (el) el.innerHTML = gpuLines(); };
+  const show = () => { const el = $('#gpu-state'); if (el) el.innerHTML = gpuLines(); if (page === 'upscale') refreshEstimate(); };
   if (GPU) return show();
   if (fillGpu.busy) return; fillGpu.busy = true;
   window.htk.gpuInfo().then((r) => {
@@ -773,6 +803,73 @@ function vramText(bytes) {
   return (gb >= 10 || Math.abs(gb - Math.round(gb)) < 0.05 ? String(Math.round(gb)) : gb.toFixed(1)) + ' GB';
 }
 const DDS_OPTS = () => [['auto', 'Auto'], ['bc7', 'BC7'], ['bc3', 'BC3'], ['bc1', 'BC1'], ['rgba8', 'None']];
+// Upscaler presets. A preset sets these options; changing one of them by hand makes it "Custom".
+const PRESET_KEYS = ['method', 'size', 'sharpness', 'edges', 'hardAlpha', 'format', 'ddsFormat', 'keepCoverage'];
+const UP_PRESETS = [
+  { id: 'smart', name: 'Smart', desc: 'Picks per texture: pixel-perfect for tiny / text, HD or AI for the rest.', tag: 'DEFAULT',
+    set: { method: 'smart', size: 4, sharpness: 'normal', edges: 'auto', hardAlpha: true, format: 'dds', ddsFormat: 'bc7', keepCoverage: true } },
+  { id: 'faithful', name: 'Faithful 2×', desc: 'Standard, light sharpening. The original look, only cleaner.', tag: '2× · PNG',
+    set: { method: 'standard', size: 2, sharpness: 'soft', edges: 'auto', hardAlpha: true, format: 'png' } },
+  { id: 'hd', name: 'HD 4×', desc: 'Standard, normal sharpening. The everyday pick.', tag: '4× · DDS BC7',
+    set: { method: 'standard', size: 4, sharpness: 'normal', edges: 'auto', hardAlpha: true, format: 'dds', ddsFormat: 'bc7', keepCoverage: true } },
+  { id: 'ultra', name: 'Ultra AI 4×', desc: 'Real-ESRGAN General. Sharpest on stone, wood and skies.', tag: '4× · BC7 · NEEDS AI',
+    set: { method: 'ai', size: 4, sharpness: 'normal', edges: 'auto', hardAlpha: true, format: 'dds', ddsFormat: 'bc7', keepCoverage: true } },
+  { id: 'pixel', name: 'Pixel-perfect', desc: 'Blocky pixels and hard edges for HUDs, fonts and sprites.', tag: '4× · PNG',
+    set: { method: 'pixel', size: 4, hardAlpha: true, format: 'png' } },
+];
+const sameVal = (a, b) => String(a) === String(b);
+const presetFits = (set, u) => Object.entries(set).every(([k, v]) => sameVal(u[k], v));
+function presetOf(u) {
+  const b = UP_PRESETS.find((p) => presetFits(p.set, u)); if (b) return b.id;
+  const i = (cfg.userPresets || []).findIndex((p) => presetFits(p.set, u)); if (i >= 0) return 'user:' + i;
+  return 'custom';
+}
+function presetSet(id) {
+  if (id.startsWith('user:')) return ((cfg.userPresets || [])[Number(id.slice(5))] || {}).set;
+  return (UP_PRESETS.find((p) => p.id === id) || {}).set;
+}
+function applyPreset(id) { const set = presetSet(id); if (set) Object.assign(cfg.upscale, set); }
+function presetSummary(u) {
+  const m = { smart: 'Smart', standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', ai: 'AI' }[u.method] || u.method;
+  const size = u.size === 'fit' ? `fit ${u.fit}` : `${u.size}×`;
+  const fmt = u.format === 'dds' ? `DDS ${String(u.ddsFormat || 'auto').toUpperCase().replace('RGBA8', 'none')}` : u.format === 'png' ? 'PNG' : 'same format';
+  return `${m} · ${size}${u.method === 'pixel' || u.method === 'smooth' ? '' : ` · ${u.sharpness || 'normal'} sharpening`} · ${fmt}`;
+}
+const presetCard = (id, name, desc, tag, on, mine = false) => `<div class="pcard ${on ? 'on' : ''}" data-preset="${id}" role="button" tabindex="0"><b>${esc(name)}</b><small>${esc(desc)}</small><i>${esc(tag)}</i>${mine ? `<button class="pdel" data-preset-del="${id.slice(5)}" title="Delete this preset">✕</button>` : ''}</div>`;
+// The estimate line under the presets (filled by refreshEstimate).
+const EST = { key: '', data: null, busy: false, timer: null };
+const mb = (b) => (b >= 1e9 ? (b / 1073741824).toFixed(1) + ' GB' : Math.max(1, Math.round(b / 1048576)).toLocaleString() + ' MB');
+const dur = (s) => (s < 60 ? `${Math.max(1, s)} s` : s < 3600 ? `${Math.round(s / 60)} min` : `${(s / 3600).toFixed(1)} h`);
+function estimateText() {
+  const e = EST.data;
+  if (!(cfg.upscale.inputs || []).length) return '<span>Pick an input to see an estimate.</span>';
+  if (!e) return '<span>Estimating…</span>';
+  if (e.error) return '<span>No estimate: ' + esc(e.error === 'no images' ? 'no PNG or DDS images in the input' : e.error) + '</span>';
+  const g = e.groups;
+  return `<span>Estimate for <b>${e.count.toLocaleString()}</b> textures:</span><span><b>~${mb(e.disk)}</b> on disk</span><span><b>~${mb(e.vram)}</b> video memory in game</span><span><b>~${dur(e.seconds)}</b> on this PC</span>`
+    + (e.smart ? `<span>Smart: <b>${g.hd.toLocaleString()}</b> HD 4× · <b>${g.ai.toLocaleString()}</b> AI 4× · <b>${g.pixel.toLocaleString()}</b> pixel-perfect${!e.aiReady ? ' <em>(AI not available: the big detailed ones go HD)</em>' : ''}</span>` : '')
+    + (EST.busy ? '<span class="upd">updating…</span>' : '');
+}
+function refreshEstimate() {
+  if (page !== 'upscale') return;
+  const u = cfg.upscale;
+  if (!(u.inputs || []).length) { EST.data = null; const el = $('#up-est'); if (el) el.innerHTML = estimateText(); return; }
+  const req = { inputs: u.inputs, subfolders: u.subfolders, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, hardAlpha: u.hardAlpha,
+    format: u.format, ddsFormat: u.ddsFormat, aiOk: aiOk() };
+  const key = JSON.stringify(req);
+  if (key === EST.key) return;
+  EST.key = key; EST.busy = true; const el0 = $('#up-est'); if (el0) el0.innerHTML = estimateText();
+  clearTimeout(EST.timer);
+  EST.timer = setTimeout(async () => {
+    const r = await window.htk.estimate(req);
+    if (r && r.superseded) return;
+    if (EST.key !== key) return;
+    EST.data = r; EST.busy = false;
+    const el = $('#up-est'); if (el) el.innerHTML = estimateText();
+  }, 350);
+}
+// AI only helps with a Vulkan graphics card. Unknown (not checked yet, or not Windows) counts as yes.
+function aiOk() { return !(GPU && GPU.ok && GPU.gpus && GPU.gpus.length && !GPU.gpus.some((g) => g.vulkan)); }
 
 function getVal(key) { return key.split('.').reduce((o, k) => (o == null ? o : o[k]), cfg); }
 function setVal(key, v) {
@@ -798,6 +895,7 @@ const NEW_DEFAULTS = {
   roms: { folder: '' },
 };
 function withDefaults(c) {
+  if (c.upscale && !c.upscale.presetsSeen) { Object.assign(c.upscale, UP_PRESETS[0].set, { presetsSeen: true }); }
   for (const [k, v] of Object.entries(NEW_DEFAULTS)) {
     if (v && typeof v === 'object') c[k] = { ...v, ...(c[k] || {}) };
     else if (c[k] === undefined) c[k] = v;
@@ -816,14 +914,21 @@ const pages = {
   },
   upscale() {
     const u = cfg.upscale, dds = u.format === 'dds' || u.format === 'same';
-    const sharpOk = u.method === 'standard' || u.method === 'ai';
+    const sharpOk = u.method === 'standard' || u.method === 'ai' || u.method === 'smart';
+    const cur = presetOf(u), adv = u.advanced === true;
+    const cards = UP_PRESETS.map((p) => presetCard(p.id, p.name, p.desc, p.tag, cur === p.id)).join('')
+      + (cfg.userPresets || []).map((p, i) => presetCard('user:' + i, p.name, presetSummary(p.set), 'YOURS', cur === 'user:' + i, true)).join('')
+      + (cur === 'custom' ? `<div class="pcard on custom" data-preset="custom"><b>Custom</b><small>Your own mix of the options below.</small><button class="btn" id="preset-save">Save as preset…</button></div>` : '');
     return `<h2>Upscale Textures</h2><p class="lead">Make N64 textures bigger and sharper. Pick a folder (subfolders are kept) or a few files.</p>
       ${card()}
       ${previewPanel()}
       ${row('Input', 'A folder of textures, or one or more PNG / DDS files.', pathField('upscale.inputs', u.inputs, [['folder', 'Folder…'], ['images', 'Files…']], 'Choose a folder or files'))}
-      ${row('Include subfolders', 'Upscale everything inside the folder, keeping the same layout.', seg('upscale.subfolders', [['true', 'Yes'], ['false', 'No']], String(u.subfolders)))}
-      ${row('Method', 'Standard grows in 2× steps and sharpens as it goes. Smooth is one soft resize. Pixel art keeps blocky pixels. AI uses Real-ESRGAN.',
-        seg('upscale.method', [['standard', 'Standard'], ['smooth', 'Smooth'], ['pixel', 'Pixel art'], ['ai', 'AI']], u.method, S.tools.realesrgan ? [] : ['ai']))}
+      <div class="presets">${cards}</div>
+      <div class="est" id="up-est">${estimateText()}</div>
+      <button class="adv-toggle ${adv ? 'open' : ''}" id="adv-toggle"><b>Advanced options</b><span>${adv ? 'Changing one makes the preset “Custom”' : esc(presetSummary(u))}</span><i>${adv ? '▴' : '▾'}</i></button>
+      <div class="adv" ${adv ? '' : 'hidden'}>
+      ${row('Method', 'Smart picks per texture. Standard grows in 2× steps and sharpens as it goes. Smooth is one soft resize. Pixel art keeps blocky pixels. AI uses Real-ESRGAN.',
+        seg('upscale.method', [['smart', 'Smart'], ['standard', 'Standard'], ['smooth', 'Smooth'], ['pixel', 'Pixel art'], ['ai', 'AI']], u.method, S.tools.realesrgan ? [] : ['ai']))}
       ${row('Size', `How much bigger. Fit sets the longest side. Nothing goes past ${cfg.maxSize} px.`,
         seg('upscale.size', [['2', '2×'], ['3', '3×'], ['4', '4×'], ['6', '6×'], ['8', '8×'], ['fit', 'Fit']], u.size))}
       ${row('Longest side', 'Target size when Size is Fit.', seg('upscale.fit', [['512', '512'], ['1024', '1024'], ['2048', '2048'], ['4096', '4096']], u.fit), u.size === 'fit')}
@@ -832,13 +937,15 @@ const pages = {
       ${row('Edges', 'Auto uses each texture’s own setting from the RT64 dump, so floors and walls stay seamless. Or set one for everything.',
         seg('upscale.edges', [['auto', 'Auto'], ['clamp', 'Normal'], ['wrap', 'Tile'], ['mirror', 'Mirror']], u.edges), u.method !== 'pixel')}
       ${row('Cut-out edges', 'Hard keeps see-through bits (leaves, fences, text) crisp.', seg('upscale.hardAlpha', [['true', 'Hard'], ['false', 'Smooth']], String(u.hardAlpha)), u.method !== 'pixel')}
-      ${row('Output format', 'Same keeps each file’s format. DDS loads fastest in game.', seg('upscale.format', [['same', 'Same as input'], ['png', 'PNG'], ['dds', 'DDS']], u.format))}
+      ${row('Output format', 'Same keeps each file’s format. DDS loads fastest in game and comes with mipmaps.', seg('upscale.format', [['same', 'Same as input'], ['png', 'PNG'], ['dds', 'DDS']], u.format))}
       ${row('DDS compression', 'Auto picks BC1 or BC3. BC7 is sharpest (needs texconv). None is uncompressed.',
         seg('upscale.ddsFormat', DDS_OPTS(), u.ddsFormat, S.tools.texconv ? [] : ['bc7']), dds)}
       ${row('Fences far away', 'Keeps fences, grass and leaves from fading out in the distance.', seg('upscale.keepCoverage', [['true', 'Keep them'], ['false', 'Off']], String(u.keepCoverage)), dds)}
-      ${row('Output folder', 'Where the upscaled textures go.', pathField('upscale.output', u.output, [['folder', 'Browse…']]))}
+      ${row('Include subfolders', 'Upscale everything inside the folder, keeping the same layout.', seg('upscale.subfolders', [['true', 'Yes'], ['false', 'No']], String(u.subfolders)))}
       ${row('Existing files', 'Skip lets you pick up where you left off.', seg('upscale.existing', [['overwrite', 'Overwrite'], ['skip', 'Skip']], u.existing))}
       ${row('Other files', 'Copy non-texture files (rt64.json, readme…) along too.', seg('upscale.copyOther', [['true', 'Copy'], ['false', 'Leave']], String(u.copyOther)))}
+      </div>
+      ${row('Output folder', 'Where the upscaled textures go.', pathField('upscale.output', u.output, [['folder', 'Browse…']]))}
       <div class="log" id="log"></div>`;
   },
   convert() {
@@ -1214,7 +1321,7 @@ function render() {
   go.style.visibility = (page === 'settings' || page === 'about' || page === 'welcome') ? 'hidden' : 'visible';
   renderJob();
   refreshStatus();
-  if (page === 'upscale') afterRenderPreview();
+  if (page === 'upscale') { afterRenderPreview(); refreshEstimate(); }
   if (page === 'roms') afterRenderRoms();
   if (page === 'settings') fillGpu();
   if (page === 'ports') afterRenderShip(); else SHIP.shown = false;
@@ -1320,6 +1427,14 @@ function renderJob() {
 // ---------------------------------------------------------------- dialogs
 function modal(html) { $('#dialog').innerHTML = html; $('#modal').hidden = false; }
 function closeModal() { $('#modal').hidden = true; }
+function askPresetName() {
+  modal(`<div class="ask-tools"><h3>Save as preset</h3><p>${esc(presetSummary(cfg.upscale))}</p>
+    <input class="text" id="pname" maxlength="40" placeholder="Name, like “My Majora look”" spellcheck="false" style="width:100%;margin-top:10px">
+    <div class="buttons"><button class="btn" id="pname-cancel">Cancel</button><button class="btn primary" id="pname-ok">Save</button></div></div>`);
+  setTimeout(() => { const i = $('#pname'); if (i) i.focus(); }, 30);
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'pname') $('#pname-ok').click(); });
+document.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('pcard')) { e.preventDefault(); e.target.click(); } });
 
 function askPack(result) {
   packAfter = result.output;
@@ -1377,6 +1492,16 @@ document.addEventListener('click', async (e) => {
     PV.src = PV.list[n].src; PV.scroll = { x: 0, y: 0 };
     fillPreviewPicker(); drawPreview(); schedulePreview(); return;
   }
+  const pdel = e.target.closest('[data-preset-del]');
+  if (pdel) { cfg.userPresets.splice(Number(pdel.dataset.presetDel), 1); render(); return; }
+  if (e.target.id === 'preset-save') { askPresetName(); return; }
+  const pc = e.target.closest('.pcard[data-preset]');
+  if (pc && pc.dataset.preset !== 'custom') { applyPreset(pc.dataset.preset); clearFinished(); render(); return; }
+  if (e.target.closest('#adv-toggle')) { cfg.upscale.advanced = !cfg.upscale.advanced; render(); return; }
+  if (e.target.id === 'pname-ok') { const n = ($('#pname').value || '').trim(); if (!n) return; (cfg.userPresets = cfg.userPresets || []).push({ name: n.slice(0, 40), set: Object.fromEntries(PRESET_KEYS.map((k) => [k, cfg.upscale[k]])) }); closeModal(); save(true); render(); return; }
+  if (e.target.id === 'pname-cancel') { closeModal(); return; }
+  if (e.target.id === 'ai-get') { closeModal(); page = 'settings'; cfg.page = page; render(); const b = document.querySelector('[data-install="realesrgan"]'); if (b) b.click(); return; }
+  if (e.target.id === 'ai-skip') { closeModal(); AI_ASKED = true; start('upscale'); return; }
   const sb = e.target.closest('.seg button');
   if (sb && !sb.disabled) { const k = sb.parentElement.dataset.key; setVal(k, sb.dataset.v); clearFinished(); render(); if (k === 'cleanPhrases') { hdrList = []; hdrAt = 0; nextHeaderPhrase(); } return; }
   const br = e.target.closest('[data-browse]');
@@ -1482,7 +1607,7 @@ async function save(quiet) { await window.htk.saveSettings(cfg); if (!quiet) toa
 
 function params(task) {
   switch (task) {
-    case 'upscale': return { ...cfg.upscale };
+    case 'upscale': return { ...cfg.upscale, aiOk: aiOk() };
     case 'convert': return { ...cfg.convert, input: cfg.convert.input || cfg.dumpFolder };
     case 'unpack': return { ...cfg.unpack };
     case 'check': return { ...cfg.check };
@@ -1497,7 +1622,14 @@ function params(task) {
   }
 }
 
+let AI_ASKED = false;
 async function start(task) {
+  const um = cfg.upscale.method;
+  if (task === 'upscale' && (um === 'smart' || um === 'ai') && !S.tools.realesrgan && aiOk() && !AI_ASKED) {
+    modal(`<div class="ask-tools"><h3>${um === 'smart' ? 'Smart' : 'AI'} works best with Real-ESRGAN</h3><p>It’s the AI upscaler for big, detailed textures (45 MB). Without it, those textures use HD 4×.</p>
+      <div class="buttons"><button class="btn" id="ai-skip">Not now</button><button class="btn primary" id="ai-get">Download</button></div></div>`);
+    return;
+  }
   await save(true);
   job = { running: false, task, log: [], result: null, error: null, done: 0, total: 0, message: '' };
   const r = await window.htk.run(task, params(task));
@@ -1815,13 +1947,13 @@ function drawRomDetail() {
 document.addEventListener('input', (e) => { if (e.target.id === 'rom-search') { ROMS.filter = e.target.value; fillRomList(); $('#rom-items').scrollTop = 0; } });
 
 // ---------------------------------------------------------------- live preview (1 · Upscale)
-const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new Map(), shown: null, shownKey: '', pendingKey: '',
+const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new Map(), shown: null, shownKey: '', pendingKey: '', split: 0.5,
   error: '', timer: null, scroll: { x: 0, y: 0 }, loadingList: false };
 
 function previewParams() {
   const u = cfg.upscale;
   return { src: PV.src, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, edges: u.edges, hardAlpha: u.hardAlpha,
-    format: u.format, ddsFormat: u.ddsFormat, keepCoverage: u.keepCoverage, maxSize: cfg.maxSize, model: cfg.realesrganModel };
+    format: u.format, ddsFormat: u.ddsFormat, keepCoverage: u.keepCoverage, maxSize: cfg.maxSize, model: cfg.realesrganModel, aiOk: aiOk() };
 }
 const previewKey = () => JSON.stringify(previewParams());
 
@@ -1833,12 +1965,11 @@ function previewPanel() {
       <div class="seg pv-zoom"><button data-pvzoom="fit" class="${PV.zoom === 'fit' ? 'on' : ''}">Fit</button><button data-pvzoom="1" class="${PV.zoom === '1' ? 'on' : ''}">1:1</button><button data-pvzoom="2" class="${PV.zoom === '2' ? 'on' : ''}">2:1</button></div></div>`;
   const inputs = cfg.upscale.inputs || [];
   if (!inputs.length) return `<div class="preview"><div class="pv-head"><b>Preview</b></div><div class="pv-empty">Choose a folder or files and a side-by-side preview shows up here.</div></div>`;
+  // Before / after: the upscaled image with the original drawn over its left part; drag the line.
   return `<div class="preview" id="preview">${head}
-    <div class="pv-panes">
-      <div class="pv-pane"><div class="pv-cap" id="pv-cap-o"><b>Original</b></div><div class="pv-view" id="pv-view-o"><canvas id="pv-o"></canvas></div></div>
-      <div class="pv-pane"><div class="pv-cap" id="pv-cap-u"><b>Upscaled</b></div><div class="pv-view" id="pv-view-u"><canvas id="pv-u"></canvas>
-        <div class="pv-busy" id="pv-busy" hidden><i></i>Making preview…</div></div></div>
-    </div></div>`;
+    <div class="pv-caps"><div class="pv-cap" id="pv-cap-o"><b>◀ Original</b></div><div class="pv-cap r" id="pv-cap-u"><b>Upscaled ▶</b></div></div>
+    <div class="pv-view" id="pv-view-u"><div class="pv-cmp" id="pv-cmp" style="--x:${Math.round(PV.split * 100)}%"><canvas id="pv-u"></canvas><canvas id="pv-o" class="px"></canvas><div class="pv-line"><i>◀ ▶</i></div></div>
+      <div class="pv-busy" id="pv-busy" hidden><i></i>Making preview…</div></div></div>`;
 }
 
 function savePreviewScroll() { const v = $('#pv-view-u'); if (v) PV.scroll = { x: v.scrollLeft, y: v.scrollTop }; }
@@ -1903,8 +2034,8 @@ function paint(canvas, img) {
 }
 
 function drawPreview() {
-  const vo = $('#pv-view-o'), vu = $('#pv-view-u'), co = $('#pv-o'), cu = $('#pv-u');
-  if (!vo || !co) return;
+  const vu = $('#pv-view-u'), co = $('#pv-o'), cu = $('#pv-u'), cmp = $('#pv-cmp');
+  if (!vu || !co) return;
   const busy = $('#pv-busy');
   const stale = PV.shownKey !== previewKey();
   busy.hidden = !(PV.pendingKey && stale);
@@ -1912,10 +2043,10 @@ function drawPreview() {
   if (PV.error) vu.insertAdjacentHTML('beforeend', `<div class="pv-msg err">Preview failed: ${esc(PV.error)}</div>`);
   else if (!PV.src) vu.insertAdjacentHTML('beforeend', `<div class="pv-msg">No PNG or DDS textures in the input.</div>`);
   const r = PV.shown;
-  if (!r) { co.width = cu.width = 0; return; }
+  if (!r) { co.width = cu.width = 0; cmp.style.width = cmp.style.height = '0px'; return; }
   paint(co, r.orig); paint(cu, r.up);
   const fit = PV.zoom === 'fit';
-  [vo, vu].forEach((v) => v.classList.toggle('z1', !fit));
+  vu.classList.toggle('z1', !fit);
   const zoomK = PV.zoom === '2' ? 2 : 1;
   let w = r.up.width * zoomK, h = r.up.height * zoomK;
   if (fit) {
@@ -1923,24 +2054,32 @@ function drawPreview() {
     const k = Math.min(boxW / w, boxH / h);
     w = Math.max(1, Math.round(w * k)); h = Math.max(1, Math.round(h * k));
   }
+  cmp.style.width = w + 'px'; cmp.style.height = h + 'px';
   for (const c of [co, cu]) { c.style.width = w + 'px'; c.style.height = h + 'px'; }
-  co.classList.toggle('px', true);
   cu.classList.toggle('px', w >= r.up.width);
-  if (!fit) { vu.scrollLeft = vo.scrollLeft = PV.scroll.x; vu.scrollTop = vo.scrollTop = PV.scroll.y; }
+  if (!fit) { vu.scrollLeft = PV.scroll.x; vu.scrollTop = PV.scroll.y; }
   const item = PV.list.find((i) => i.src === PV.src);
   const ext = item ? item.rel.split('.').pop().toUpperCase() : '';
-  $('#pv-cap-o').innerHTML = `<b>Original</b> · ${r.orig.width}×${r.orig.height} · ${ext}${r.edges ? ` · edges: ${esc(r.edges)}` : ''}`;
+  $('#pv-cap-o').innerHTML = `<b>◀ Original</b> · ${r.orig.width}×${r.orig.height} · ${ext}${r.edges ? ` · edges: ${esc(r.edges)}` : ''}`;
   const u = cfg.upscale;
-  const how = { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', ai: 'AI' }[u.method] + ' ' + (u.size === 'fit' ? `fit ${u.fit}` : u.size + '×')
-    + ((u.method === 'standard' || u.method === 'ai') ? `, ${u.sharpness}` : '');
-  $('#pv-cap-u').innerHTML = `<b>Upscaled</b> · ${r.up.width}×${r.up.height} · ${esc(how)} · ${esc(r.encoded)}` + (stale ? ' · updating…' : ` · ${(r.ms / 1000).toFixed(2)} s`);
+  const how = (u.method === 'smart' ? `Smart → ${r.route || '…'}` : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', ai: 'AI' }[u.method] + ' ' + (u.size === 'fit' ? `fit ${u.fit}` : u.size + '×')
+    + ((u.method === 'standard' || u.method === 'ai') ? `, ${u.sharpness}` : ''));
+  $('#pv-cap-u').innerHTML = `${esc(how)} · ${r.up.width}×${r.up.height} · ${esc(r.encoded)}` + (stale ? ' · updating…' : ` · ${(r.ms / 1000).toFixed(2)} s`) + ' <b>Upscaled ▶</b>';
 }
+// Drag the before / after line (or click anywhere on the image). Arrow keys nudge it.
+function setSplit(x) { PV.split = Math.max(0, Math.min(1, x)); const c = $('#pv-cmp'); if (c) c.style.setProperty('--x', (PV.split * 100).toFixed(2) + '%'); }
+document.addEventListener('pointerdown', (e) => {
+  const c = e.target.closest('#pv-cmp'); if (!c || e.button !== 0) return;
+  e.preventDefault(); c.setPointerCapture(e.pointerId);
+  const at = (ev) => { const r = c.getBoundingClientRect(); setSplit((ev.clientX - r.left) / r.width); };
+  at(e);
+  const move = (ev) => at(ev), up = () => { c.removeEventListener('pointermove', move); c.removeEventListener('pointerup', up); c.removeEventListener('pointercancel', up); };
+  c.addEventListener('pointermove', move); c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+});
 
 document.addEventListener('scroll', (e) => {
   const v = e.target;
   if (!(v instanceof HTMLElement) || !v.classList.contains('pv-view') || PV.zoom === 'fit') return;
-  const other = v.id === 'pv-view-u' ? $('#pv-view-o') : $('#pv-view-u');
-  if (other && (other.scrollLeft !== v.scrollLeft || other.scrollTop !== v.scrollTop)) { other.scrollLeft = v.scrollLeft; other.scrollTop = v.scrollTop; }
   PV.scroll = { x: v.scrollLeft, y: v.scrollTop };
 }, true);
 
@@ -1969,6 +2108,7 @@ setTimeout(() => { if (!$('#splash').hidden) hideSplash(); else showApp(); }, 60
   whenSplashGone(() => { const shown = askTools(firstRun ? 'welcome' : ''); if (firstRun) { if (shown) geoAfterTools = true; else askGeo(); } });
   Wizard.init({ settings: wizardSettings, wins: () => cfg.wizardWins || 0, addWin: () => { cfg.wizardWins = (cfg.wizardWins || 0) + 1; save(true); },
     bonusAt: () => cfg.wizardBonusAt || 0, setBonusAt: (w) => { cfg.wizardBonusAt = w; save(true); }, goToJob: goToJobPage });
+  fillGpu();
   Music.init({ settings: musicSettings, onTrack: (n) => { const el = $('#now-playing'); if (el) el.innerHTML = nowPlaying(n); } }).then(() => { if (page === 'settings') render(); });
   render();
   maybeScanRoms();

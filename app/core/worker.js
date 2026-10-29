@@ -9,6 +9,7 @@ const { loadDump } = require('./tmem');
 const png = require('./png');
 const rtz = require('./rtz');
 const dds = require('./dds');
+const smart = require('./smart');
 
 function padImage(img, p, edges) {
   const { width: w, height: h, data } = img, W = w + 2 * p, H = h + 2 * p, out = new Uint8Array(W * H * 4);
@@ -70,6 +71,20 @@ const handlers = {
     const img = d.decode();
     const file = saveImage(img, job.outNoExt, job.save);
     return { out: file, from: [img.width, img.height], to: [img.width, img.height], edges: d.edges };
+  },
+  classify(job) {
+    // Smart mode: what kind of texture this is (size, colours, transparency).
+    return smart.stats(loadImage(job.src));
+  },
+  bench(job) {
+    // Estimate: one texture upscaled (and encoded) without saving, timed.
+    const t0 = Date.now();
+    const img = loadImage(job.src);
+    const out = upscale(img, { ...job.opts, edges: edgesOf(job) });
+    let bytes;
+    if (job.save.format === 'dds') bytes = dds.encodeDDS(out, job.save.ddsFormat, { mipmaps: true, texconv: null }).length;
+    else bytes = png.encodePNG(out, 6).length;
+    return { ms: Date.now() - t0, bytes, px: out.width * out.height, stats: smart.stats(img) };
   },
   preview(job) {
     const t0 = Date.now();

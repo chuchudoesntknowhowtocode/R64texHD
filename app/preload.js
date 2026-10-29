@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld('htk', {
   audioInfo: () => ipcRenderer.invoke('audio:info'),
   musicAdd: () => ipcRenderer.invoke('music:add'),
   gpuInfo: () => ipcRenderer.invoke('gpu:info'),
+  estimate: (req) => ipcRenderer.invoke('upscale:estimate', req),
   taskbar: (p, mode) => ipcRenderer.invoke('taskbar', p, mode),
   onStarted: on('task:started'),
   onProgress: on('task:progress'),

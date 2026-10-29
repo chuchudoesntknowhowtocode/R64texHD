@@ -110,8 +110,26 @@ module.exports = async ({ app, win }) => {
   await wait(400); await js("closeModal()"); await shot('run-convert-done');
 
   await js(`document.querySelector('nav button[data-page="upscale"]').click()`); await wait(300);
+  // v0.8: Smart is the default preset; without Real-ESRGAN it asks once to download it, "Not now" runs with HD instead.
+  check(await js("cfg.upscale.method === 'smart' && presetOf(cfg.upscale) === 'smart' && document.querySelector('.pcard.on b').textContent === 'Smart'"), 'Upscale: Smart is the default preset');
+  await js(`cfg.upscale.inputs = [${conv}]; render();`); await wait(1500);
+  check(/Estimate for 2 textures/.test(await js("document.querySelector('#up-est').innerText")), `Upscale: estimate shows (${(await js("document.querySelector('#up-est').innerText")).replace(/\n/g, ' · ')})`);
+  await js("start('upscale')"); await wait(300);
+  check(/Smart works best with Real-ESRGAN/.test(await js("document.querySelector('#modal').hidden ? '' : document.querySelector('#modal').innerText")), 'Upscale: Smart asks to download Real-ESRGAN first');
+  await shot('upscale-ai-ask');
+  await js("closeModal(); AI_ASKED = true"); await wait(100);
+  await js(`document.querySelector('.pcard[data-preset="hd"]').click()`); await wait(200);
+  check(await js("cfg.upscale.method === 'standard' && cfg.upscale.size == 4 && presetOf(cfg.upscale) === 'hd'"), 'Upscale: a preset card sets the options');
+  await js(`document.querySelector('#adv-toggle').click()`); await wait(200);
+  await js(`document.querySelector('.seg[data-key="upscale.size"] button[data-v="6"]').click()`); await wait(200);
+  check(await js("presetOf(cfg.upscale) === 'custom' && !!document.querySelector('.pcard.custom.on')"), 'Upscale: changing an option makes it Custom');
+  await js(`document.querySelector('#preset-save').click()`); await wait(200);
+  await js(`document.querySelector('#pname').value = 'Big HD'; document.querySelector('#pname-ok').click()`); await wait(200);
+  check(await js("cfg.userPresets.length === 1 && presetOf(cfg.upscale) === 'user:0' && /Big HD/.test(document.querySelector('.pcard.on').innerText)"), 'Upscale: Save as preset adds your own card');
+  await js(`document.querySelector('.pcard[data-preset="smart"]').click()`); await wait(200);
   const u = await runAndWait(`cfg.upscale.inputs = [${conv}]; cfg.upscale.output = ${up}; cfg.upscale.edges = 'auto'; cfg.upscale.size = 4; cfg.upscale.format = 'dds'; cfg.upscale.ddsFormat = 'auto'; render();`, 'upscale');
   check(u && u.result && u.result.written === 2, 'Upscale: 2 textures to DDS');
+  check(await js("job.log.some((l) => /^Smart: \\d+ HD 4×, 0 AI 4×, \\d+ pixel-perfect/.test(l))"), 'Upscale: Smart logs what each texture got');
   await wait(1500); await js("closeModal()"); await wait(300);
   const log = await js("job.log.join('\\n')");
   check(/tiling known for 2 of 2/.test(log), 'Edges: Auto found the dump tiling');

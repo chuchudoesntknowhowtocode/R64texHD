@@ -10,6 +10,8 @@ const { findDumps, loadDump } = require('./tmem');
 const { Database, listFiles, DATABASE } = require('./rt64db');
 const rtz = require('./rtz');
 const tiling = require('./tiling');
+const smart = require('./smart');
+const { targetSize } = require('./upscale');
 
 const IMAGE_RE = /\.(png|dds)$/i;
 const WORKER = path.join(__dirname, 'worker.js');
@@ -255,13 +257,40 @@ async function upscaleTask(p, ctx, tools) {
     todo = work.filter((it) => !fs.existsSync(`${it.outNoExt}.${it.fmt}`));
     if (todo.length < work.length) ctx.log(`Skipping ${work.length - todo.length} image(s) that already exist in the output folder.`);
   }
-  let ai = null;
-  if (p.method === 'ai') {
-    ai = tools.realesrgan;
-    if (!ai) { ctx.log('Real-ESRGAN is not installed (Settings), so Standard is used instead.'); opts.method = 'standard'; }
+  const aiReady = !!tools.realesrgan && p.aiOk !== false;
+  // Progress: with Smart, looking at the textures counts as one step and upscaling each one as nine.
+  const W = p.method === 'smart' ? 9 : 1, OFF = p.method === 'smart' ? todo.length : 0, T = OFF + todo.length * W;
+  const prog = (k, name) => ctx.progress(OFF + k * W, T, name);
+  // Smart: look at every texture first, then run each group with its own method.
+  let groups;
+  if (p.method === 'smart') {
+    const pool0 = new Pool(ctx.workers);
+    ctx.onCancel(() => pool0.close());
+    let kinds;
+    try {
+      ctx.progress(0, T, 'Looking at the textures…');
+      const r = await runAll(pool0, todo, 'classify', (it) => ({ src: it.src }), { ...ctx, progress: (d) => ctx.progress(d, T, 'Looking at the textures…') }, (it) => it.rel);
+      kinds = r.results.map((st) => (st ? smart.route(st) : 'hd'));
+    } finally { await pool0.close(); }
+    if (ctx.cancelled()) throw new Cancelled();
+    const by = { pixel: [], hd: [], ai: [] };
+    todo.forEach((it, i) => by[kinds[i]].push(it));
+    if (by.ai.length && !aiReady) {
+      ctx.log(tools.realesrgan ? `No Vulkan graphics card, so the ${by.ai.length.toLocaleString()} AI texture(s) use HD 4× instead.`
+        : `Real-ESRGAN isn't downloaded, so the ${by.ai.length.toLocaleString()} AI texture(s) use HD 4× instead.`);
+      by.hd = by.hd.concat(by.ai); by.ai = [];
+    }
+    ctx.log(`Smart: ${by.hd.length.toLocaleString()} HD 4×, ${by.ai.length.toLocaleString()} AI 4×, ${by.pixel.length.toLocaleString()} pixel-perfect.`);
+    groups = [['hd', by.hd], ['pixel', by.pixel], ['ai', by.ai]].filter(([, l]) => l.length)
+      .map(([k, l]) => ({ list: l, opts: { ...opts, ...smart.ROUTE_OPTS[k], method: k === 'ai' ? 'standard' : smart.ROUTE_OPTS[k].method }, ai: k === 'ai' }));
+  } else {
+    let useAi = p.method === 'ai';
+    if (useAi && !tools.realesrgan) { ctx.log('Real-ESRGAN is not installed (Settings), so Standard is used instead.'); useAi = false; opts.method = 'standard'; }
+    if (useAi) opts.method = 'standard';                       // the AI result is finished by the Standard steps
+    groups = [{ list: todo, opts, ai: useAi }];
+    const sizeText0 = p.size === 'fit' ? `to ${p.fit} px` : `${p.size}x`;
+    ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText0} with ${useAi ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art' }[p.method] || 'Standard'}${p.method === 'standard' || useAi ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
   }
-  const sizeText = p.size === 'fit' ? `to ${p.fit} px` : `${p.size}x`;
-  ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText} with ${ai ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art' }[opts.method] || 'Standard'}${opts.method === 'standard' || ai ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
   fs.mkdirSync(p.output, { recursive: true });
   if (p.copyOther !== false && others.length) {
     let copied = 0;
@@ -286,32 +315,36 @@ async function upscaleTask(p, ctx, tools) {
   }
   const pool = new Pool(ctx.workers);
   ctx.onCancel(() => pool.close());
-  let failed = 0, written = 0;
+  let failed = 0, written = 0, base = 0;
   try {
-    if (!ai) {
-      const r = await runAll(pool, todo, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts, edges: edgesOf(it), save: save(it) }), ctx, (it) => it.rel);
-      failed = r.failed; written = r.results.filter(Boolean).length;
-    } else {
-      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-ai-'));
-      try {
-        const batch = 32;
-        for (let s = 0; s < todo.length; s += batch) {
-          const chunk = todo.slice(s, s + batch);
-          const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
-          fs.rmSync(inDir, { recursive: true, force: true }); fs.rmSync(outDir, { recursive: true, force: true });
-          fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
-          const prepared = await Promise.all(chunk.map((it, i) => pool.run('aiPrep', { src: it.src, tmpPng: path.join(inDir, `${i}.png`), pad: 8, edges: edgesOf(it) }).then(() => true, (e) => { failed++; ctx.log(`Failed ${it.rel}: ${e.message}`); return false; })));
-          if (ctx.cancelled()) throw new Cancelled();
-          await runProcess(ai, aiArgs(inDir, outDir, tools), ctx);
-          const ready = chunk.filter((_, i) => prepared[i] && fs.existsSync(path.join(outDir, `${i}.png`)));
-          const idx = new Map(chunk.map((it, i) => [it, i]));
-          const missingAi = chunk.filter((_, i) => prepared[i]).length - ready.length;
-          if (missingAi) { failed += missingAi; ctx.log(`Real-ESRGAN produced no output for ${missingAi} image(s).`); }
-          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: path.join(outDir, `${idx.get(it)}.png`), pad: 8, outNoExt: it.outNoExt, opts, edges: edgesOf(it), save: save(it) }),
-            { ...ctx, progress: (d) => ctx.progress(s + d, todo.length, '') }, (it) => it.rel);
-          failed += r.failed; written += r.results.filter(Boolean).length;
-        }
-      } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+    for (const g of groups) {
+      const gctx = { ...ctx, progress: (d, _t, name) => prog(base + d, name) };
+      if (!g.ai) {
+        const r = await runAll(pool, g.list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }), gctx, (it) => it.rel);
+        failed += r.failed; written += r.results.filter(Boolean).length;
+      } else {
+        const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-ai-'));
+        try {
+          const batch = 32;
+          for (let s = 0; s < g.list.length; s += batch) {
+            const chunk = g.list.slice(s, s + batch);
+            const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
+            fs.rmSync(inDir, { recursive: true, force: true }); fs.rmSync(outDir, { recursive: true, force: true });
+            fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
+            const prepared = await Promise.all(chunk.map((it, i) => pool.run('aiPrep', { src: it.src, tmpPng: path.join(inDir, `${i}.png`), pad: 8, edges: edgesOf(it) }).then(() => true, (e) => { failed++; ctx.log(`Failed ${it.rel}: ${e.message}`); return false; })));
+            if (ctx.cancelled()) throw new Cancelled();
+            await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), ctx);
+            const ready = chunk.filter((_, i) => prepared[i] && fs.existsSync(path.join(outDir, `${i}.png`)));
+            const idx = new Map(chunk.map((it, i) => [it, i]));
+            const missingAi = chunk.filter((_, i) => prepared[i]).length - ready.length;
+            if (missingAi) { failed += missingAi; ctx.log(`Real-ESRGAN produced no output for ${missingAi} image(s).`); }
+            const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: path.join(outDir, `${idx.get(it)}.png`), pad: 8, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
+              { ...ctx, progress: (d) => prog(base + s + d, '') }, (it) => it.rel);
+            failed += r.failed; written += r.results.filter(Boolean).length;
+          }
+        } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+      }
+      base += g.list.length;
     }
   } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
   const fromO2r = roots.some((r) => fs.existsSync(path.join(r, require('./o2r').INFO_FILE)));
@@ -599,6 +632,70 @@ function previewList(inputs, subfolders) {
   } catch (e) { return { items: [], total: 0, error: e.message }; }
 }
 
+// Estimate before an upscale run: disk size, video memory in game, time on this PC, and (Smart) the split.
+// Every texture is looked at (size, colours); a few are upscaled for real to time this PC and size PNGs.
+let estimateSeq = 0;
+async function estimate(p, tools, workers) {
+  const seq = ++estimateSeq;
+  const inputs = (Array.isArray(p.inputs) ? p.inputs : [p.inputs]).filter((i) => i && fs.existsSync(i));
+  if (!inputs.length) return { error: 'no input' };
+  const { items } = gatherImages(inputs, p.subfolders !== false);
+  if (!items.length) return { error: 'no images' };
+  const pool = new Pool(Math.max(1, workers));
+  try {
+    const st = [];
+    for (let i = 0; i < items.length; i += 256) {                 // in slices, so a newer request can stop this one
+      if (seq !== estimateSeq) return { superseded: true };
+      const part = await Promise.all(items.slice(i, i + 256).map((it) => pool.run('classify', { src: it.src }).catch(() => null)));
+      st.push(...part);
+    }
+    const aiReady = !!tools.realesrgan && p.aiOk !== false;
+    const base = { size: p.size, fit: p.fit, maxSize: p.maxSize, sharpness: p.sharpness, hardAlpha: p.hardAlpha };
+    const routeOf = (s) => {
+      if (p.method !== 'smart') return p.method === 'ai' ? (tools.realesrgan ? 'ai' : 'hd') : 'same';
+      const r = smart.route(s); return r === 'ai' && !aiReady ? 'hd' : r;
+    };
+    const optsFor = (r) => (r === 'same' ? { ...base, method: p.method } : { ...base, ...smart.ROUTE_OPTS[r], method: r === 'ai' ? 'standard' : smart.ROUTE_OPTS[r].method });
+    const groups = { pixel: 0, hd: 0, ai: 0 };
+    const rows = [];
+    items.forEach((it, i) => {
+      const s = st[i]; if (!s) return;
+      const r = routeOf(s); if (groups[r] !== undefined) groups[r]++;
+      const t = targetSize(s.w, s.h, optsFor(r));
+      const fmt = p.format === 'same' ? (/\.dds$/i.test(it.src) ? 'dds' : 'png') : p.format;
+      rows.push({ it, s, r, px: t.width * t.height, fmt });
+    });
+    // time a few real ones (not AI: that runs on the graphics card)
+    const sample = rows.filter((x) => x.r !== 'ai').sort((a, b) => a.px - b.px);
+    const pick = [0.2, 0.5, 0.8, 0.95].map((q) => sample[Math.floor(q * (sample.length - 1))]).filter(Boolean);
+    let msPerPx = 2.5e-4, pngBpp = 1.6;
+    if (pick.length && seq === estimateSeq) {
+      const b = await Promise.all(pick.map((x) => pool.run('bench', { src: x.it.src, opts: optsFor(x.r), edges: 'clamp', save: { format: x.fmt, ddsFormat: p.ddsFormat } }).catch(() => null)));
+      const ok = b.filter(Boolean);
+      if (ok.length) {
+        msPerPx = ok.reduce((a, x) => a + x.ms, 0) / ok.reduce((a, x) => a + x.px, 0);
+        const pngs = ok.filter((x, i) => pick[i] && pick[i].fmt === 'png');
+        if (pngs.length) pngBpp = pngs.reduce((a, x) => a + x.bytes, 0) / pngs.reduce((a, x) => a + x.px, 0);
+      }
+    }
+    if (seq !== estimateSeq) return { superseded: true };
+    const MIPS = 4 / 3;
+    let disk = 0, vram = 0, cpuMs = 0, aiPx = 0;
+    for (const x of rows) {
+      const cut = x.s.alpha !== 'opaque';
+      if (x.fmt === 'dds') {
+        const f = p.ddsFormat === 'auto' ? (cut ? 'bc3' : 'bc1') : p.ddsFormat;
+        const bpp = { bc1: 0.5, bc3: 1, bc7: 1, rgba8: 4 }[f] ?? 1;
+        disk += x.px * bpp * MIPS; vram += x.px * bpp * MIPS;
+      } else { disk += x.px * pngBpp; vram += x.px * 4 * MIPS; }
+      cpuMs += x.px * msPerPx;
+      if (x.r === 'ai') aiPx += x.px;
+    }
+    const seconds = cpuMs / 1000 / Math.max(1, workers) + aiPx / 1e6 * 1.5 + (aiPx ? Math.ceil(groups.ai / 32) * 0.8 : 0);
+    return { count: rows.length, disk: Math.round(disk), vram: Math.round(vram), seconds: Math.round(seconds), groups, smart: p.method === 'smart', aiReady };
+  } finally { await pool.close(); }
+}
+
 let previewPool = null;
 // One texture upscaled with the current settings; runs on its own worker, separate from jobs.
 async function preview(req, tools) {
@@ -609,10 +706,15 @@ async function preview(req, tools) {
   const NAMES = { clamp: 'normal', wrap: 'tile', mirror: 'mirror' };
   const edgesLabel = `${NAMES[edges[0]]} × ${NAMES[edges[1]]}${auto ? (known ? ' (from dump)' : ' (no dump info)') : ''}`;
   req = { ...req, edges };
-  const opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha };
+  let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha };
   const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false };
-  let r;
-  if (req.method === 'ai' && tools.realesrgan) {
+  let r, route = '';
+  if (req.method === 'smart') {                                   // the method Smart would pick for this texture
+    route = smart.route(await previewPool.run('classify', { src: req.src }));
+    if (route === 'ai' && !(tools.realesrgan && req.aiOk !== false)) route = 'hd';
+    opts = { ...opts, ...smart.ROUTE_OPTS[route] };
+  }
+  if (opts.method === 'ai' && tools.realesrgan) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-preview-'));
     try {
       const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
@@ -626,10 +728,10 @@ async function preview(req, tools) {
     if (opts.method === 'ai') opts.method = 'standard';
     r = await previewPool.run('preview', { src: req.src, opts, edges: req.edges, save });
   }
-  return { ...r, edges: edgesLabel };
+  return { ...r, edges: edgesLabel, route: route ? smart.ROUTE_NAMES[route] : '' };
 }
 
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } if (romPool) { const p = romPool; romPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, closePreview, aiArgs, Cancelled, Pool };

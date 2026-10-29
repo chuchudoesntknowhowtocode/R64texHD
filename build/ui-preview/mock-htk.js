@@ -105,6 +105,8 @@
     audioInfo: async () => ({ music: ['normal-8bit-ree-you-ss-f.ogg', 'dmt-8bit-lat.ogg', 'dmt-8bit-pati.ogg'].map((n) => ({ name: n, url: '../assets/music/' + n, mode: /^dmt/.test(n) ? 'dmt' : 'standard', custom: false })),
       sfx: {}, customSfx: [], dirs: { music: 'C:\\R64texHD\\data\\music', sounds: 'C:\\R64texHD\\data\\sounds' } }),
     musicAdd: async () => ({ added: 0 }),
+    estimate: async (req) => { await new Promise((r) => setTimeout(r, 200)); const k = { smart: 1, standard: 1, ai: 1.3, pixel: 0.4, smooth: 0.8 }[req.method] || 1; const sz = Number(req.size) || 4;
+      return { count: 4812, disk: Math.round(2.36e9 * k * (sz / 4) ** 2 * (req.format === 'png' ? 1.7 : 1)), vram: Math.round(6.7e8 * (sz / 4) ** 2 * (req.format === 'png' ? 4 : 1)), seconds: Math.round(370 * k * (sz / 4) ** 2), groups: { hd: 3904, ai: req.aiOk === false ? 0 : 702, pixel: 206 }, smart: req.method === 'smart', aiReady: req.aiOk !== false }; },
     gpuInfo: async () => ({ ok: true, loader: true, gpus: [{ name: 'NVIDIA GeForce RTX 3070', vram: 8589934592, vulkan: true }, { name: 'Intel(R) UHD Graphics 630', vram: 134217728, vulkan: false }] }),
     taskbar: async () => true,
     // Ship Mods: looks at each port and the chosen archive again (the real app reads portVersion; core/shipcheck.js).
@@ -131,9 +133,9 @@
       const P = window.__PREVIEW;
       if (P) {
         const dec = (x) => ({ width: x.width, height: x.height, data: Uint8Array.from(atob(x.data), (c) => c.charCodeAt(0)) });
-        return { orig: dec(P.orig), up: dec(P.up), encoded: P.encoded, ms: 140, edges: 'tile × tile (from dump)' };
+        return { orig: dec(P.orig), up: dec(P.up), encoded: P.encoded, ms: 140, edges: 'tile × tile (from dump)', route: 'HD 4×' };
       }
-      const o = brick(32, 32); return { orig: o, up: smoothUp(o, 4), encoded: 'DDS BC7', ms: 180, edges: 'tile × tile (from dump)' };
+      const o = brick(32, 32); return { orig: o, up: smoothUp(o, 4), encoded: 'DDS BC7', ms: 180, edges: 'tile × tile (from dump)', route: 'HD 4×' };
     },
     onStarted: on('started'), onProgress: on('progress'), onLog: on('log'), onDone: on('done'), onToolProgress: on('tool'),
   };

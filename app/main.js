@@ -318,6 +318,7 @@ function registerIpc() {
   ipcMain.handle('ship:identify', (_e, file) => { try { return require('./core/shipid').identify(file); } catch (e) { return { error: e.message || String(e) }; } });
   ipcMain.handle('preview:list', (_e, { inputs, subfolders }) => tasks.previewList(inputs, subfolders));
   ipcMain.handle('preview', (_e, req) => requestPreview({ ...req, maxSize: settings.maxSize }));
+  ipcMain.handle('upscale:estimate', (_e, req) => tasks.estimate({ ...req, maxSize: settings.maxSize }, tools(), Math.max(1, workerCount() - 1)).catch((e) => ({ error: e.message })));
   // Footer scenes (app/assets/scenes, made by build/wizard/export_app.py) and the owner's sound clips.
   const SCENES = path.join(__dirname, 'assets', 'scenes');
   ipcMain.handle('scenes:index', () => {
