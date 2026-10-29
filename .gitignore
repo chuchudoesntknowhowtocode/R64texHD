@@ -3,3 +3,6 @@ build/.cache/
 dist/
 data/
 build/ui-preview/preview-data.js
+build/wizard/out/
+build/wizard/frames_*/
+build/wizard/__pycache__/

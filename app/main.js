@@ -104,7 +104,7 @@ function send(channel, payload) { if (win && !win.isDestroyed()) win.webContents
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1280, height: 800, minWidth: 1100, minHeight: 700, show: false,
+    width: 1280, height: 800, minWidth: 1280, minHeight: 700, show: false,
     title: WINDOW_TITLE, backgroundColor: '#130a22', autoHideMenuBar: true,
     icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
