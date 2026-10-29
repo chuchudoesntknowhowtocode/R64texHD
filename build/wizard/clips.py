@@ -29,7 +29,7 @@ def rerobe(x=SX):
             arrive = 16 + 22 * (1 - y / H) + rng.random() * 5
             sx = rng.uniform(200, 1440); sy = rng.uniform(SAFE + 6, BOTTOM - 12)
             cells.append((xx, y, tuple(int(v) for v in robed[y, xx, :3]), arrive, sx, sy))
-    N = 66
+    N = 68
     out = []
     for f in range(N):
         fr = new()
