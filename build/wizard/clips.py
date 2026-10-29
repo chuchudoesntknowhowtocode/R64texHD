@@ -81,7 +81,7 @@ def bubble(fr, x, y, w, h, scale=1.0, a=255):
 def idle_peek(phrase):
     text = phrase.upper(); s = 4
     tw = len(text) * 6 * s - s; bw = tw + 40; bh = 7 * s + 28
-    BX, BY = MOUTH + 110, SAFE + 8
+    BX, BY = MOUTH + 90, SAFE + 28                                          # beside his head, tail down-left at the hat
     HW = s11.HEAD.width; CY = MOUTH_Y + 8
     T_OUT, T_BUB = 6, 24
     T_TXT = T_BUB + 6; T_HOLD = T_TXT + 2 * len(text); T_POP = T_HOLD + 90; T_DUCK = T_POP + 6; N = T_DUCK + 20

@@ -394,5 +394,12 @@ module.exports = async ({ app, win }) => {
   let egg = ''; for (let i = 0; i < 30 && !/^fight_elf_/.test(egg); i++) { await wait(100); egg = await js("(Wizard._debug().cur || {}).id || ''"); }
   check(/^fight_elf_/.test(egg), `hidden: 5 clicks on the pipe start the machine elf fight (${egg})`);
   await wait(4000); await shot('egg-elf');
-    app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);
+    // The left pane folds to a rail of number chips (and back), and remembers it.
+  await js("document.querySelector('#nav-fold').click()"); await wait(400);
+  const fold = await js("({ w: Math.round(document.querySelector('nav').getBoundingClientRect().width), f: cfg.navFolded, tip: document.querySelector('nav button[data-page=\"upscale\"]').title })");
+  check(fold.f === true && fold.w <= 70 && fold.tip === 'Upscale Textures', `menu folds to a rail (${JSON.stringify(fold)})`);
+  await shot('nav-folded');
+  await js("document.querySelector('#nav-fold').click()"); await wait(400);
+  check(await js("cfg.navFolded === false && document.querySelector('nav').getBoundingClientRect().width > 250"), 'menu opens again');
+  app.exit(report.some((l) => l.startsWith('FAIL')) ? 1 : 0);
 };
