@@ -167,7 +167,15 @@ async function runTask(task, params) {
 // ---------------------------------------------------------------- tool downloads
 function download(url, dest, onProgress, redirects = 0) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': APP_NAME } }, (res) => {
+    const part = dest + '.part';
+    let out = null, over = false;
+    const fail = (e) => {
+      if (over) return; over = true;
+      const rmPart = () => fs.rm(part, { force: true }, () => {});
+      if (out) { if (out.closed) rmPart(); else { out.once('close', rmPart); out.destroy(); } }
+      reject(e);
+    };
+    const req = https.get(url, { headers: { 'User-Agent': APP_NAME } }, (res) => {
       if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location && redirects < 8) {
         res.resume();
         resolve(download(new URL(res.headers.location, url).toString(), dest, onProgress, redirects + 1));
@@ -177,13 +185,20 @@ function download(url, dest, onProgress, redirects = 0) {
       const total = Number(res.headers['content-length'] || 0);
       let got = 0;
       fs.mkdirSync(path.dirname(dest), { recursive: true });
-      const out = fs.createWriteStream(dest + '.part');
+      out = fs.createWriteStream(part);
       res.on('data', (d) => { got += d.length; onProgress(got, total); });
       res.pipe(out);
-      out.on('finish', () => out.close(() => { fs.renameSync(dest + '.part', dest); resolve(dest); }));
-      out.on('error', reject);
-      res.on('error', reject);
-    }).on('error', reject);
+      out.on('finish', () => out.close(() => {
+        if (over) return;
+        if (total && got !== total) { fail(new Error('the download was cut off. Try again.')); return; }
+        try { fs.renameSync(part, dest); over = true; resolve(dest); } catch (e) { fail(e); }
+      }));
+      out.on('error', fail);
+      res.on('error', fail);
+      res.on('aborted', () => fail(new Error('the download was cut off. Try again.')));
+    });
+    req.on('error', fail);
+    req.setTimeout(30000, () => req.destroy(new Error('the download stalled (no data for 30 seconds). Try again.')));
   });
 }
 
@@ -458,5 +473,5 @@ else {
     if (!process.env.HTK_SELFTEST) setTimeout(() => downloadScenes(), 15000);   // after the splash, quietly
   });
   app.on('window-all-closed', () => { cancelTask(); app.quit(); });
-  app.on('will-quit', () => { try { fs.rmSync(TEMP_DIR, { recursive: true, force: true }); } catch { /* in use */ } });
+  app.on('will-quit', () => { tasks.closePreview().catch(() => {}); try { fs.rmSync(TEMP_DIR, { recursive: true, force: true }); } catch { /* in use */ } });
 }

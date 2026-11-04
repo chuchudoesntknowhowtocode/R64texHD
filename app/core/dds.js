@@ -257,7 +257,7 @@ function encodeTexconv(img, mipmaps, texconv, keepCoverage = false) {
     fs.writeFileSync(src, png.encodePNG(img, 1));
     const args = ['-nologo', '-y', '-f', 'BC7_UNORM', '-m', mipmaps ? '0' : '1', '-dx10'];
     if (keepCoverage) args.push('--keep-coverage', String(ALPHA_REF));
-    const r = spawnSync(texconv, [...args, '-o', dir, src], { windowsHide: true, encoding: 'utf8' });
+    const r = spawnSync(texconv, [...args, '-o', dir, src], { windowsHide: true, encoding: 'utf8', timeout: 5 * 60000 });   // a hung texconv fails this texture, not the run
     const out = path.join(dir, 'tex.dds');
     if (r.status !== 0 || !fs.existsSync(out)) throw new Error('texconv failed: ' + ((r.stdout || '') + (r.stderr || '') || String(r.error)).trim().slice(-300));
     return fs.readFileSync(out);

@@ -247,11 +247,19 @@ async function upscaleTask(p, ctx, tools) {
   if (!items.length) throw new Error('No PNG or DDS images found.');
   const opts = { size: p.size, fit: p.fit, maxSize: p.maxSize, method: p.method, sharpness: p.sharpness, hardAlpha: p.hardAlpha };
   const outInside = roots.some((r) => inside(p.output, r));
+  const outNames = new Map(); let clashes = 0;
   const work = items.filter((it) => !(outInside && inside(it.src, p.output))).map((it) => {
     const fmt = p.format === 'same' ? path.extname(it.src).slice(1).toLowerCase() : p.format;
     const outNoExt = path.join(p.output, it.rel.replace(/\.(png|dds)$/i, ''));
     return { ...it, fmt, outNoExt };
+  }).filter((it) => {
+    // Two textures that would save to the same file (foo.png + foo.dds, or same-named picks): keep the first.
+    const key = `${it.outNoExt}.${it.fmt}`.toLowerCase();
+    if (!outNames.has(key)) { outNames.set(key, it.rel); return true; }
+    if (++clashes <= 5) ctx.log(`Skipped ${it.rel}: it would save over ${outNames.get(key)} (same output name).`);
+    return false;
   });
+  if (clashes > 5) ctx.log(`... ${clashes} skipped for the same output name in total.`);
   let todo = work;
   if (p.existing === 'skip') {
     todo = work.filter((it) => !fs.existsSync(`${it.outNoExt}.${it.fmt}`));
@@ -293,16 +301,16 @@ async function upscaleTask(p, ctx, tools) {
   }
   fs.mkdirSync(p.output, { recursive: true });
   if (p.copyOther !== false && others.length) {
-    let copied = 0;
+    let copied = 0, notCopied = 0;
     for (const o of others) {
       if (outInside && inside(o.src, p.output)) continue;
       const dest = path.join(p.output, o.rel);
       if (p.existing === 'skip' && fs.existsSync(dest)) continue;
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(o.src, dest);
-      copied++;
+      try { fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(o.src, dest); copied++; }
+      catch (e) { if (++notCopied <= 5) ctx.log(`Could not copy ${o.rel}: ${e.message}`); }
     }
     if (copied) ctx.log(`Copied ${copied} other file(s) (such as rt64.json) alongside.`);
+    if (notCopied > 5) ctx.log(`... ${notCopied} other file(s) could not be copied.`);
   }
   const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv, keepCoverage: p.keepCoverage !== false });
   // Edges: Auto uses each texture's own tiling from the RT64 dump (saved by Convert).
@@ -333,13 +341,22 @@ async function upscaleTask(p, ctx, tools) {
             fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
             const prepared = await Promise.all(chunk.map((it, i) => pool.run('aiPrep', { src: it.src, tmpPng: path.join(inDir, `${i}.png`), pad: 8, edges: edgesOf(it) }).then(() => true, (e) => { failed++; ctx.log(`Failed ${it.rel}: ${e.message}`); return false; })));
             if (ctx.cancelled()) throw new Cancelled();
-            await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), ctx);
+            const aiCtx = { ...ctx, progress: (d) => prog(base + s + d, '') };
+            try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), ctx); } catch (e) {
+              if (e instanceof Cancelled || ctx.cancelled()) throw e;
+              // One failed batch (often out of video memory) doesn't stop the run: these go HD 4× instead.
+              const list = chunk.filter((_, i) => prepared[i]);
+              ctx.log(`${e.message}. These ${list.length} image(s) use HD 4× instead.`);
+              const r = await runAll(pool, list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }), aiCtx, (it) => it.rel);
+              failed += r.failed; written += r.results.filter(Boolean).length;
+              continue;
+            }
             const ready = chunk.filter((_, i) => prepared[i] && fs.existsSync(path.join(outDir, `${i}.png`)));
             const idx = new Map(chunk.map((it, i) => [it, i]));
             const missingAi = chunk.filter((_, i) => prepared[i]).length - ready.length;
             if (missingAi) { failed += missingAi; ctx.log(`Real-ESRGAN produced no output for ${missingAi} image(s).`); }
             const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: path.join(outDir, `${idx.get(it)}.png`), pad: 8, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
-              { ...ctx, progress: (d) => prog(base + s + d, '') }, (it) => it.rel);
+              aiCtx, (it) => it.rel);
             failed += r.failed; written += r.results.filter(Boolean).length;
           }
         } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
@@ -674,7 +691,7 @@ async function estimate(p, tools, workers) {
       const ok = b.filter(Boolean);
       if (ok.length) {
         msPerPx = ok.reduce((a, x) => a + x.ms, 0) / ok.reduce((a, x) => a + x.px, 0);
-        const pngs = ok.filter((x, i) => pick[i] && pick[i].fmt === 'png');
+        const pngs = b.filter((x, i) => x && pick[i].fmt === 'png');
         if (pngs.length) pngBpp = pngs.reduce((a, x) => a + x.bytes, 0) / pngs.reduce((a, x) => a + x.px, 0);
       }
     }
@@ -701,8 +718,9 @@ let previewPool = null;
 async function preview(req, tools) {
   if (!previewPool) previewPool = new Pool(1);
   const auto = req.edges === 'auto';
-  const edges = tiling.edgesFor(req.src, req.edges || 'clamp', auto ? tiling.loadFor([path.dirname(req.src)]) : null);
-  const known = auto && tiling.hashOf(req.src) && tiling.loadFor([path.dirname(req.src)]).has(tiling.hashOf(req.src));
+  const tileMap = auto ? tiling.loadFor([path.dirname(req.src)]) : null;
+  const edges = tiling.edgesFor(req.src, req.edges || 'clamp', tileMap);
+  const known = auto && tiling.hashOf(req.src) && tileMap.has(tiling.hashOf(req.src));
   const NAMES = { clamp: 'normal', wrap: 'tile', mirror: 'mirror' };
   const edgesLabel = `${NAMES[edges[0]]} × ${NAMES[edges[1]]}${auto ? (known ? ' (from dump)' : ' (no dump info)') : ''}`;
   req = { ...req, edges };

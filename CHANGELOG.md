@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+- AI upscale: a Real-ESRGAN failure on one batch (e.g. out of video memory) now upscales that batch HD 4× and carries on, instead of stopping the run.
+- Downloads: stop after 30 s with no data, catch cut-off downloads, and remove the leftover .part file.
+- Upscale: two textures that would save to the same file are skipped with a log line instead of overwriting each other; a file that can't be copied under "Copy other files" is logged and skipped.
+- texconv gets a 5-minute limit per texture; the estimate's PNG size uses the right samples; preview reads tiling once; preview / ROM workers close on quit.
+
 ## v0.8.0.1
 
 ### Upscaling
