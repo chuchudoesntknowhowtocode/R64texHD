@@ -1,0 +1,4 @@
+handoff #1 2026-11-03
+RESUME.md HANDOFF.md PLACES.md INDEX.md
+HEAD d963cde
+target 8c2d5e2 (GitHub main, v0.8.0.1)
