@@ -130,6 +130,7 @@ function cancelTask() { if (running) running.cancel(); }
 
 async function runTask(task, params) {
   if (running) return { ok: false, error: 'A task is already running.' };
+  tasks.stopEstimate();
   const hooks = [];
   let cancelledFlag = false, lastProgress = 0;
   const ctx = {

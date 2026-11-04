@@ -652,6 +652,22 @@ function previewList(inputs, subfolders) {
 // Estimate before an upscale run: disk size, video memory in game, time on this PC, and (Smart) the split.
 // Every texture is looked at (size, colours); a few are upscaled for real to time this PC and size PNGs.
 let estimateSeq = 0;
+// What "classify" found for each texture (it doesn't depend on the settings), so changing a setting
+// re-estimates without looking at every texture again. Keyed by path; dropped when size or date change.
+const classifyCache = new Map();
+const CLASSIFY_CACHE_MAX = 200000;
+function cachedClassify(pool, src) {
+  let st; try { st = fs.statSync(src); } catch { return Promise.resolve(null); }
+  const hit = classifyCache.get(src);
+  if (hit && hit.size === st.size && hit.mtimeMs === st.mtimeMs) return Promise.resolve(hit.result);
+  return pool.run('classify', { src }).then((result) => {
+    if (classifyCache.size >= CLASSIFY_CACHE_MAX) classifyCache.clear();
+    classifyCache.set(src, { size: st.size, mtimeMs: st.mtimeMs, result });
+    return result;
+  }, () => null);
+}
+// A task is starting: any estimate still running stops at its next step, so it doesn't compete for the CPU.
+function stopEstimate() { estimateSeq++; }
 async function estimate(p, tools, workers) {
   const seq = ++estimateSeq;
   const inputs = (Array.isArray(p.inputs) ? p.inputs : [p.inputs]).filter((i) => i && fs.existsSync(i));
@@ -663,7 +679,7 @@ async function estimate(p, tools, workers) {
     const st = [];
     for (let i = 0; i < items.length; i += 256) {                 // in slices, so a newer request can stop this one
       if (seq !== estimateSeq) return { superseded: true };
-      const part = await Promise.all(items.slice(i, i + 256).map((it) => pool.run('classify', { src: it.src }).catch(() => null)));
+      const part = await Promise.all(items.slice(i, i + 256).map((it) => cachedClassify(pool, it.src)));
       st.push(...part);
     }
     const aiReady = !!tools.realesrgan && p.aiOk !== false;
@@ -686,7 +702,8 @@ async function estimate(p, tools, workers) {
     const sample = rows.filter((x) => x.r !== 'ai').sort((a, b) => a.px - b.px);
     const pick = [0.2, 0.5, 0.8, 0.95].map((q) => sample[Math.floor(q * (sample.length - 1))]).filter(Boolean);
     let msPerPx = 2.5e-4, pngBpp = 1.6;
-    if (pick.length && seq === estimateSeq) {
+    if (seq !== estimateSeq) return { superseded: true };
+    if (pick.length) {
       const b = await Promise.all(pick.map((x) => pool.run('bench', { src: x.it.src, opts: optsFor(x.r), edges: 'clamp', save: { format: x.fmt, ddsFormat: p.ddsFormat } }).catch(() => null)));
       const ok = b.filter(Boolean);
       if (ok.length) {
@@ -752,4 +769,4 @@ async function preview(req, tools) {
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } if (romPool) { const p = romPool; romPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, stopEstimate, closePreview, aiArgs, Cancelled, Pool };

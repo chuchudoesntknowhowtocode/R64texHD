@@ -5,6 +5,9 @@
 ### Upscaling
 - The input box on 1 · Upscale shows a folder-with-texture icon and is clickable: it opens the textures' folder, or the folder picker when nothing is chosen.
 
+### Speed
+- Upscale estimate: what each texture looks like is remembered (by path, size and date), so changing a setting re-estimates without reading every texture again; a running estimate stops when a task starts.
+
 ### Fixes
 - AI upscale: a Real-ESRGAN failure on one batch (e.g. out of video memory) now upscales that batch HD 4× and carries on, instead of stopping the run.
 - Downloads: stop after 30 s with no data, catch cut-off downloads, and remove the leftover .part file.
