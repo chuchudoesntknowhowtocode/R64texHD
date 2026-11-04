@@ -66,6 +66,9 @@ nav.locked button { pointer-events: none; opacity: .45; }
 .card .bar { margin-top: 10px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.35); overflow: hidden; }
 .card .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--orange), var(--orange-hi)); transition: width .25s; }
 .card .act { flex: none; display: flex; gap: 8px; }
+.card .dot.sprite { width: 32px; height: 32px; border-radius: 0; background: none !important; box-shadow: none !important; }
+.card.clickable { cursor: pointer; transition: filter .15s, border-color .15s; } .card.clickable:hover { filter: brightness(1.08); border-color: var(--orange-hi); }
+.card.clickable:hover .dot.sprite { transform: translateY(-1px); }
 /* Orange cards (ready, working, done, notices) use the same bright orange as the menu, with dark text. */
 .card:not(.idle):not(.error) { color: var(--ink); }
 .card:not(.idle):not(.error) .p { color: rgba(43,11,40,.82); }
@@ -1413,11 +1416,23 @@ async function refreshStatus() {
   setCard(s.state, s.title, s.text);
 }
 
+// The Upscale card: open where the textures are (a file is shown selected in its folder); nothing chosen or not found → the folder picker.
+async function openUpscaleInput() {
+  const first = (cfg.upscale.inputs || [])[0];
+  if (first && await window.htk.open(first)) return;
+  const b = document.querySelector('[data-browse="folder"][data-for="upscale.inputs"]'); if (b) b.click();
+}
+
 function setCard(state, title, text, progress, actions) {
   const c = $('#status'); if (!c) return;
   c.className = 'card ' + ({ ready: '', idle: 'idle', error: 'error', notice: 'notice', done: 'done', running: 'running' }[state] ?? '');
-  const dot = $('.dot', c), want = state || 'idle';
-  if (dot.dataset.state !== want) { dot.innerHTML = statusIcon(want); dot.dataset.state = want; }
+  const dot = $('.dot', c);
+  // 1 · Upscale: the card shows a folder with a texture coming out, and a click opens the textures' folder (or the picker).
+  const folderCard = page === 'upscale' && ['idle', 'ready', 'notice', 'error'].includes(state || 'idle') && !job.running;
+  const want = folderCard && state !== 'error' ? 'sprite' : (state || 'idle');
+  if (dot.dataset.state !== want) { dot.innerHTML = want === 'sprite' ? pixelSprite('textureFolder') : statusIcon(want); dot.dataset.state = want; dot.classList.toggle('sprite', want === 'sprite'); }
+  c.classList.toggle('clickable', folderCard);
+  c.title = folderCard ? ((cfg.upscale.inputs || []).length ? 'Open the texture folder' : 'Choose a folder of textures') : '';
   $('.t', c).textContent = title || '';
   $('.p', c).textContent = text || '';
   $('.bar', c).hidden = true;                          // progress is the footer bar now
@@ -1561,6 +1576,7 @@ document.addEventListener('click', async (e) => {
   if (e.target.id === 'ai-skip') { closeModal(); AI_ASKED = true; start('upscale'); return; }
   const sb = e.target.closest('.seg button');
   if (sb && !sb.disabled) { const k = sb.parentElement.dataset.key; setVal(k, sb.dataset.v); clearFinished(); render(); if (k === 'cleanPhrases') { hdrList = []; hdrAt = 0; nextHeaderPhrase(); } return; }
+  if (e.target.closest('#status.clickable') && !e.target.closest('.act button')) { openUpscaleInput(); return; }
   const br = e.target.closest('[data-browse]');
   if (br) {
     const key = br.dataset.for, kind = br.dataset.browse;

@@ -58,6 +58,41 @@
     return `<svg class="px-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
   }
 
+  // Picture sprites (not round buttons): one character per pixel, '.' is empty.
+  const SPRITES = {
+    // A folder with a texture (a checker tile) coming out of it, plus a little sparkle: 1 · Upscale's input.
+    textureFolder: {
+      colors: { o: '#3a1c00', d: '#c27a00', b: '#f2a90f', l: '#ffd64d', t: '#1d1030', A: '#ff6fae', B: '#7de0ff', s: '#fff6c8' },
+      rows: [
+        '...........s....',
+        '.....tttttttt..s',
+        '.....tAABBAAt...',
+        '.....tAABBAAt.s.',
+        '.ooootBBAABBt...',
+        'oddddtBBAABBt...',
+        'oddddtAABBAAtooo',
+        'oddddtAABBAAtddo',
+        'oooooooooooooooo',
+        'ollllllllllllllo',
+        'obbbbbbbbbbbbbbo',
+        'obbbbbbbbbbbbbbo',
+        'obbbbbbbbbbbbbbo',
+        'oddddddddddddddo',
+        'oooooooooooooooo',
+        '................',
+      ],
+    },
+  };
+  window.pixelSprite = (name) => {
+    const key = 'sprite|' + name;
+    if (!cache.has(key)) {
+      const sp = SPRITES[name]; let rects = '';
+      if (sp) sp.rows.forEach((row, y) => [...row].forEach((ch, x) => { if (sp.colors[ch]) rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${sp.colors[ch]}"/>`; }));
+      cache.set(key, `<svg class="px-icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`);
+    }
+    return cache.get(key);
+  };
+
   window.pixelIcon = (color, symbol = '') => {
     const key = color + '|' + symbol;
     if (!cache.has(key)) cache.set(key, sprite(color, symbol));
