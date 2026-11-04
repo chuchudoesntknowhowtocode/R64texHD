@@ -7,3 +7,4 @@ build/wizard/out/
 build/wizard/frames_*/
 build/wizard/__pycache__/
 docs/handoff/.active
+docs/handoff/*.zip

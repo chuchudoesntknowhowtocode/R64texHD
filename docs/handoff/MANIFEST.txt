@@ -1,4 +1,4 @@
-handoff #1 2026-11-03
+handoff #2 2026-11-04
 RESUME.md HANDOFF.md PLACES.md INDEX.md
-HEAD d963cde
-target 8c2d5e2 (GitHub main, v0.8.0.1)
+HEAD 08a848a
+GitHub main 8c2d5e2 (local ahead by 6 commits, unpushed)
