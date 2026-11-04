@@ -600,7 +600,25 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .pv-caps { display: flex; gap: 14px; margin-bottom: 6px; } .pv-caps .pv-cap { flex: 1; margin: 0; } .pv-caps .pv-cap.r { text-align: right; }
 .pv-cmp { position: relative; flex: none; cursor: ew-resize; touch-action: none; user-select: none; }
 .pv-cmp canvas { position: absolute; left: 0; top: 0; }
-.pv-cmp #pv-o { clip-path: inset(0 calc(100% - var(--x)) 0 0); }
+/* the full original sits underneath; the upscaled image on top is cut away left of the line (with its own checker, so see-through bits don't show the original) */
+.pv-cmp #pv-u { clip-path: inset(0 0 0 var(--x)); background-color: #1f1436; background-image: conic-gradient(#2c1b46 25%, transparent 0 50%, #2c1b46 0 75%, transparent 0); background-size: 12px 12px; }
+/* Scale slider (1 · Upscale): stepped track, one stop per choice */
+.scale-steps { margin: 6px 0 20px; padding: 14px 18px 8px; background: #1f1436; box-shadow: inset 0 0 0 2px #3b2657; }
+.scale-steps .ss-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.scale-steps .ss-head span { color: var(--muted); font-size: 13px; }
+.ss-track { position: relative; height: 46px; margin: 0 16px; cursor: pointer; touch-action: none; user-select: none; outline: none; }
+.ss-track::before { content: ''; position: absolute; left: 0; right: 0; top: 10px; height: 6px; background: #2c1b46; box-shadow: inset 0 0 0 2px #3b2657; }
+.ss-fill { position: absolute; left: 0; top: 10px; height: 6px; width: calc(var(--i) / (var(--n) - 1) * 100%); background: linear-gradient(90deg, var(--orange), var(--orange-hi)); pointer-events: none; }
+.ss-stop { position: absolute; left: var(--p); top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 9px;
+  background: none; border: 0; padding: 0; color: var(--muted); font: 600 12.5px/1 system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+.ss-stop i { width: 6px; height: 6px; margin-top: 10px; background: #6e5a8c; }
+.ss-stop.on span { color: var(--text); } .ss-stop.on i { background: var(--ink); }
+.ss-stop:disabled { opacity: .35; cursor: not-allowed; }
+.ss-stop.ai span { color: #cf7dff; } .ss-stop.ai.on span { color: #f3dcff; }
+.ss-thumb { position: absolute; top: 5px; left: calc(var(--i) / (var(--n) - 1) * 100%); width: 16px; height: 16px; margin-left: -8px; pointer-events: none;
+  background: var(--orange-hi); box-shadow: 0 0 0 2px var(--ink), 3px 3px 0 #000; transition: left .12s steps(3); }
+.ss-track:focus-visible .ss-thumb { box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px var(--orange-hi); }
+
 .pv-line { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.7); pointer-events: none; }
 .pv-line i { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--orange); color: var(--ink); font: 800 10px/1 system-ui, sans-serif; font-style: normal; padding: 5px 6px; white-space: nowrap; box-shadow: 2px 2px 0 #000; }
 .pv-view.z1 .pv-cmp { margin: 0 auto; }
@@ -961,14 +979,13 @@ const pages = {
       ${previewPanel()}
       ${row('Input', 'A folder of textures, or one or more PNG / DDS files.', pathField('upscale.inputs', u.inputs, [['folder', 'Folder…'], ['images', 'Files…']], 'Choose a folder or files'))}
       <div class="presets">${cards}</div>
+      ${scaleSteps()}
+      ${u.size === 'fit' && u.method !== 'ai' ? row('Longest side', 'Target size when Scale is Fit.', seg('upscale.fit', [['512', '512'], ['1024', '1024'], ['2048', '2048'], ['4096', '4096']], u.fit)) : ''}
       <div class="est" id="up-est">${estimateText()}</div>
       <button class="adv-toggle ${adv ? 'open' : ''}" id="adv-toggle"><b>Advanced options</b><span>${adv ? 'Changing one makes the preset “Custom”' : esc(presetSummary(u))}</span><i>${adv ? '▴' : '▾'}</i></button>
       <div class="adv" ${adv ? '' : 'hidden'}>
       ${row('Method', 'Smart picks per texture. Standard grows in 2× steps and sharpens as it goes. Smooth is one soft resize. Pixel art keeps blocky pixels. AI uses Real-ESRGAN.',
         seg('upscale.method', [['smart', 'Smart'], ['standard', 'Standard'], ['smooth', 'Smooth'], ['pixel', 'Pixel art'], ['ai', 'AI']], u.method, S.tools.realesrgan ? [] : ['ai']))}
-      ${row('Size', `How much bigger. Fit sets the longest side. Nothing goes past ${cfg.maxSize} px.`,
-        seg('upscale.size', [['2', '2×'], ['3', '3×'], ['4', '4×'], ['6', '6×'], ['8', '8×'], ['fit', 'Fit']], u.size))}
-      ${row('Longest side', 'Target size when Size is Fit.', seg('upscale.fit', [['512', '512'], ['1024', '1024'], ['2048', '2048'], ['4096', '4096']], u.fit), u.size === 'fit')}
       ${row('Sharpness', 'How much detail comes back after each step.',
         seg('upscale.sharpness', [['off', 'Off'], ['soft', 'Soft'], ['normal', 'Normal'], ['strong', 'Strong'], ['extra', 'Extra']], u.sharpness), sharpOk)}
       ${row('Edges', 'Auto uses each texture’s own setting from the RT64 dump, so floors and walls stay seamless. Or set one for everything.',
@@ -2041,10 +2058,10 @@ function previewPanel() {
       <div class="seg pv-zoom"><button data-pvzoom="fit" class="${PV.zoom === 'fit' ? 'on' : ''}">Fit</button><button data-pvzoom="1" class="${PV.zoom === '1' ? 'on' : ''}">1:1</button><button data-pvzoom="2" class="${PV.zoom === '2' ? 'on' : ''}">2:1</button></div></div>`;
   const inputs = cfg.upscale.inputs || [];
   if (!inputs.length) return `<div class="preview"><div class="pv-head"><b>Preview</b></div><div class="pv-empty">Choose a folder or files and a side-by-side preview shows up here.</div></div>`;
-  // Before / after: the upscaled image with the original drawn over its left part; drag the line.
+  // Before / after: the full original underneath, the upscaled image over it right of the line; drag the line.
   return `<div class="preview" id="preview">${head}
     <div class="pv-caps"><div class="pv-cap" id="pv-cap-o"><b>◀ Original</b></div><div class="pv-cap r" id="pv-cap-u"><b>Upscaled ▶</b></div></div>
-    <div class="pv-view" id="pv-view-u"><div class="pv-cmp" id="pv-cmp" style="--x:${Math.round(PV.split * 100)}%"><canvas id="pv-u"></canvas><canvas id="pv-o" class="px"></canvas><div class="pv-line"><i>◀ ▶</i></div></div>
+    <div class="pv-view" id="pv-view-u"><div class="pv-cmp" id="pv-cmp" style="--x:${Math.round(PV.split * 100)}%"><canvas id="pv-o" class="px"></canvas><canvas id="pv-u"></canvas><div class="pv-line"><i>◀ ▶</i></div></div>
       <div class="pv-busy" id="pv-busy" hidden><i></i>Making preview…</div></div></div>`;
 }
 
@@ -2138,10 +2155,83 @@ function drawPreview() {
   const ext = item ? item.rel.split('.').pop().toUpperCase() : '';
   $('#pv-cap-o').innerHTML = `<b>◀ Original</b> · ${r.orig.width}×${r.orig.height} · ${ext}${r.edges ? ` · edges: ${esc(r.edges)}` : ''}`;
   const u = cfg.upscale;
-  const how = (u.method === 'smart' ? `Smart → ${r.route || '…'}` : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', ai: 'AI' }[u.method] + ' ' + (u.size === 'fit' ? `fit ${u.fit}` : u.size + '×')
+  const routeLabel = (r.route || '…').replace('4×', u.size === 'fit' ? `fit ${u.fit}` : `${u.size}×`);   // Smart's routes follow the Scale slider
+  const how = (u.method === 'smart' ? `Smart → ${routeLabel}` : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', ai: 'AI' }[u.method] + ' ' + (u.size === 'fit' ? `fit ${u.fit}` : u.size + '×')
     + ((u.method === 'standard' || u.method === 'ai') ? `, ${u.sharpness}` : ''));
   $('#pv-cap-u').innerHTML = `${esc(how)} · ${r.up.width}×${r.up.height} · ${esc(r.encoded)}` + (stale ? ' · updating…' : ` · ${(r.ms / 1000).toFixed(2)} s`) + ' <b>Upscaled ▶</b>';
 }
+// ---------------------------------------------------------------- Scale slider (1 · Upscale)
+// One stepped slider for how big, plus the two Real-ESRGAN looks. Dragging updates the preview live;
+// letting go saves it (and makes the preset "Custom" when it differs).
+const SCALE_STEPS = [
+  { id: '1', label: '1×', note: 'Same size, cleaned up and saved again' }, { id: '2', label: '2×' }, { id: '4', label: '4×' }, { id: '8', label: '8×' }, { id: '16', label: '16×' },
+  { id: 'fit', label: 'Fit', note: 'Longest side set below' },
+  { id: 'anime', label: 'Anime', ai: true, model: 'realesrgan-x4plus-anime', note: 'Real-ESRGAN Art model, 4× (drawn and cartoon textures)' },
+  { id: 'ai', label: 'AI', ai: true, model: 'realesrgan-x4plus', note: 'Real-ESRGAN General model, 4×' },
+];
+function scaleStepIndex() {
+  const u = cfg.upscale;
+  const id = u.method === 'ai' ? (/anime/.test(cfg.realesrganModel || '') ? 'anime' : 'ai') : String(u.size);
+  const i = SCALE_STEPS.findIndex((s) => s.id === id);
+  if (i >= 0) return { i, custom: false };
+  const n = Number(u.size) || 4;                                   // an older 3× / 6×: sits on the stop below it
+  let k = 0; SCALE_STEPS.forEach((s, j) => { if (!s.ai && s.id !== 'fit' && Number(s.id) <= n) k = j; });
+  return { i: k, custom: true };
+}
+const stepOk = (s) => !s.ai || !!S.tools.realesrgan;
+function scaleNote() {
+  const { i, custom } = scaleStepIndex(), s = SCALE_STEPS[i];
+  if (custom) return `${cfg.upscale.size}× (custom, from Advanced options)`;
+  const base = s.note || `${s.label} bigger · nothing goes past ${cfg.maxSize} px`;
+  return S.tools.realesrgan ? base : base + ' · Anime and AI need Real-ESRGAN (Settings)';
+}
+function scaleSteps() {
+  const { i } = scaleStepIndex(), n = SCALE_STEPS.length;
+  return `<div class="scale-steps" id="scale-steps" style="--n:${n};--i:${i}"><div class="ss-head"><b>Scale</b><span id="ss-note">${esc(scaleNote())}</span></div>
+    <div class="ss-track" id="ss-track" role="slider" tabindex="0" aria-label="Scale" aria-valuemin="0" aria-valuemax="${n - 1}" aria-valuenow="${i}" aria-valuetext="${SCALE_STEPS[i].label}">
+    <div class="ss-fill"></div>${SCALE_STEPS.map((s, j) => `<button class="ss-stop ${s.ai ? 'ai' : ''} ${j === i ? 'on' : ''}" data-step="${j}" style="--p:${(j / (n - 1) * 100).toFixed(3)}%" tabindex="-1" ${stepOk(s) ? '' : 'disabled title="Download Real-ESRGAN in Settings"'}><i></i><span>${s.label}</span></button>`).join('')}
+    <div class="ss-thumb"></div></div></div>`;
+}
+function applyScaleStep(j) {
+  const s = SCALE_STEPS[j]; if (!s || !stepOk(s)) return false;
+  const u = cfg.upscale;
+  if (s.ai) { u.method = 'ai'; u.size = 4; cfg.realesrganModel = s.model; }
+  else { if (u.method === 'ai') u.method = 'standard'; u.size = s.id === 'fit' ? 'fit' : Number(s.id); }
+  return true;
+}
+function showScaleStep() {                                          // update the slider in place (no re-render while dragging)
+  const box = $('#scale-steps'); if (!box) return;
+  const { i } = scaleStepIndex();
+  box.style.setProperty('--i', i);
+  box.querySelectorAll('.ss-stop').forEach((b) => b.classList.toggle('on', Number(b.dataset.step) === i));
+  const t = $('#ss-track'); t.setAttribute('aria-valuenow', i); t.setAttribute('aria-valuetext', SCALE_STEPS[i].label);
+  $('#ss-note').textContent = scaleNote();
+}
+function scaleDone() { clearFinished(); save(true); render(); const t = $('#ss-track'); if (t) t.focus({ preventScroll: true }); }
+function nearestStep(track, clientX) {
+  const r = track.getBoundingClientRect(), n = SCALE_STEPS.length;
+  const want = Math.round(Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * (n - 1));
+  let best = -1;
+  SCALE_STEPS.forEach((s, j) => { if (stepOk(s) && (best < 0 || Math.abs(j - want) < Math.abs(best - want))) best = j; });
+  return best;
+}
+document.addEventListener('pointerdown', (e) => {
+  const t = e.target.closest('#ss-track'); if (!t || e.button !== 0) return;
+  e.preventDefault(); t.setPointerCapture(e.pointerId); t.focus({ preventScroll: true });
+  const at = (ev) => { const j = nearestStep(t, ev.clientX); if (j >= 0 && j !== scaleStepIndex().i && applyScaleStep(j)) { showScaleStep(); schedulePreview(); } };
+  at(e);
+  const move = (ev) => at(ev), up = () => { t.removeEventListener('pointermove', move); t.removeEventListener('pointerup', up); t.removeEventListener('pointercancel', up); scaleDone(); };
+  t.addEventListener('pointermove', move); t.addEventListener('pointerup', up); t.addEventListener('pointercancel', up);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.target.id !== 'ss-track' || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+  e.preventDefault();
+  const n = SCALE_STEPS.length, cur = scaleStepIndex().i, dir = e.key === 'ArrowLeft' || e.key === 'Home' ? -1 : 1;
+  let j = e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : cur + dir;
+  while (j >= 0 && j < n && !stepOk(SCALE_STEPS[j])) j += e.key === 'End' ? -1 : (e.key === 'Home' ? 1 : dir);
+  if (j >= 0 && j < n && j !== cur && applyScaleStep(j)) scaleDone();
+});
+
 // Drag the before / after line (or click anywhere on the image). Arrow keys nudge it.
 function setSplit(x) { PV.split = Math.max(0, Math.min(1, x)); const c = $('#pv-cmp'); if (c) c.style.setProperty('--x', (PV.split * 100).toFixed(2) + '%'); }
 document.addEventListener('pointerdown', (e) => {

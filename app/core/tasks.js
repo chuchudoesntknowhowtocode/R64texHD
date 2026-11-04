@@ -734,6 +734,7 @@ let previewPool = null;
 // One texture upscaled with the current settings; runs on its own worker, separate from jobs.
 async function preview(req, tools) {
   if (!previewPool) previewPool = new Pool(1);
+  if (req.model) tools = { ...tools, realesrganModel: req.model };   // the AI model the Scale slider points at
   const auto = req.edges === 'auto';
   const tileMap = auto ? tiling.loadFor([path.dirname(req.src)]) : null;
   const edges = tiling.edgesFor(req.src, req.edges || 'clamp', tileMap);
