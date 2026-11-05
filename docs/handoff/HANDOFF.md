@@ -1,50 +1,50 @@
-# R64texHD handoff #2 — 2026-11-04
+# R64texHD handoff #3 — 2026-11-04
 
 ## Scope
-v0.8.0.1 review, QoL fixes, Upscale UI work, upscaling research; next = research roadmap.
+Research roadmap (docs/research/Better N64 texture upscaling.md) items 1–6, approved by the user. v0.8.0.1 + local work.
 
 ## Changes we made
-- 2da2949 handoff: docs/handoff #1 committed after local fast-forward to 8c2d5e2 (via git bundle)
-- d462c08 fix: AI batch → HD fallback, download 30 s timeout + .part cleanup, same-output-name skip, copy-error skip, texconv 5 min limit, estimate sample fix, preview tiling once, workers close on quit
-- 9d60740 feat: clickable Upscale input card, folder-with-texture pixel icon (pixel-icons.js pixelSprite)
-- 75e98dd perf: estimate caches classify results (path+size+mtime), stopEstimate() on task start
-- 2179e66 feat: stepped Scale slider 1×/2×/4×/8×/16×/Fit/Anime/AI replaces Size buttons; full original under compare line; Smart caption shows real scale
-- 08a848a docs: research report docs/research/Better N64 texture upscaling.md
+- f256a85 perf: roadmap 1 — one Real-ESRGAN run per AI group, -j 4:4:4, -t covers largest padded texture (≤400, Auto only), progress from output folder; on failure retry unfinished at -t 128, then HD 4× fallback
+- 0b45703 feat: roadmap 3 — BC7 quality setting (Settings › Upscaling › Performance: Fast -bc q / Normal / Best -bc x, default Best); texconv -wrap/-mirror when both axes tile the same way
+- Earlier (handoff #2 chat): d462c08 review fixes, 9d60740 input card, 75e98dd estimate cache, 2179e66 Scale slider, 08a848a research report
 
 ## Changes we should make
-- H roadmap 1: one ncnn spawn per folder, -j 4:4:4, -g explicit, multi-GPU by pixel count
-- H roadmap 2–3: texconv -bc x -m 0, -wrap/-mirror from tiling, keep-coverage only binary alpha, parallel encodes; alpha classify/bleed/separate/threshold
-- M roadmap 4–6: low-freq colour fix (RGB only); replicate pad + 3×3 tiling ≤32 px
-- M roadmap 7–10: bundle permissive ESRGAN models (HDCube, GameAI, PixelPerfectV4, DitherDeleter, DEDXT) + credits; Smart v2; 4x→downscale; comparison grid
-- L roadmap 11–13: onnxruntime-node DirectML utilityProcess (TextureDAT2, RGT-S_dither); model manager for NC models; experiments
-- L untested on Windows: download timeout, AI fallback, Scale slider in Electron, Anime/AI previews
-
-## Files changed
-app/main.js, app/core/tasks.js, app/core/dds.js, app/ui/index.html, app/ui/pixel-icons.js, CHANGELOG.md, docs/task-logs/*, docs/task-features/2026-11-04-scale-slider.md, docs/research/*
+- H: get the 9 local commits (8c2d5e2..0b45703) onto GitHub — user's push failed, error unknown
+- H: roadmap 4 — alpha classify (opaque/binary/graded), dilation bleed, separate alpha upscale, user threshold
+- M: roadmap 5 — low-frequency colour fix vs original (RGB only)
+- M: roadmap 6 — replicate pad for clamp; 3×3 tile pad for ≤32 px
+- L: Windows test of AI one-spawn + Low retry, BC7 Best speed on a real dump, Scale slider in Electron, download timeout
+- L: roadmap 2 multi-GPU (skipped: single GPU) — needs ncnn device list probe + Settings picker
 
 ## Current state
-- Works: 77/77 tests; Chromium harness live test of Upscale page + real preview engine
-- Not built (no builds unless asked)
+- Works: 79/79 tests (node --test tests/*.test.js); stand-in Real-ESRGAN (100 textures, crash at 40 → 60 retried) and stand-in texconv (args checked) runs
+- Not tested with real tools / on Windows since handoff #2
 
 ## Decisions
-- Anime = method ai + realesrgan-x4plus-anime; AI = method ai + realesrgan-x4plus (global model setting)
-- Number steps switch ai → standard; disabled AI stops snap to nearest available
-- Same-output-name textures: keep first, skip rest
-- NC models only as opt-in downloads; upscayl-bin is AGPL (avoid bundling)
+- Multi-GPU skipped: user's PC is a desktop with one RTX 4060 8 GB
+- BC7 default Best (user's choice, per report)
+- -wrap/-mirror only when both axes agree; mixed → plain edges
+- -g stays the Settings choice (Auto = ncnn default, prefers discrete GPU)
+- Anime = ai + realesrgan-x4plus-anime; AI = ai + realesrgan-x4plus
+- NC models only as opt-in downloads; upscayl-bin is AGPL (don't bundle)
 
 ## Watch out for
-- Device shell can't reach GitHub (403); user pushes manually. Commit with -c user.name=chuchudoesntknowhowtocode -c user.email=chuchudoesntknowhowtocode@users.noreply.github.com
-- Node 22 here: run tests with `node --test tests/*.test.js` (dir arg fails)
+- Pushing: device shell gets 403 from proxy; the cloud GitHub link has no push access to this repo. User pushes manually.
+- Use $HOME/mnt/R64texHD (delete allowed there) for git, not $HOME/mnt/GitHub/R64texHD — the latter leaves .lock / tmp_obj files
+- Commit with -c user.name=chuchudoesntknowhowtocode -c user.email=chuchudoesntknowhowtocode@users.noreply.github.com
+- Node 22: `node --test tests/*.test.js` (dir arg fails)
 - CHANGELOG has two "### Upscaling" headings: insert under "## Unreleased" explicitly
-- Live UI test: stage app/ui+core as a tar, run Playwright harness with a stubbed window.htk in the container, delete after
-- C:\GitHub\_upstream\r64-update.bundle (178 MB) left over; user may delete
+- dds ALPHA_REF is 0.5 (not 128)
+- Stand-in tools for tests: write them outside mnt ($HOME/…), delete after
+- Old per-project starter "R64texHD — continue" (trig_01VCx4qrsXU5XNgpZrPY33h5) exists; new rule: use the shared "handoffchat — continue" only
 
 ## Enhancements
 - Reuse classify cache in Smart run (S, M)
 - Smart preset stays highlighted at any scale (S, L)
+- BC7 quality per preset instead of global (S, L)
 
 ## Open questions
-- none
+- What error did the user's `git push` show?
 
 ## Files that matter most
-app/core/tasks.js (upscaleTask AI loop ~325-360, preview, estimate), app/core/dds.js (encodeTexconv), app/core/worker.js, app/ui/index.html (setCard, scaleSteps, drawPreview)
+app/core/tasks.js (upscaleTask AI branch ~325-380, aiArgs), app/core/dds.js (texconvArgs, mipChain, isCutout), app/core/worker.js (aiPrep/aiFinish), app/core/upscale.js (fillTransparent, hardAlpha), app/ui/index.html (settings rows ~1130)

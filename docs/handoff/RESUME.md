@@ -1,13 +1,13 @@
-Project: R64texHD — #2 — 2026-11-04 — 08a848a
+Project: R64texHD — #3 — 2026-11-04 — 0b45703
 Root: C:\GitHub\R64texHD
 Scope: portable Windows Electron app: upscale DDS/PNG, convert RT64 dumps, pack/unpack .rtz
-Goal: roadmap items 1–6 from docs/research/Better N64 texture upscaling.md (one commit each)
-Done when: items 1–6 committed locally, 77+ tests pass, before/after pictures sent where the look changes
-Stopped at: plan approved in principle ("i like it all"); item 1 not started — app/core/tasks.js:325-360 (AI batch loop, batch = 32)
-Next action: item 1 — one realesrgan spawn per model/GPU folder, -j 4:4:4, explicit -g, -t >= padded size, progress by watching outDir; keep per-batch HD fallback
-Last cmd: node --test tests/*.test.js → 77 pass
-Last error: none
+Goal: roadmap item 4 — alpha classifier, dilation bleed, separate alpha upscale, user threshold
+Done when: item 4 committed locally, all tests pass, before/after pictures of a cut-out sent
+Stopped at: item 4 not started; items 1 + 3 done, item 2 (multi-GPU) skipped (single RTX 4060)
+Next action: give a 3–5 bullet plan for item 4 (it's S–M, likely > 3 files) and wait for "go"
+Last cmd: git push → 403 from proxy (device) / cloud account lacks push access; user's own push also failed, error not yet shared
+Last error: user: "wont let me" (git push) — ask for the exact message
 Uncommitted: none
 Settings: chuchu on; previews=yes (send pictures/GIF); visual=live test in Chromium harness; commit locally, never push; commits authored chuchudoesntknowhowtocode
-Open Qs: none
+Open Qs: what error did the user's git push show?
 Read more: HANDOFF §Changes we should make, §Watch out for
