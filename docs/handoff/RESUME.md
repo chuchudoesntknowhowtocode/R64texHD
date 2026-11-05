@@ -1,4 +1,4 @@
-Project: R64texHD — #3 — 2026-11-04 — 0b45703
+Project: R64texHD — #3 (redo) — 2026-11-04 — 0b45703
 Root: C:\GitHub\R64texHD
 Scope: portable Windows Electron app: upscale DDS/PNG, convert RT64 dumps, pack/unpack .rtz
 Goal: roadmap item 4 — alpha classifier, dilation bleed, separate alpha upscale, user threshold
@@ -10,4 +10,6 @@ Last error: user: "wont let me" (git push) — ask for the exact message
 Uncommitted: none
 Settings: chuchu on; previews=yes (send pictures/GIF); visual=live test in Chromium harness; commit locally, never push; commits authored chuchudoesntknowhowtocode
 Open Qs: what error did the user's git push show?
+Prev chat: https://claude.ai/code/session_01AbsEdHWAkbULMdhrGUj8Ss — "Claude.ai E1 upgraded conversation"
+WSL: no
 Read more: HANDOFF §Changes we should make, §Watch out for
