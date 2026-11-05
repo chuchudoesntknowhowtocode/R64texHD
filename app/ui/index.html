@@ -823,7 +823,7 @@ const section = (t) => `<div class="section">${t}</div>`;
 // Settings: a box per area, subsections inside (depth 2 = a subsection of a subsection), volume sliders.
 const sbox = (title, lead, body) => `<section class="sbox"><h3 class="section">${title}</h3>${lead ? `<p class="sbox-lead">${lead}</p>` : ''}${body}</section>`;
 const sub = (title, body, depth = 1) => `<div class="ssub d${depth}"><h4>${title}</h4>${body}</div>`;
-const slider = (key, v, off) => `<div class="slider ${off ? 'off' : ''}"><input type="range" min="0" max="100" step="1" data-range="${key}" value="${Number(v) || 0}" style="--fill:${Number(v) || 0}%" aria-label="Volume"><span>${Number(v) || 0}%</span></div>`;
+const slider = (key, v, off, label = 'Volume') => `<div class="slider ${off ? 'off' : ''}"><input type="range" min="0" max="100" step="1" data-range="${key}" value="${Number(v) || 0}" style="--fill:${Number(v) || 0}%" aria-label="${label}"><span>${Number(v) || 0}%</span></div>`;
 const SFX_SLOTS = ['job_start', 'into_pipe', 'cancel_burst', 'error_burst', 'hit', 'ko', 'impact', 'burn', 'vs', 'honk', 'rerobe', 'peek', 'bubble', 'poke', 'zap', 'trip_start', 'bonus'];
 function sceneLibraryControl() {
   const L = (window.Wizard && Wizard.library) || {}, d = L.download || {};
@@ -991,6 +991,7 @@ const pages = {
       ${row('Edges', 'Auto uses each texture’s own setting from the RT64 dump, so floors and walls stay seamless. Or set one for everything.',
         seg('upscale.edges', [['auto', 'Auto'], ['clamp', 'Normal'], ['wrap', 'Tile'], ['mirror', 'Mirror']], u.edges), u.method !== 'pixel')}
       ${row('Cut-out edges', 'Hard keeps see-through bits (leaves, fences, text) crisp.', seg('upscale.hardAlpha', [['true', 'Hard'], ['false', 'Smooth']], String(u.hardAlpha)), u.method !== 'pixel')}
+      ${row('Cut-out threshold', 'Where a hard edge is cut. Lower keeps more of thin fences and leaves, higher trims them. 50% matches the game.', slider('upscale.alphaThreshold', u.alphaThreshold ?? 50, u.hardAlpha === false, 'Cut-out threshold'), u.method !== 'pixel')}
       ${row('Output format', 'Same keeps each file’s format. DDS loads fastest in game and comes with mipmaps.', seg('upscale.format', [['same', 'Same as input'], ['png', 'PNG'], ['dds', 'DDS']], u.format))}
       ${row('DDS compression', 'Auto picks BC1 or BC3. BC7 is sharpest (needs texconv). None is uncompressed.',
         seg('upscale.ddsFormat', DDS_OPTS(), u.ddsFormat, S.tools.texconv ? [] : ['bc7']), dds)}
@@ -1696,6 +1697,8 @@ document.addEventListener('input', (e) => {
   if (window.Music) Music.settingsChanged(); if (window.Wizard) Wizard.settingsChanged();
 });
 document.addEventListener('change', (e) => { const r = e.target.closest('[data-range="soundVolume"]'); if (r && window.Wizard) Wizard.sfx('poke'); });
+// Cut-out threshold: a new preview once the slider is let go.
+document.addEventListener('change', (e) => { if (e.target.closest('[data-range="upscale.alphaThreshold"]')) { clearFinished(); render(); } });
 
 async function save(quiet) { await window.htk.saveSettings(cfg); if (!quiet) toast('Settings saved'); }
 
@@ -2046,7 +2049,7 @@ const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new M
 
 function previewParams() {
   const u = cfg.upscale;
-  return { src: PV.src, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, edges: u.edges, hardAlpha: u.hardAlpha,
+  return { src: PV.src, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, edges: u.edges, hardAlpha: u.hardAlpha, alphaThreshold: u.alphaThreshold ?? 50,
     format: u.format, ddsFormat: u.ddsFormat, keepCoverage: u.keepCoverage, maxSize: cfg.maxSize, model: cfg.realesrganModel, aiOk: aiOk() };
 }
 const previewKey = () => JSON.stringify(previewParams());

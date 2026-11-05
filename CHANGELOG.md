@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Upscaling
+- **Cut-out alpha**: alpha is sorted into opaque / cut-out / soft (DXT noise near 0 or 255 still counts as cut-out), grown on its own (never sharpened, never by the AI) and cut at the new **Cut-out threshold** slider (default 50%). Hidden colours now bleed all the way out, so no dark fringes or halos on fences and leaves.
 - **BC7 quality** (Settings › Upscaling › Performance): Fast · Normal · Best, default **Best** (texconv `-bc x`, sharpest on flat colours and text, slower). Applies to Upscale, Convert and the pack DDS fix.
 - BC7 DDS mipmaps follow the texture's tiling: textures that tile or mirror on both axes get `-wrap` / `-mirror`, so far-away mip levels have no seams.
 - **Scale slider** on 1 · Upscale: one stepped slider for 1× · 2× · 4× · 8× · 16× · Fit · Anime · AI (Anime / AI use Real-ESRGAN's Art / General model). The preview follows it live while dragging; it replaces the Size buttons.

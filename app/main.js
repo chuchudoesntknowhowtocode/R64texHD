@@ -48,7 +48,7 @@ const DEFAULTS = {
   dumpFolder: '', outputFolder: '', page: 'upscale',
   workers: 'auto', maxSize: 4096, texconv: '', realesrgan: '', realesrganModel: 'realesrgan-x4plus', aiGpu: 'auto', aiTile: 'auto', bc7Quality: 'best',
   splash: true, cleanPhrases: false,
-  upscale: { inputs: [], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'auto', hardAlpha: true,
+  upscale: { inputs: [], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'auto', hardAlpha: true, alphaThreshold: 50,
     format: 'same', ddsFormat: 'auto', output: '', existing: 'overwrite', copyOther: true, keepCoverage: true },
   convert: { input: '', format: 'png', ddsFormat: 'auto', output: '', wrapInfo: true, rice: true, onlyNew: false },
   pack: { mode: 'pack', input: '', output: '', compression: 'zstd', level: 'balanced', lowMipCache: true,

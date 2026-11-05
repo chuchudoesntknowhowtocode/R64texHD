@@ -5,21 +5,22 @@
 //   hd     everything else: Standard 4x with normal sharpening
 // The rules look at the size, the number of distinct colours and the kind of transparency.
 
+const { alphaKind } = require('./upscale');
+
 const COLOR_CAP = 256;
 
 function stats(img) {
   const { width: w, height: h, data: d } = img;
   const seen = new Set();
-  let alpha = 'opaque', colors = 0;
+  let colors = 0;
   for (let i = 0; i < d.length; i += 4) {
     const a = d[i + 3];
-    if (a !== 255) alpha = a === 0 ? (alpha === 'soft' ? 'soft' : 'binary') : 'soft';
     if (colors < COLOR_CAP && a !== 0) {
       const key = (d[i] << 16) | (d[i + 1] << 8) | d[i + 2];
       if (!seen.has(key)) { seen.add(key); colors++; }
     }
   }
-  return { w, h, colors, alpha };
+  return { w, h, colors, alpha: alphaKind(img) };   // same classifier the upscaler uses
 }
 
 function route(s) {

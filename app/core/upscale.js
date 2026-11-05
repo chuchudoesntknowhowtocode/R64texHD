@@ -4,10 +4,11 @@
 // Standard: enlarge in 2x steps; after every step re-sharpen (a little more each step) so detail
 // keeps up with the size. Each step is clamped to the range of the source pixels around it (no
 // ringing/halos), edges follow the tiling mode, transparent pixels borrow neighbouring colours
-// (no dark fringes) and on/off alpha stays crisp.
+// (no dark fringes) and on/off alpha stays crisp. Alpha is grown on its own, never by the AI.
 // Smooth: one high-quality Lanczos resize, no sharpening.  Pixel art: nearest neighbour.
 // AI: Real-ESRGAN does the first 4x (see tasks.js), then the Standard steps finish the job.
 
+const ALPHA_TOL = 8, ALPHA_MID_SHARE = 0.005;   // see alphaKind
 const SHARPNESS = { off: 0, soft: 0.35, normal: 0.6, strong: 0.9, extra: 1.25 };
 
 // ---------------------------------------------------------------- helpers on one float plane
@@ -134,36 +135,47 @@ function sharpen(plane, w, h, amount, sigma) {
   return out;
 }
 
-// Transparent pixels take the average colour of nearby visible pixels.
-function fillTransparent(img, iterations) {
-  const { width: w, height: h, data } = img;
-  const out = Uint8Array.from(data);
-  let filled = new Uint8Array(w * h);
-  let any = false, all = true;
-  for (let i = 0; i < w * h; i++) { filled[i] = data[i * 4 + 3] > 0 ? 1 : 0; if (filled[i]) any = true; else all = false; }
+// Transparent pixels take the average colour of nearby visible pixels, growing outward ring by ring
+// until every transparent pixel has one (or `iterations` rings). Big upscales then never pull dark
+// or stray colours in from behind a cut-out edge. Each round only visits the newest ring: O(pixels).
+function fillTransparent(img, iterations = Infinity) {
+  const { width: w, height: h, data } = img, n = w * h;
+  const out = Uint8Array.from(data), filled = new Uint8Array(n), queued = new Uint8Array(n);
+  let any = false, all = true;   // near-invisible pixels (alpha <= ALPHA_TOL) count as hidden too
+  for (let i = 0; i < n; i++) { filled[i] = data[i * 4 + 3] > ALPHA_TOL ? 1 : 0; if (filled[i]) any = true; else all = false; }
   if (all || !any) return { width: w, height: h, data: out };
-  for (let it = 0; it < iterations; it++) {
-    const next = Uint8Array.from(filled);
-    let grew = false;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const i = y * w + x;
-      if (filled[i]) continue;
-      let r = 0, g = 0, b = 0, n = 0;
+  const around = (i, list) => {
+    const x = i % w, y = (i - x) / w;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const xx = x + dx, yy = y + dy;
+      if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
+      const j = yy * w + xx;
+      if (!filled[j] && !queued[j]) { queued[j] = 1; list.push(j); }
+    }
+  };
+  let ring = [];
+  for (let i = 0; i < n; i++) if (filled[i]) around(i, ring);
+  for (let it = 0; it < iterations && ring.length; it++) {
+    for (const i of ring) {           // colours come only from pixels filled before this ring
+      const x = i % w, y = (i - x) / w;
+      let r = 0, g = 0, b = 0, k = 0;
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         const xx = x + dx, yy = y + dy;
         if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
         const j = yy * w + xx;
         if (!filled[j]) continue;
-        r += out[j * 4]; g += out[j * 4 + 1]; b += out[j * 4 + 2]; n++;
+        r += out[j * 4]; g += out[j * 4 + 1]; b += out[j * 4 + 2]; k++;
       }
-      if (n) { out[i * 4] = Math.round(r / n); out[i * 4 + 1] = Math.round(g / n); out[i * 4 + 2] = Math.round(b / n); next[i] = 1; grew = true; }
+      out[i * 4] = Math.round(r / k); out[i * 4 + 1] = Math.round(g / k); out[i * 4 + 2] = Math.round(b / k);
     }
-    filled = next;
-    if (!grew) break;
+    for (const i of ring) filled[i] = 1;
+    const next = [];
+    for (const i of ring) around(i, next);
+    ring = next;
   }
-  let r = 0, g = 0, b = 0, n = 0;
-  for (let i = 0; i < w * h; i++) if (filled[i]) { r += out[i * 4]; g += out[i * 4 + 1]; b += out[i * 4 + 2]; n++; }
-  for (let i = 0; i < w * h; i++) if (!filled[i]) { out[i * 4] = r / n; out[i * 4 + 1] = g / n; out[i * 4 + 2] = b / n; }
+  let r = 0, g = 0, b = 0, k = 0;
+  for (let i = 0; i < n; i++) if (filled[i]) { r += out[i * 4]; g += out[i * 4 + 1]; b += out[i * 4 + 2]; k++; }
+  for (let i = 0; i < n; i++) if (!filled[i]) { out[i * 4] = r / k; out[i * 4 + 1] = g / k; out[i * 4 + 2] = b / k; }
   return { width: w, height: h, data: out };
 }
 
@@ -178,7 +190,25 @@ function targetSize(w, h, opts) {
 }
 
 function isOpaque(img) { for (let i = 3; i < img.data.length; i += 4) if (img.data[i] !== 255) return false; return true; }
-function isBinaryAlpha(img) { for (let i = 3; i < img.data.length; i += 4) if (img.data[i] !== 0 && img.data[i] !== 255) return false; return true; }
+
+// What kind of transparency a texture has:
+//   opaque  every pixel is fully visible
+//   binary  cut-out (fences, leaves, text): alpha is on/off. Values within ALPHA_TOL of 0 or 255
+//           count as on/off, and up to ALPHA_MID_SHARE of the pixels may sit in between (soft
+//           edges left by DXT or old tools)
+//   soft    smoke, glass, shadows: real in-between alpha, kept as is
+function alphaKind(img) {
+  const d = img.data, n = d.length / 4;
+  let seeThrough = false, mid = 0;
+  for (let i = 3; i < d.length; i += 4) {
+    const a = d[i];
+    if (a === 255) continue;
+    seeThrough = true;
+    if (a > ALPHA_TOL && a < 255 - ALPHA_TOL) mid++;
+  }
+  if (!seeThrough) return 'opaque';
+  return mid <= n * ALPHA_MID_SHARE ? 'binary' : 'soft';
+}
 
 function nearest(img, nw, nh) {
   const { width: w, height: h, data } = img, out = new Uint8Array(nw * nh * 4);
@@ -192,59 +222,64 @@ function nearest(img, nw, nh) {
   return { width: nw, height: nh, data: out };
 }
 
-// img: RGBA source. opts: { size, fit, maxSize, method, sharpness, edges: 'clamp'|'wrap'|'mirror' or [x,y], hardAlpha }
-// start: optional { img, scale } produced by AI (4x) to continue from.
+// One channel of `from` (already at scale `cur`) taken to the target size: padded by the tiling
+// mode, grown in 2x steps (sharpened when `sharp`), then cropped.
+function scalePlane(from, c, cur, t, edges, opts, base, sharp) {
+  const sw = from.width, sh = from.height, P = 4 * cur;
+  let plane = new Float32Array(sw * sh);
+  for (let i = 0; i < sw * sh; i++) plane[i] = from.data[i * 4 + c] / 255;
+  let pw = sw + 2 * P, ph = sh + 2 * P;
+  plane = pad(plane, sw, sh, P, P, edges[0], edges[1]);
+  let scale = cur, step = 0;
+  if (opts.method === 'smooth') {
+    const nw = Math.round(pw * t.scale / scale), nh = Math.round(ph * t.scale / scale);
+    plane = resizeClamped(plane, pw, ph, nw, nh); pw = nw; ph = nh; scale = t.scale;
+  } else {
+    while (scale * 2 <= t.scale + 1e-6) {
+      plane = resizeClamped(plane, pw, ph, pw * 2, ph * 2); pw *= 2; ph *= 2; scale *= 2; step++;
+      if (sharp) plane = sharpen(plane, pw, ph, base * (1 + 0.35 * (step - 1)), 1 + 0.15 * step);
+    }
+    if (Math.abs(scale - t.scale) > 1e-6) { // 3x, 6x, fit sizes or AI overshoot: finish with one exact resize
+      const nw = Math.round(pw * t.scale / scale), nh = Math.round(ph * t.scale / scale);
+      plane = resizeClamped(plane, pw, ph, nw, nh); pw = nw; ph = nh; scale = t.scale;
+      if (sharp && t.scale > cur && step === 0) plane = sharpen(plane, pw, ph, base, 1.15);
+    }
+  }
+  const ox = Math.round(P * t.scale / cur), oy = Math.round(P * t.scale / cur);
+  const crop = new Float32Array(t.width * t.height);
+  for (let y = 0; y < t.height; y++) {
+    const sy = Math.min(ph - 1, y + oy);
+    for (let x = 0; x < t.width; x++) crop[y * t.width + x] = plane[sy * pw + Math.min(pw - 1, x + ox)];
+  }
+  return crop;
+}
+
+// img: RGBA source. opts: { size, fit, maxSize, method, sharpness, edges: 'clamp'|'wrap'|'mirror' or [x,y],
+//   hardAlpha, alphaThreshold (0..1, where a cut-out edge is cut; default 0.5) }
+// start: optional { img, scale } produced by AI (4x) to continue from. AI only does the colour:
+// alpha is always grown from the source on its own, smooth (never sharpened), then cut for cut-outs.
 function upscale(img, opts, start = null) {
   const { width: w, height: h } = img;
   const t = targetSize(w, h, opts);
   if (t.width === w && t.height === h) return img;
   if (opts.method === 'pixel') return nearest(img, t.width, t.height);
   const edges = Array.isArray(opts.edges) ? opts.edges : [opts.edges || 'clamp', opts.edges || 'clamp'];
-  const opaque = isOpaque(img), binary = isBinaryAlpha(img);
+  const kind = alphaKind(img), opaque = kind === 'opaque';
   const base = opts.method === 'smooth' ? 0 : (SHARPNESS[opts.sharpness] ?? SHARPNESS.normal);
-  let src = start ? start.img : img;
-  let current = start ? start.scale : 1;
-  const filled = opaque ? src : fillTransparent(src, 8 * current);
-  const P = 4 * current;
-  const sw = src.width, sh = src.height;
+  const src = start ? start.img : img, current = start ? start.scale : 1;
+  const filled = opaque || start ? src : fillTransparent(src);   // AI input was filled before the AI ran
   const outPlanes = [];
-  const channels = opaque ? 3 : 4;
-  for (let c = 0; c < channels; c++) {
-    const from = c === 3 ? src : filled;
-    let plane = new Float32Array(sw * sh);
-    for (let i = 0; i < sw * sh; i++) plane[i] = from.data[i * 4 + c] / 255;
-    let pw = sw + 2 * P, ph = sh + 2 * P;
-    plane = pad(plane, sw, sh, P, P, edges[0], edges[1]);
-    let scale = current, step = 0;
-    if (opts.method === 'smooth') {
-      const nw = Math.round(pw * t.scale / scale), nh = Math.round(ph * t.scale / scale);
-      plane = resizeClamped(plane, pw, ph, nw, nh); pw = nw; ph = nh; scale = t.scale;
-    } else {
-      while (scale * 2 <= t.scale + 1e-6) {
-        plane = resizeClamped(plane, pw, ph, pw * 2, ph * 2); pw *= 2; ph *= 2; scale *= 2; step++;
-        if (c < 3) plane = sharpen(plane, pw, ph, base * (1 + 0.35 * (step - 1)), 1 + 0.15 * step);
-      }
-      if (Math.abs(scale - t.scale) > 1e-6) { // 3x, 6x, fit sizes or AI overshoot: finish with one exact resize
-        const nw = Math.round(pw * t.scale / scale), nh = Math.round(ph * t.scale / scale);
-        plane = resizeClamped(plane, pw, ph, nw, nh); pw = nw; ph = nh; scale = t.scale;
-        if (c < 3 && t.scale > current && step === 0) plane = sharpen(plane, pw, ph, base, 1.15);
-      }
-    }
-    const ox = Math.round(P * t.scale / current), oy = Math.round(P * t.scale / current);
-    const crop = new Float32Array(t.width * t.height);
-    for (let y = 0; y < t.height; y++) {
-      const sy = Math.min(ph - 1, y + oy);
-      for (let x = 0; x < t.width; x++) crop[y * t.width + x] = plane[sy * pw + Math.min(pw - 1, x + ox)];
-    }
-    outPlanes.push(crop);
-  }
+  for (let c = 0; c < 3; c++) outPlanes.push(scalePlane(filled, c, current, t, edges, opts, base, true));
+  if (!opaque) outPlanes.push(scalePlane(img, 3, 1, t, edges, opts, base, false));
+  const cut = opts.hardAlpha !== false && kind === 'binary';
+  const thr = Math.max(0.02, Math.min(0.98, Number(opts.alphaThreshold ?? 0.5)));
   const out = new Uint8Array(t.width * t.height * 4);
   for (let i = 0; i < t.width * t.height; i++) {
     for (let c = 0; c < 3; c++) out[i * 4 + c] = Math.max(0, Math.min(255, Math.round(outPlanes[c][i] * 255)));
     if (opaque) out[i * 4 + 3] = 255;
     else {
       let a = outPlanes[3][i];
-      if (opts.hardAlpha !== false && binary) a = a >= 0.5 ? 1 : 0;
+      if (cut) a = a >= thr ? 1 : 0;
       out[i * 4 + 3] = Math.max(0, Math.min(255, Math.round(a * 255)));
     }
   }
@@ -255,7 +290,7 @@ function upscale(img, opts, start = null) {
 // nearby colours first so edges don't darken.
 function resizeRGBA(img, nw, nh) {
   if (img.width === nw && img.height === nh) return img;
-  const filled = fillTransparent(img, 8), n = img.width * img.height, out = new Uint8Array(nw * nh * 4);
+  const filled = fillTransparent(img), n = img.width * img.height, out = new Uint8Array(nw * nh * 4);
   for (let c = 0; c < 4; c++) {
     const src = c === 3 ? img : filled, plane = new Float32Array(n);
     for (let i = 0; i < n; i++) plane[i] = src.data[i * 4 + c] / 255;
@@ -265,4 +300,4 @@ function resizeRGBA(img, nw, nh) {
   return { width: nw, height: nh, data: out };
 }
 
-module.exports = { upscale, targetSize, fillTransparent, pad, edgeIndex, resizeRGBA, SHARPNESS };
+module.exports = { upscale, targetSize, fillTransparent, alphaKind, ALPHA_TOL, pad, edgeIndex, resizeRGBA, SHARPNESS };

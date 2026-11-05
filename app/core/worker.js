@@ -54,7 +54,10 @@ const handlers = {
   aiPrep(job) {
     // Pad (by tiling mode) and fill transparent colours, then hand the PNG to Real-ESRGAN.
     const img = loadImage(job.src);
-    const ready = padImage(fillTransparent(img, 16), job.pad, edgesOf(job));
+    // Real-ESRGAN gets colour only (alpha set to 255): upscale() grows the alpha itself from the source.
+    const filled = fillTransparent(img);
+    for (let i = 3; i < filled.data.length; i += 4) filled.data[i] = 255;
+    const ready = padImage(filled, job.pad, edgesOf(job));
     fs.writeFileSync(job.tmpPng, png.encodePNG(ready, 1));
     return { size: [img.width, img.height] };
   },
