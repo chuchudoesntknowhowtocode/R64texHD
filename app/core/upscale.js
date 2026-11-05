@@ -254,8 +254,69 @@ function scalePlane(from, c, cur, t, edges, opts, base, sharp) {
   return crop;
 }
 
+// Colour fix for AI output: Real-ESRGAN can shift hue and brightness on flat palette art. Shrink the
+// AI colour back to the source size, take the difference to the source on visible pixels, blur it
+// so only broad shifts remain (detail is kept), grow it back and take it off. RGB only; alpha is
+// never touched. Pure grey sources (N64 intensity textures) come back pure grey.
+function colourFix(ai, img) {
+  const { width: w, height: h } = img, f = ai.width / w, n = w * h;
+  if (!(f >= 1) || ai.height !== h * f) return ai;
+  const src = fillTransparent(img), out = Uint8Array.from(ai.data);
+  let grey = true;
+  for (let i = 0; i < n && grey; i++) {
+    const p = img.data, k = i * 4;
+    if (p[k + 3] > ALPHA_TOL && (Math.abs(p[k] - p[k + 1]) > 2 || Math.abs(p[k + 1] - p[k + 2]) > 2)) grey = false;
+  }
+  if (grey) {
+    for (let k = 0; k < out.length; k += 4) { const v = Math.round((out[k] + out[k + 1] + out[k + 2]) / 3); out[k] = out[k + 1] = out[k + 2] = v; }
+  }
+  // Difference at source size, weighted by visibility.
+  const num = [new Float32Array(n), new Float32Array(n), new Float32Array(n)], wt = new Float32Array(n);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x;
+    if (img.data[i * 4 + 3] <= ALPHA_TOL) continue;
+    const s = [0, 0, 0];
+    for (let yy = 0; yy < f; yy++) for (let xx = 0; xx < f; xx++) {
+      const k = ((y * f + yy) * ai.width + x * f + xx) * 4;
+      s[0] += out[k]; s[1] += out[k + 1]; s[2] += out[k + 2];
+    }
+    for (let c = 0; c < 3; c++) num[c][i] = s[c] / (f * f) - src.data[i * 4 + c];
+    wt[i] = 1;
+  }
+  const r = Math.max(2, Math.round(Math.min(w, h) / 16));
+  const blur = (p) => {                              // box blur, twice, clamped edges
+    for (let pass = 0; pass < 2; pass++) {
+      let t = new Float32Array(n);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        let a = 0; for (let d = -r; d <= r; d++) a += p[y * w + Math.min(w - 1, Math.max(0, x + d))]; t[y * w + x] = a;
+      }
+      const u = new Float32Array(n);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        let a = 0; for (let d = -r; d <= r; d++) a += t[Math.min(h - 1, Math.max(0, y + d)) * w + x]; u[y * w + x] = a;
+      }
+      p = u;
+    }
+    return p;
+  };
+  const W = blur(wt), D = num.map((p) => { const b = blur(p); for (let i = 0; i < n; i++) b[i] = W[i] > 1e-6 ? b[i] / W[i] : 0; return b; });
+  // Grow the (smooth) difference back up bilinearly and take it off.
+  for (let y = 0; y < ai.height; y++) {
+    const fy = Math.min(h - 1, Math.max(0, (y + 0.5) / f - 0.5)), y0 = Math.floor(fy), y1 = Math.min(h - 1, y0 + 1), ty = fy - y0;
+    for (let x = 0; x < ai.width; x++) {
+      const fx = Math.min(w - 1, Math.max(0, (x + 0.5) / f - 0.5)), x0 = Math.floor(fx), x1 = Math.min(w - 1, x0 + 1), tx = fx - x0;
+      const k = (y * ai.width + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        const p = D[c];
+        const d = (p[y0 * w + x0] * (1 - tx) + p[y0 * w + x1] * tx) * (1 - ty) + (p[y1 * w + x0] * (1 - tx) + p[y1 * w + x1] * tx) * ty;
+        out[k + c] = Math.max(0, Math.min(255, Math.round(out[k + c] - d)));
+      }
+    }
+  }
+  return { width: ai.width, height: ai.height, data: out };
+}
+
 // img: RGBA source. opts: { size, fit, maxSize, method, sharpness, edges: 'clamp'|'wrap'|'mirror' or [x,y],
-//   hardAlpha, alphaThreshold (0..1, where a cut-out edge is cut; default 0.5) }
+//   hardAlpha, alphaThreshold (0..1, where a cut-out edge is cut; default 0.5), colourFix (AI only, default on) }
 // start: optional { img, scale } produced by AI (4x) to continue from. AI only does the colour:
 // alpha is always grown from the source on its own, smooth (never sharpened), then cut for cut-outs.
 function upscale(img, opts, start = null) {
@@ -266,7 +327,7 @@ function upscale(img, opts, start = null) {
   const edges = Array.isArray(opts.edges) ? opts.edges : [opts.edges || 'clamp', opts.edges || 'clamp'];
   const kind = alphaKind(img), opaque = kind === 'opaque';
   const base = opts.method === 'smooth' ? 0 : (SHARPNESS[opts.sharpness] ?? SHARPNESS.normal);
-  const src = start ? start.img : img, current = start ? start.scale : 1;
+  const src = start ? (opts.colourFix !== false ? colourFix(start.img, img) : start.img) : img, current = start ? start.scale : 1;
   const filled = opaque || start ? src : fillTransparent(src);   // AI input was filled before the AI ran
   const outPlanes = [];
   for (let c = 0; c < 3; c++) outPlanes.push(scalePlane(filled, c, current, t, edges, opts, base, true));
@@ -300,4 +361,4 @@ function resizeRGBA(img, nw, nh) {
   return { width: nw, height: nh, data: out };
 }
 
-module.exports = { upscale, targetSize, fillTransparent, alphaKind, ALPHA_TOL, pad, edgeIndex, resizeRGBA, SHARPNESS };
+module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, edgeIndex, resizeRGBA, SHARPNESS };

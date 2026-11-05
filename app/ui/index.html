@@ -992,6 +992,7 @@ const pages = {
         seg('upscale.edges', [['auto', 'Auto'], ['clamp', 'Normal'], ['wrap', 'Tile'], ['mirror', 'Mirror']], u.edges), u.method !== 'pixel')}
       ${row('Cut-out edges', 'Hard keeps see-through bits (leaves, fences, text) crisp.', seg('upscale.hardAlpha', [['true', 'Hard'], ['false', 'Smooth']], String(u.hardAlpha)), u.method !== 'pixel')}
       ${row('Cut-out threshold', 'Where a hard edge is cut. Lower keeps more of thin fences and leaves, higher trims them. 50% matches the game.', slider('upscale.alphaThreshold', u.alphaThreshold ?? 50, u.hardAlpha === false, 'Cut-out threshold'), u.method !== 'pixel')}
+      ${row('AI colour fix', 'Keeps AI results the same colours as the original (no hue or brightness shift). Grey textures stay grey.', seg('upscale.colourFix', [['true', 'On'], ['false', 'Off']], String(u.colourFix !== false)), u.method === 'ai' || u.method === 'smart')}
       ${row('Output format', 'Same keeps each file’s format. DDS loads fastest in game and comes with mipmaps.', seg('upscale.format', [['same', 'Same as input'], ['png', 'PNG'], ['dds', 'DDS']], u.format))}
       ${row('DDS compression', 'Auto picks BC1 or BC3. BC7 is sharpest (needs texconv). None is uncompressed.',
         seg('upscale.ddsFormat', DDS_OPTS(), u.ddsFormat, S.tools.texconv ? [] : ['bc7']), dds)}
@@ -2049,7 +2050,7 @@ const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new M
 
 function previewParams() {
   const u = cfg.upscale;
-  return { src: PV.src, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, edges: u.edges, hardAlpha: u.hardAlpha, alphaThreshold: u.alphaThreshold ?? 50,
+  return { src: PV.src, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, edges: u.edges, hardAlpha: u.hardAlpha, alphaThreshold: u.alphaThreshold ?? 50, colourFix: u.colourFix !== false,
     format: u.format, ddsFormat: u.ddsFormat, keepCoverage: u.keepCoverage, maxSize: cfg.maxSize, model: cfg.realesrganModel, aiOk: aiOk() };
 }
 const previewKey = () => JSON.stringify(previewParams());

@@ -62,7 +62,7 @@ test('soft alpha stays soft with Hard cut-out edges on', () => {
 test('AI start: colour from the AI image, alpha from the source', () => {
   const src = disc();
   const ai = make(64, 64, () => [90, 90, 90, 255]);            // what Real-ESRGAN returns: colour only
-  const out = upscale(src, { size: 4, method: 'ai', sharpness: 'off' }, { img: ai, scale: 4 });
+  const out = upscale(src, { size: 4, method: 'ai', sharpness: 'off', colourFix: false }, { img: ai, scale: 4 });
   assert.deepEqual([...alphas(out)].sort((a, b) => a - b), [0, 255]);
   assert.equal(visible(out), visible(upscale(src, { size: 4, method: 'standard' })));
   assert.equal(out.data[(32 * 64 + 32) * 4], 90);

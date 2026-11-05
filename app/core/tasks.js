@@ -245,7 +245,7 @@ async function upscaleTask(p, ctx, tools) {
   }
   const { items, others, roots } = gatherImages(inputs, p.subfolders !== false);
   if (!items.length) throw new Error('No PNG or DDS images found.');
-  const opts = { size: p.size, fit: p.fit, maxSize: p.maxSize, method: p.method, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100 };
+  const opts = { size: p.size, fit: p.fit, maxSize: p.maxSize, method: p.method, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100, colourFix: p.colourFix !== false };
   const outInside = roots.some((r) => inside(p.output, r));
   const outNames = new Map(); let clashes = 0;
   const work = items.filter((it) => !(outInside && inside(it.src, p.output))).map((it) => {
@@ -705,7 +705,7 @@ async function estimate(p, tools, workers) {
       st.push(...part);
     }
     const aiReady = !!tools.realesrgan && p.aiOk !== false;
-    const base = { size: p.size, fit: p.fit, maxSize: p.maxSize, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100 };
+    const base = { size: p.size, fit: p.fit, maxSize: p.maxSize, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100, colourFix: p.colourFix !== false };
     const routeOf = (s) => {
       if (p.method !== 'smart') return p.method === 'ai' ? (tools.realesrgan ? 'ai' : 'hd') : 'same';
       const r = smart.route(s); return r === 'ai' && !aiReady ? 'hd' : r;
@@ -764,7 +764,7 @@ async function preview(req, tools) {
   const NAMES = { clamp: 'normal', wrap: 'tile', mirror: 'mirror' };
   const edgesLabel = `${NAMES[edges[0]]} × ${NAMES[edges[1]]}${auto ? (known ? ' (from dump)' : ' (no dump info)') : ''}`;
   req = { ...req, edges };
-  let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha, alphaThreshold: (req.alphaThreshold ?? 50) / 100 };
+  let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha, alphaThreshold: (req.alphaThreshold ?? 50) / 100, colourFix: req.colourFix !== false };
   const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false, bc7: tools.bc7Quality, edges: req.edges };
   let r, route = '';
   if (req.method === 'smart') {                                   // the method Smart would pick for this texture
