@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Upscaling
+- **BC7 quality** (Settings › Upscaling › Performance): Fast · Normal · Best, default **Best** (texconv `-bc x`, sharpest on flat colours and text, slower). Applies to Upscale, Convert and the pack DDS fix.
+- BC7 DDS mipmaps follow the texture's tiling: textures that tile or mirror on both axes get `-wrap` / `-mirror`, so far-away mip levels have no seams.
 - **Scale slider** on 1 · Upscale: one stepped slider for 1× · 2× · 4× · 8× · 16× · Fit · Anime · AI (Anime / AI use Real-ESRGAN's Art / General model). The preview follows it live while dragging; it replaces the Size buttons.
 - Preview compare: the full original now sits underneath, and the line uncovers it; Smart's caption shows the real scale (e.g. HD 16×).
 - The input box on 1 · Upscale shows a folder-with-texture icon and is clickable: it opens the textures' folder, or the folder picker when nothing is chosen.

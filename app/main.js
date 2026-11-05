@@ -46,7 +46,7 @@ const programDir = () => (app.isPackaged ? path.dirname(process.execPath) : path
 const DEFAULTS = {
   firstRunDone: false, checkTools: true, iconStamp: '',
   dumpFolder: '', outputFolder: '', page: 'upscale',
-  workers: 'auto', maxSize: 4096, texconv: '', realesrgan: '', realesrganModel: 'realesrgan-x4plus', aiGpu: 'auto', aiTile: 'auto',
+  workers: 'auto', maxSize: 4096, texconv: '', realesrgan: '', realesrganModel: 'realesrgan-x4plus', aiGpu: 'auto', aiTile: 'auto', bc7Quality: 'best',
   splash: true, cleanPhrases: false,
   upscale: { inputs: [], subfolders: true, method: 'standard', size: 4, fit: 2048, sharpness: 'normal', edges: 'auto', hardAlpha: true,
     format: 'same', ddsFormat: 'auto', output: '', existing: 'overwrite', copyOther: true, keepCoverage: true },
@@ -89,7 +89,7 @@ function tools() {
     texconv: findTool(settings.texconv, [path.join(toolsDir(), 'texconv.exe'), path.join(programDir(), 'tools', 'texconv.exe')]),
     realesrgan: findTool(settings.realesrgan, [path.join(toolsDir(), 'realesrgan', 'realesrgan-ncnn-vulkan' + exe),
       path.join(programDir(), 'tools', 'realesrgan', 'realesrgan-ncnn-vulkan' + exe)]),
-    realesrganModel: settings.realesrganModel, aiGpu: settings.aiGpu, aiTile: settings.aiTile,
+    realesrganModel: settings.realesrganModel, aiGpu: settings.aiGpu, aiTile: settings.aiTile, bc7Quality: settings.bc7Quality || 'best',
   };
 }
 function workerCount() {

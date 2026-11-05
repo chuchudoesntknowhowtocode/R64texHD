@@ -939,7 +939,7 @@ function setVal(key, v) {
 
 // Settings added in 0.7: filled in here so older settings files keep working.
 const NEW_DEFAULTS = {
-  splash: true, cleanPhrases: false, navFolded: false, muted: false, aiGpu: 'auto', aiTile: 'auto',
+  splash: true, cleanPhrases: false, navFolded: false, muted: false, aiGpu: 'auto', aiTile: 'auto', bc7Quality: 'best',
   sceneAnimations: true, wizFights: true, psychedelic: false, idlePeeks: true, poking: true, soundEffects: false, soundVolume: 60, musicOn: true, musicVolume: 35, musicSource: 'all', wizardWins: 0, wizardBonusAt: 0,
   upscale: { keepCoverage: true },
   convert: { wrapInfo: true, rice: true, onlyNew: false },
@@ -1135,6 +1135,7 @@ const pages = {
           + row('GPU memory use', 'Pick Low if AI upscaling crashes or your graphics card has little memory.', seg('aiTile', [['auto', 'Auto'], ['256', 'Medium'], ['128', 'Low']], cfg.aiTile)))
         + sub('Performance',
           row('Worker threads', `Textures are processed in parallel (${S.cpus} CPU threads).`, seg('workers', [['auto', 'Auto'], ['half', 'Half'], ['one', 'One']], cfg.workers))
+          + row('BC7 quality', 'How hard texconv works on BC7 DDS. Best is sharpest on flat colours and text, but slower. Fast suits quick test packs.', seg('bc7Quality', [['fast', 'Fast'], ['normal', 'Normal'], ['best', 'Best']], cfg.bc7Quality || 'best'))
           + row('Largest texture', 'Upscaling never goes past this size.', seg('maxSize', [['2048', '2048'], ['4096', '4096'], ['8192', '8192']], cfg.maxSize))))}
       ${sbox('Look and feel', '',
         sub('Splash screen',

@@ -233,12 +233,13 @@ function hasAlpha(img) {
 }
 
 // format: auto | bc7 | bc3 | bc1 | rgba8
-function encodeDDS(img, format = 'auto', { mipmaps = true, texconv = null, keepCoverage = false } = {}) {
+// bc7: texconv BC7 quality, best (-bc x) | normal | fast (-bc q). edges: [x, y] tiling, for seam-free mips.
+function encodeDDS(img, format = 'auto', { mipmaps = true, texconv = null, keepCoverage = false, bc7 = 'best', edges = null } = {}) {
   let dxgi;
   if (format === 'rgba8') dxgi = DXGI.RGBA8;
   else if (format === 'bc1') dxgi = DXGI.BC1;
   else if (format === 'bc3') dxgi = DXGI.BC3;
-  else if (format === 'bc7' && texconv) return encodeTexconv(img, mipmaps, texconv, keepCoverage && mipmaps && isCutout(img));
+  else if (format === 'bc7' && texconv) return encodeTexconv(img, mipmaps, texconv, keepCoverage && mipmaps && isCutout(img), { bc7, edges });
   else dxgi = hasAlpha(img) ? DXGI.BC3 : DXGI.BC1;
   const levels = mipmaps ? mipChain(img, { keepCoverage }) : [img];
   const parts = [header(img.width, img.height, levels.length, dxgi)];
@@ -250,13 +251,22 @@ function encodeDDS(img, format = 'auto', { mipmaps = true, texconv = null, keepC
   return Buffer.concat(parts);
 }
 
-function encodeTexconv(img, mipmaps, texconv, keepCoverage = false) {
+// texconv command line (without input / output). -wrap / -mirror only when both axes tile the same way:
+// texconv's option covers both axes, and a clamped edge must not pick up colour from the opposite side.
+function texconvArgs(mipmaps, keepCoverage = false, { bc7 = 'best', edges = null } = {}) {
+  const args = ['-nologo', '-y', '-f', 'BC7_UNORM', '-m', mipmaps ? '0' : '1', '-dx10'];
+  if (bc7 === 'best') args.push('-bc', 'x'); else if (bc7 === 'fast') args.push('-bc', 'q');
+  if (mipmaps && edges && edges[0] === edges[1] && (edges[0] === 'wrap' || edges[0] === 'mirror')) args.push('-' + edges[0]);
+  if (keepCoverage) args.push('--keep-coverage', String(ALPHA_REF));
+  return args;
+}
+
+function encodeTexconv(img, mipmaps, texconv, keepCoverage = false, opts = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-'));
   try {
     const src = path.join(dir, 'tex.png');
     fs.writeFileSync(src, png.encodePNG(img, 1));
-    const args = ['-nologo', '-y', '-f', 'BC7_UNORM', '-m', mipmaps ? '0' : '1', '-dx10'];
-    if (keepCoverage) args.push('--keep-coverage', String(ALPHA_REF));
+    const args = texconvArgs(mipmaps, keepCoverage, opts);
     const r = spawnSync(texconv, [...args, '-o', dir, src], { windowsHide: true, encoding: 'utf8', timeout: 5 * 60000 });   // a hung texconv fails this texture, not the run
     const out = path.join(dir, 'tex.dds');
     if (r.status !== 0 || !fs.existsSync(out)) throw new Error('texconv failed: ' + ((r.stdout || '') + (r.stderr || '') || String(r.error)).trim().slice(-300));
@@ -266,4 +276,4 @@ function encodeTexconv(img, mipmaps, texconv, keepCoverage = false) {
   }
 }
 
-module.exports = { parseHeader, decodeDDS, encodeDDS, mipChain, hasAlpha, isCutout, DXGI };
+module.exports = { parseHeader, decodeDDS, encodeDDS, texconvArgs, mipChain, hasAlpha, isCutout, DXGI };

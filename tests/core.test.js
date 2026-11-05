@@ -168,3 +168,14 @@ test('Real-ESRGAN runs a whole folder at once with a tile that covers each textu
   assert.deepEqual(tasks.aiArgs('i', 'o', { aiTile: '256' }, { maxSide: 100 }).slice(-2), ['-t', '256']); // the user's choice wins
   assert.deepEqual(tasks.aiArgs('i', 'o', { aiTile: '256' }, { maxSide: 100, tile: 128 }).slice(-2), ['-t', '128']); // Low memory retry
 });
+
+test('texconv: BC7 quality and tiling-aware mips on the command line', () => {
+  const a = (...x) => dds.texconvArgs(...x).join(' ');
+  assert.strictEqual(a(true), '-nologo -y -f BC7_UNORM -m 0 -dx10 -bc x');                       // Best is the default
+  assert.strictEqual(a(true, false, { bc7: 'fast' }), '-nologo -y -f BC7_UNORM -m 0 -dx10 -bc q');
+  assert.strictEqual(a(true, false, { bc7: 'normal' }), '-nologo -y -f BC7_UNORM -m 0 -dx10');
+  assert.ok(a(true, false, { edges: ['wrap', 'wrap'] }).endsWith('-bc x -wrap'));
+  assert.ok(a(true, true, { edges: ['mirror', 'mirror'] }).endsWith('-bc x -mirror --keep-coverage 0.5'));
+  assert.ok(!/-wrap|-mirror/.test(a(true, false, { edges: ['wrap', 'clamp'] })));                 // mixed: plain edges
+  assert.ok(!/-wrap/.test(a(false, false, { edges: ['wrap', 'wrap'] })));                         // no mips, nothing to filter
+});

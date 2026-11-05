@@ -312,7 +312,7 @@ async function upscaleTask(p, ctx, tools) {
     if (copied) ctx.log(`Copied ${copied} other file(s) (such as rt64.json) alongside.`);
     if (notCopied > 5) ctx.log(`... ${notCopied} other file(s) could not be copied.`);
   }
-  const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv, keepCoverage: p.keepCoverage !== false });
+  const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv, keepCoverage: p.keepCoverage !== false, bc7: tools.bc7Quality, edges: edgesOf(it) });
   // Edges: Auto uses each texture's own tiling from the RT64 dump (saved by Convert).
   const tileMap = p.edges === 'auto' ? tiling.loadFor(roots.length ? roots : inputs) : null;
   const edgesOf = (it) => tiling.edgesFor(it.src, p.edges || 'clamp', tileMap);
@@ -451,7 +451,7 @@ async function convertTask(p, ctx, tools) {
   ctx.onCancel(() => pool.close());
   let res;
   try {
-    res = await runAll(pool, fresh, 'dump', (it) => ({ src: it.src, outNoExt: path.join(p.output, it.rel), save: { format: p.format, ddsFormat: p.ddsFormat, texconv: tools.texconv } }), ctx, (it) => it.hash);
+    res = await runAll(pool, fresh, 'dump', (it) => ({ src: it.src, outNoExt: path.join(p.output, it.rel), save: { format: p.format, ddsFormat: p.ddsFormat, texconv: tools.texconv, bc7: tools.bc7Quality } }), ctx, (it) => it.hash);
   } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
   // rt64.json: add to the existing one when only converting new textures.
   let db = new Database();
@@ -650,7 +650,7 @@ async function fixTask(p, ctx, tools) {
   let r;
   try {
     r = await require('./check').fixPngToDds(p.input, async (jobs) => {
-      const res = await runAll(pool, jobs, 'toDds', (j) => ({ src: j.src, dest: j.dest, ddsFormat, texconv: tools.texconv }), ctx, (j) => `Making DDS: ${j.rel}`);
+      const res = await runAll(pool, jobs, 'toDds', (j) => ({ src: j.src, dest: j.dest, ddsFormat, texconv: tools.texconv, bc7: tools.bc7Quality }), ctx, (j) => `Making DDS: ${j.rel}`);
       return res.failed;
     }, { progress: ctx.progress, cancelled: ctx.cancelled });
   } finally { await pool.close(); }
@@ -765,7 +765,7 @@ async function preview(req, tools) {
   const edgesLabel = `${NAMES[edges[0]]} × ${NAMES[edges[1]]}${auto ? (known ? ' (from dump)' : ' (no dump info)') : ''}`;
   req = { ...req, edges };
   let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha };
-  const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false };
+  const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false, bc7: tools.bc7Quality, edges: req.edges };
   let r, route = '';
   if (req.method === 'smart') {                                   // the method Smart would pick for this texture
     route = smart.route(await previewPool.run('classify', { src: req.src }));

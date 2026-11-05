@@ -117,7 +117,7 @@ const handlers = {
   toDds(job) {
     // One PNG -> DDS with mipmaps (fences far away kept), written atomically.
     const img = loadImage(job.src);
-    const bytes = dds.encodeDDS(img, job.ddsFormat, { mipmaps: true, texconv: job.texconv, keepCoverage: true });
+    const bytes = dds.encodeDDS(img, job.ddsFormat, { mipmaps: true, texconv: job.texconv, keepCoverage: true, bc7: job.bc7 });
     fs.writeFileSync(job.dest + '.part', bytes);
     fs.renameSync(job.dest + '.part', job.dest);
     return { out: job.dest };
