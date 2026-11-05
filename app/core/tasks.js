@@ -331,35 +331,51 @@ async function upscaleTask(p, ctx, tools) {
         const r = await runAll(pool, g.list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }), gctx, (it) => it.rel);
         failed += r.failed; written += r.results.filter(Boolean).length;
       } else {
+        // One Real-ESRGAN run for the whole group: the model and GPU start once, not once per 32 textures.
+        // Progress per texture: 10% prepare, 60% AI (counted from the output folder), 30% finish.
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-ai-'));
+        const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
+        const inOf = (i) => path.join(inDir, `${i}.png`), outOf = (i) => path.join(outDir, `${i}.png`);
+        const n = g.list.length;
+        let prepDone = 0, aiDone = 0, watch = null;
+        const show = (k, name) => prog(base + k, name);
         try {
-          const batch = 32;
-          for (let s = 0; s < g.list.length; s += batch) {
-            const chunk = g.list.slice(s, s + batch);
-            const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
-            fs.rmSync(inDir, { recursive: true, force: true }); fs.rmSync(outDir, { recursive: true, force: true });
-            fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
-            const prepared = await Promise.all(chunk.map((it, i) => pool.run('aiPrep', { src: it.src, tmpPng: path.join(inDir, `${i}.png`), pad: 8, edges: edgesOf(it) }).then(() => true, (e) => { failed++; ctx.log(`Failed ${it.rel}: ${e.message}`); return false; })));
-            if (ctx.cancelled()) throw new Cancelled();
-            const aiCtx = { ...ctx, progress: (d) => prog(base + s + d, '') };
-            try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), ctx); } catch (e) {
-              if (e instanceof Cancelled || ctx.cancelled()) throw e;
-              // One failed batch (often out of video memory) doesn't stop the run: these go HD 4× instead.
-              const list = chunk.filter((_, i) => prepared[i]);
-              ctx.log(`${e.message}. These ${list.length} image(s) use HD 4× instead.`);
-              const r = await runAll(pool, list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }), aiCtx, (it) => it.rel);
-              failed += r.failed; written += r.results.filter(Boolean).length;
-              continue;
-            }
-            const ready = chunk.filter((_, i) => prepared[i] && fs.existsSync(path.join(outDir, `${i}.png`)));
-            const idx = new Map(chunk.map((it, i) => [it, i]));
-            const missingAi = chunk.filter((_, i) => prepared[i]).length - ready.length;
-            if (missingAi) { failed += missingAi; ctx.log(`Real-ESRGAN produced no output for ${missingAi} image(s).`); }
-            const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: path.join(outDir, `${idx.get(it)}.png`), pad: 8, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
-              aiCtx, (it) => it.rel);
-            failed += r.failed; written += r.results.filter(Boolean).length;
+          fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
+          const pr = await runAll(pool, g.list.map((it, i) => ({ ...it, i })), 'aiPrep', (it) => ({ src: it.src, tmpPng: inOf(it.i), pad: 8, edges: edgesOf(it) }),
+            { ...ctx, progress: (d) => { prepDone = d; show(d * 0.1, 'Getting the textures ready for AI…'); } }, (it) => it.rel);
+          failed += pr.failed;
+          const idx = g.list.map((_, i) => i).filter((i) => pr.results[i]);
+          const maxSide = idx.reduce((m, i) => Math.max(m, ...pr.results[i].size), 0) + 16;
+          const countOut = () => { try { return fs.readdirSync(outDir).filter((f) => f.endsWith('.png')).length; } catch { return aiDone; } };
+          watch = setInterval(() => { aiDone = countOut(); show(prepDone * 0.1 + aiDone * 0.6, `AI upscaling ${aiDone.toLocaleString()} of ${idx.length.toLocaleString()}…`); }, 500);
+          let aiErr = null;
+          if (idx.length) try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools, { maxSide, many: true }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
+          // Out of video memory is the usual failure: try what's left once more with Low memory use.
+          const left = () => idx.filter((i) => !fs.existsSync(outOf(i)));
+          if (aiErr && String(tools.aiTile) !== '128' && left().length) {
+            ctx.log(`${aiErr.message}. Trying the remaining ${left().length.toLocaleString()} image(s) again with Low GPU memory use.`);
+            for (const i of idx) if (fs.existsSync(outOf(i))) fs.rmSync(inOf(i), { force: true });
+            aiErr = null;
+            try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools, { maxSide, tile: 128 }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
           }
-        } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+          clearInterval(watch); watch = null;
+          if (ctx.cancelled()) throw new Cancelled();
+          const missing = new Set(left());
+          const ready = idx.filter((i) => !missing.has(i)).map((i) => ({ ...g.list[i], i }));
+          const k0 = n * 0.7;
+          const fctx = { ...ctx, progress: (d, _t, name) => show(k0 + d * 0.3 * n / Math.max(1, ready.length + missing.size), name) };
+          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: outOf(it.i), pad: 8, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
+            fctx, (it) => it.rel);
+          failed += r.failed; written += r.results.filter(Boolean).length;
+          if (missing.size) {
+            // Anything the AI didn't finish (crash, out of memory, no output) still gets upscaled: HD 4× instead.
+            const list = [...missing].map((i) => g.list[i]);
+            ctx.log(`${aiErr ? aiErr.message : 'Real-ESRGAN produced no output for some images'}. These ${list.length.toLocaleString()} image(s) use HD 4× instead.`);
+            const fb = await runAll(pool, list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
+              { ...fctx, progress: (d, _t, name) => fctx.progress(ready.length + d, 0, name) }, (it) => it.rel);
+            failed += fb.failed; written += fb.results.filter(Boolean).length;
+          }
+        } finally { if (watch) clearInterval(watch); fs.rmSync(tmp, { recursive: true, force: true }); }
       }
       base += g.list.length;
     }
@@ -369,10 +385,16 @@ async function upscaleTask(p, ctx, tools) {
 }
 
 // Real-ESRGAN command line: model, 4x, PNG, plus the graphics card and memory (tile size) choices.
-function aiArgs(inDir, outDir, tools) {
+// run.many: a whole folder of small textures, so more load / process / save threads (Real-ESRGAN README: -j 4:4:4).
+// run.maxSide: the largest padded texture; on Auto memory use the tile covers it, so no seams inside a texture.
+// run.tile: forced tile size (the Low memory retry).
+function aiArgs(inDir, outDir, tools, run = {}) {
   const args = ['-i', inDir, '-o', outDir, '-n', tools.realesrganModel || 'realesrgan-x4plus', '-s', '4', '-f', 'png'];
   if (tools.aiGpu && tools.aiGpu !== 'auto') args.push('-g', String(tools.aiGpu));
-  if (tools.aiTile && tools.aiTile !== 'auto') args.push('-t', String(tools.aiTile));
+  let tile = run.tile || (tools.aiTile && tools.aiTile !== 'auto' ? tools.aiTile : 0);
+  if (!tile && run.maxSide > 0 && run.maxSide <= 400) tile = Math.max(32, Math.ceil(run.maxSide / 32) * 32);
+  if (tile) args.push('-t', String(tile));
+  if (run.many) args.push('-j', '4:4:4');
   return args;
 }
 

@@ -159,3 +159,12 @@ test('Real-ESRGAN gets the chosen graphics card and memory use', () => {
     ['-i', 'i', '-o', 'o', '-n', 'realesr-animevideov3', '-s', '4', '-f', 'png', '-g', '1', '-t', '128']);
   assert.deepEqual(tasks.aiArgs('i', 'o', { aiGpu: 'auto', aiTile: 'auto' }).slice(-2), ['-f', 'png']);
 });
+
+test('Real-ESRGAN runs a whole folder at once with a tile that covers each texture', () => {
+  const auto = { aiGpu: 'auto', aiTile: 'auto' };
+  assert.deepEqual(tasks.aiArgs('i', 'o', auto, { maxSide: 272, many: true }).slice(-4), ['-t', '288', '-j', '4:4:4']);
+  assert.deepEqual(tasks.aiArgs('i', 'o', auto, { maxSide: 24 }).slice(-2), ['-t', '32']);
+  assert.deepEqual(tasks.aiArgs('i', 'o', auto, { maxSide: 1040 }).slice(-2), ['-f', 'png']);          // big textures: Real-ESRGAN picks
+  assert.deepEqual(tasks.aiArgs('i', 'o', { aiTile: '256' }, { maxSide: 100 }).slice(-2), ['-t', '256']); // the user's choice wins
+  assert.deepEqual(tasks.aiArgs('i', 'o', { aiTile: '256' }, { maxSide: 100, tile: 128 }).slice(-2), ['-t', '128']); // Low memory retry
+});

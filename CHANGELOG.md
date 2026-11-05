@@ -8,6 +8,8 @@
 - The input box on 1 · Upscale shows a folder-with-texture icon and is clickable: it opens the textures' folder, or the folder picker when nothing is chosen.
 
 ### Speed
+- AI upscale: Real-ESRGAN now runs once per job instead of once per 32 textures, so the model and graphics card start once (about 156 starts saved on a 5,000-texture dump). It uses 4 load / process / save threads, and on Auto memory use the tile covers the largest texture, so there are no seams inside a texture. Progress counts the AI's finished files live.
+- If Real-ESRGAN fails (often out of video memory), only the unfinished textures run again with Low memory use; anything still left is upscaled HD 4×.
 - Upscale estimate: what each texture looks like is remembered (by path, size and date), so changing a setting re-estimates without reading every texture again; a running estimate stops when a task starts.
 
 ### Fixes
