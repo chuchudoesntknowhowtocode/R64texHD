@@ -341,11 +341,11 @@ async function upscaleTask(p, ctx, tools) {
         const show = (k, name) => prog(base + k, name);
         try {
           fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
-          const pr = await runAll(pool, g.list.map((it, i) => ({ ...it, i })), 'aiPrep', (it) => ({ src: it.src, tmpPng: inOf(it.i), pad: 8, edges: edgesOf(it) }),
+          const pr = await runAll(pool, g.list.map((it, i) => ({ ...it, i })), 'aiPrep', (it) => ({ src: it.src, tmpPng: inOf(it.i), pad: 'auto', edges: edgesOf(it) }),
             { ...ctx, progress: (d) => { prepDone = d; show(d * 0.1, 'Getting the textures ready for AI…'); } }, (it) => it.rel);
           failed += pr.failed;
           const idx = g.list.map((_, i) => i).filter((i) => pr.results[i]);
-          const maxSide = idx.reduce((m, i) => Math.max(m, ...pr.results[i].size), 0) + 16;
+          const maxSide = idx.reduce((m, i) => Math.max(m, Math.max(...pr.results[i].size) + 2 * (pr.results[i].pad || 8)), 0);
           const countOut = () => { try { return fs.readdirSync(outDir).filter((f) => f.endsWith('.png')).length; } catch { return aiDone; } };
           watch = setInterval(() => { aiDone = countOut(); show(prepDone * 0.1 + aiDone * 0.6, `AI upscaling ${aiDone.toLocaleString()} of ${idx.length.toLocaleString()}…`); }, 500);
           let aiErr = null;
@@ -364,7 +364,7 @@ async function upscaleTask(p, ctx, tools) {
           const ready = idx.filter((i) => !missing.has(i)).map((i) => ({ ...g.list[i], i }));
           const k0 = n * 0.7;
           const fctx = { ...ctx, progress: (d, _t, name) => show(k0 + d * 0.3 * n / Math.max(1, ready.length + missing.size), name) };
-          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: outOf(it.i), pad: 8, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
+          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: outOf(it.i), pad: 'auto', outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
             fctx, (it) => it.rel);
           failed += r.failed; written += r.results.filter(Boolean).length;
           if (missing.size) {
@@ -777,10 +777,10 @@ async function preview(req, tools) {
     try {
       const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
       fs.mkdirSync(inDir); fs.mkdirSync(outDir);
-      await previewPool.run('aiPrep', { src: req.src, tmpPng: path.join(inDir, '0.png'), pad: 8, edges: req.edges });
+      await previewPool.run('aiPrep', { src: req.src, tmpPng: path.join(inDir, '0.png'), pad: 'auto', edges: req.edges });
       const noCancel = { cancelled: () => false, onCancel: () => {} };
       await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), noCancel);
-      r = await previewPool.run('previewAi', { src: req.src, aiPng: path.join(outDir, '0.png'), pad: 8, opts, edges: req.edges, save });
+      r = await previewPool.run('previewAi', { src: req.src, aiPng: path.join(outDir, '0.png'), pad: 'auto', opts, edges: req.edges, save });
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   } else {
     if (opts.method === 'ai') opts.method = 'standard';

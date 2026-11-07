@@ -4,7 +4,8 @@ const { parentPort } = require('worker_threads');
 const fs = require('fs');
 const path = require('path');
 const { loadImage, saveImage } = require('./image');
-const { upscale, fillTransparent, pad, edgeIndex } = require('./upscale');
+const { upscale, fillTransparent, pad, aiPad, edgeIndex } = require('./upscale');
+const padOf = (job, img) => (job.pad === 'auto' ? aiPad(img.width, img.height) : job.pad);
 const { loadDump } = require('./tmem');
 const png = require('./png');
 const rtz = require('./rtz');
@@ -57,14 +58,15 @@ const handlers = {
     // Real-ESRGAN gets colour only (alpha set to 255): upscale() grows the alpha itself from the source.
     const filled = fillTransparent(img);
     for (let i = 3; i < filled.data.length; i += 4) filled.data[i] = 255;
-    const ready = padImage(filled, job.pad, edgesOf(job));
+    const p = padOf(job, img);
+    const ready = padImage(filled, p, edgesOf(job));
     fs.writeFileSync(job.tmpPng, png.encodePNG(ready, 1));
-    return { size: [img.width, img.height] };
+    return { size: [img.width, img.height], pad: p };
   },
   aiFinish(job) {
     const img = loadImage(job.src);
     let ai = loadImage(job.aiPng);
-    ai = crop(ai, job.pad * 4, job.pad * 4, img.width * 4, img.height * 4);
+    ai = crop(ai, padOf(job, img) * 4, padOf(job, img) * 4, img.width * 4, img.height * 4);
     const out = upscale(img, { ...job.opts, edges: edgesOf(job) }, { img: ai, scale: 4 });
     const file = saveImage(out, job.outNoExt, job.save);
     return { out: file, from: [img.width, img.height], to: [out.width, out.height] };
@@ -99,7 +101,7 @@ const handlers = {
     const t0 = Date.now();
     const img = loadImage(job.src);
     let ai = loadImage(job.aiPng);
-    ai = crop(ai, job.pad * 4, job.pad * 4, img.width * 4, img.height * 4);
+    ai = crop(ai, padOf(job, img) * 4, padOf(job, img) * 4, img.width * 4, img.height * 4);
     const out = upscale(img, { ...job.opts, edges: edgesOf(job) }, { img: ai, scale: 4 });
     return previewResult(img, out, job, t0);
   },

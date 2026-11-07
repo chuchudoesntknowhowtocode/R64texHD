@@ -18,6 +18,11 @@ function edgeIndex(i, n, mode) {
   return i < 0 ? 0 : (i >= n ? n - 1 : i);
 }
 
+// Padding around a texture before Real-ESRGAN (by its edge mode: clamp repeats the edge pixel, wrap / mirror tile).
+// 8 px is plenty for big textures, but most of a 16 px one: textures up to 32 px get a full copy on every side
+// (a 3×3 tiling, centre kept), so the model sees whole repeats across the seam.
+function aiPad(w, h) { return w <= 32 && h <= 32 ? Math.max(8, w, h) : 8; }
+
 function pad(plane, w, h, px, py, modeX, modeY) {
   const W = w + 2 * px, H = h + 2 * py, out = new Float32Array(W * H);
   const xs = new Int32Array(W);
@@ -361,4 +366,4 @@ function resizeRGBA(img, nw, nh) {
   return { width: nw, height: nh, data: out };
 }
 
-module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, edgeIndex, resizeRGBA, SHARPNESS };
+module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, aiPad, edgeIndex, resizeRGBA, SHARPNESS };

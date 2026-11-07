@@ -179,3 +179,12 @@ test('texconv: BC7 quality and tiling-aware mips on the command line', () => {
   assert.ok(!/-wrap|-mirror/.test(a(true, false, { edges: ['wrap', 'clamp'] })));                 // mixed: plain edges
   assert.ok(!/-wrap/.test(a(false, false, { edges: ['wrap', 'wrap'] })));                         // no mips, nothing to filter
 });
+
+test('AI padding: textures up to 32 px get a full tile on every side, bigger ones 8 px', () => {
+  const { aiPad } = core('upscale');
+  assert.strictEqual(aiPad(16, 16), 16);
+  assert.strictEqual(aiPad(32, 16), 32);
+  assert.strictEqual(aiPad(4, 4), 8);
+  assert.strictEqual(aiPad(64, 32), 8);
+  assert.strictEqual(aiPad(33, 8), 8);
+});

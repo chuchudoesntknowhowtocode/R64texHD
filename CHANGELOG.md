@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Upscaling
+- AI upscale: textures 32 px or smaller get a full copy of themselves on every side (by their tiling) before Real-ESRGAN, instead of an 8 px border, so tiny repeating textures don't get seams.
 - Preview: the box grows with the window (300–720 px tall) and Fit fills it with the whole texture. New − / + buttons and the **mouse wheel** zoom from 100% up to 800%, centred on the cursor; the % button jumps to 100% (actual size). Replaces Fit / 1:1 / 2:1.
 - **AI colour fix** (on by default): AI results are pulled back to the original's colours (broad hue / brightness drift removed, detail kept, colour only). Grey intensity textures stay grey.
 - **Cut-out alpha**: alpha is sorted into opaque / cut-out / soft (DXT noise near 0 or 255 still counts as cut-out), grown on its own (never sharpened, never by the AI) and cut at the new **Cut-out threshold** slider (default 50%). Hidden colours now bleed all the way out, so no dark fringes or halos on fences and leaves.
