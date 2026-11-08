@@ -21,6 +21,6 @@
 - https://github.com/Venomalia/HDcube (v1/4x_HDCube_200k.pth) — 2026-11-07
 
 ## Repos/links
-- https://github.com/chuchudoesntknowhowtocode/R64texHD/releases/tag/v0.9.1.0 — latest release (4 zips) — 2026-11-08
+- https://github.com/chuchudoesntknowhowtocode/R64texHD/releases/tag/v0.9.2.0 — latest release (4 zips) — 2026-11-08
 - https://github.com/Phhofm/models/releases (4xTextureDAT2_otf, 4xTextures_GTAV_rgt-s_dither ONNX) — ONNX model sources — 2026-11-08
 - https://github.com/chuchudoesntknowhowtocode/R64texHD — public; main = 7062ada (v0.9.1.0), handoff/next = ed504fd; owner merges handoff branches — 2026-11-08
