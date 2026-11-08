@@ -6,7 +6,7 @@
 - The preview takes the left 70% and half the window's height; drag the small handle under it to make it taller or shorter (back to half the window when you leave the page or restart).
 - New **Output** panel on the right: **File type** (.PNG / .DDS, moved from Advanced options; "Same as input" is gone, old settings become DDS), **DDS compression**, **Compare** (on/off, picks saved, clear all), **Open folder** and **Reset Upscaler** (every Upscale setting back to default and the input cleared, after a Yes / Cancel).
 - The input is no longer remembered between starts: the box shows a grey "Normal Textures" until you choose one. The output box shows a grey "HD Upscaled Textures" when empty and still remembers its folder.
-- Splash catchphrase: two characters more space between the blue and the pink half.
+- Splash catchphrase: three characters more space between the blue and the pink half.
 
 ## v0.9.1.0
 

@@ -843,8 +843,8 @@ function showSplash() {
   const p = window.__phrase || pickPhrase(cfg.cleanPhrases === true);
   const text = p.text.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');   // Pixelfy has straight quotes only
   const [a, b] = splitPhrase(text);
-  // Two characters' more room between the blue and the pink half (no-break spaces; the glitch copies get the same gap).
-  const gap = ' \u00a0\u00a0';
+  // Three characters' more room between the blue and the pink half (no-break spaces; the glitch copies get the same gap).
+  const gap = ' \u00a0\u00a0\u00a0';
   $('#phrase').innerHTML = `<span class="p1">${esc(a)}</span>${b ? `${gap}<span class="p2">${esc(b)}</span>` : ''}`; $('#phrase').dataset.text = b ? a + gap + b : text;
   fitPhrase();
   $('#phrase-sub').textContent = `R64texHD v${S.version}`;
