@@ -913,7 +913,7 @@ function refreshEstimate() {
   const u = cfg.upscale;
   if (!(u.inputs || []).length) { EST.data = null; const el = $('#up-est'); if (el) el.innerHTML = estimateText(); return; }
   const req = { inputs: u.inputs, subfolders: u.subfolders, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, hardAlpha: u.hardAlpha,
-    format: u.format, ddsFormat: u.ddsFormat, aiOk: aiOk() };
+    format: u.format, ddsFormat: u.ddsFormat, supersample: u.supersample === true, half: u.half === true, aiOk: aiOk() };
   const key = JSON.stringify(req);
   if (key === EST.key) return;
   EST.key = key; EST.busy = true; const el0 = $('#up-est'); if (el0) el0.innerHTML = estimateText();
@@ -1003,6 +1003,8 @@ const pages = {
       ${row('Include subfolders', 'Upscale everything inside the folder, keeping the same layout.', seg('upscale.subfolders', [['true', 'Yes'], ['false', 'No']], String(u.subfolders)))}
       ${row('Existing files', 'Skip lets you pick up where you left off.', seg('upscale.existing', [['overwrite', 'Overwrite'], ['skip', 'Skip']], u.existing))}
       ${row('Other files', 'Copy non-texture files (rt64.json, readme…) along too.', seg('upscale.copyOther', [['true', 'Copy'], ['false', 'Leave']], String(u.copyOther)))}
+      ${row('Supersample', 'Makes each texture twice as big, then shrinks it back. Calmer sharpening and fewer AI artefacts; about 3× slower.', seg('upscale.supersample', [['true', 'On'], ['false', 'Off']], String(u.supersample === true)))}
+      ${row('Half-size copy', 'Also saves everything at half size in “<output> (half size)”: a 4K pack and an HD pack from one run.', seg('upscale.half', [['true', 'On'], ['false', 'Off']], String(u.half === true)))}
       </div>
       ${row('Output folder', 'Where the upscaled textures go.', pathField('upscale.output', u.output, [['folder', 'Browse…']]))}
       <div class="log" id="log"></div>`;
@@ -2060,7 +2062,7 @@ const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new M
 function previewParams() {
   const u = cfg.upscale;
   return { src: PV.src, method: u.method, size: u.size, fit: u.fit, sharpness: u.sharpness, edges: u.edges, hardAlpha: u.hardAlpha, alphaThreshold: u.alphaThreshold ?? 50, colourFix: u.colourFix !== false,
-    format: u.format, ddsFormat: u.ddsFormat, keepCoverage: u.keepCoverage, maxSize: cfg.maxSize, model: cfg.realesrganModel, aiOk: aiOk() };
+    format: u.format, ddsFormat: u.ddsFormat, keepCoverage: u.keepCoverage, supersample: u.supersample === true, maxSize: cfg.maxSize, model: cfg.realesrganModel, aiOk: aiOk() };
 }
 const previewKey = () => JSON.stringify(previewParams());
 

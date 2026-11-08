@@ -373,6 +373,16 @@ function upscale(img, opts, start = null) {
   const t = targetSize(w, h, opts);
   if (t.width === w && t.height === h) return img;
   if (opts.method === 'pixel') return nearest(img, t.width, t.height);
+  if (opts.supersample && opts.method !== 'mmpx') {
+    // Supersample: make it twice as big (as far as the size cap allows), then shrink back with Lanczos.
+    // That calms over-sharpening and AI artefacts; cut-out edges are cut again afterwards.
+    const cap = Number(opts.maxSize) || 4096;
+    const big = Math.min(t.scale * 2, cap / Math.max(w, h));
+    if (big > t.scale * 1.01) {
+      const b = upscale(img, { ...opts, supersample: false, size: big, fit: undefined }, start);
+      return shrinkCut(b, t.width, t.height, opts, alphaKind(img));
+    }
+  }
   const edges = Array.isArray(opts.edges) ? opts.edges : [opts.edges || 'clamp', opts.edges || 'clamp'];
   if (opts.method === 'mmpx') return require('./mmpx').mmpxScale(img, t.width, t.height, edges);
   if (opts.dedither) img = dedither(img, edges);
@@ -400,6 +410,18 @@ function upscale(img, opts, start = null) {
 
 // Resize an RGBA image to an exact size (Lanczos, clamped: no halos). Transparent pixels borrow
 // nearby colours first so edges don't darken.
+// Lanczos shrink that keeps cut-outs hard: when the source alpha was binary (and hard alpha is on),
+// alpha is cut again at the threshold after resizing.
+function shrinkCut(img, nw, nh, opts = {}, kind = 'opaque') {
+  const out = resizeRGBA(img, nw, nh);
+  if (kind === 'opaque') { for (let i = 3; i < out.data.length; i += 4) out.data[i] = 255; }
+  else if (kind === 'binary' && opts.hardAlpha !== false) {
+    const thr = Math.round(255 * Math.max(0.02, Math.min(0.98, Number(opts.alphaThreshold ?? 0.5))));
+    for (let i = 3; i < out.data.length; i += 4) out.data[i] = out.data[i] >= thr ? 255 : 0;
+  }
+  return out;
+}
+
 function resizeRGBA(img, nw, nh) {
   if (img.width === nw && img.height === nh) return img;
   const filled = fillTransparent(img), n = img.width * img.height, out = new Uint8Array(nw * nh * 4);
@@ -412,4 +434,4 @@ function resizeRGBA(img, nw, nh) {
   return { width: nw, height: nh, data: out };
 }
 
-module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, aiPad, edgeIndex, ditherScore, dedither, resizeRGBA, SHARPNESS };
+module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, aiPad, edgeIndex, ditherScore, dedither, resizeRGBA, shrinkCut, SHARPNESS };

@@ -104,6 +104,8 @@ function cleanupParts(dir) {
 }
 
 function sameFolder(a, b) { return path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase(); }
+// Dual export: "<output> (half size)" next to the output folder, or null when it's off.
+function halfFolder(p) { return p.half && p.output ? path.resolve(p.output) + ' (half size)' : null; }
 function inside(child, parent) { const r = path.relative(path.resolve(parent), path.resolve(child)); return r && !r.startsWith('..') && !path.isAbsolute(r); }
 
 // ---------------------------------------------------------------- inspect (status card)
@@ -245,13 +247,14 @@ async function upscaleTask(p, ctx, tools) {
   }
   const { items, others, roots } = gatherImages(inputs, p.subfolders !== false);
   if (!items.length) throw new Error('No PNG or DDS images found.');
-  const opts = { size: p.size, fit: p.fit, maxSize: p.maxSize, method: p.method, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100, colourFix: p.colourFix !== false };
+  const opts = { size: p.size, fit: p.fit, maxSize: p.maxSize, method: p.method, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100, colourFix: p.colourFix !== false, supersample: !!p.supersample };
+  const halfRoot = halfFolder(p);                                   // dual export: a half-size copy of everything
   const outInside = roots.some((r) => inside(p.output, r));
   const outNames = new Map(); let clashes = 0;
   const work = items.filter((it) => !(outInside && inside(it.src, p.output))).map((it) => {
     const fmt = p.format === 'same' ? path.extname(it.src).slice(1).toLowerCase() : p.format;
     const outNoExt = path.join(p.output, it.rel.replace(/\.(png|dds)$/i, ''));
-    return { ...it, fmt, outNoExt };
+    return { ...it, fmt, outNoExt, halfNoExt: halfRoot ? path.join(halfRoot, it.rel.replace(/\.(png|dds)$/i, '')) : null };
   }).filter((it) => {
     // Two textures that would save to the same file (foo.png + foo.dds, or same-named picks): keep the first.
     const key = `${it.outNoExt}.${it.fmt}`.toLowerCase();
@@ -303,13 +306,18 @@ async function upscaleTask(p, ctx, tools) {
     ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText0} with ${useAi ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', mmpx: 'Pixel art (MMPX)' }[p.method] || 'Standard'}${p.method === 'standard' || useAi ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
   }
   fs.mkdirSync(p.output, { recursive: true });
+  if (halfRoot) { fs.mkdirSync(halfRoot, { recursive: true }); ctx.log(`Also saving a half-size copy of everything in ${halfRoot}.`); }
+  if (opts.supersample) ctx.log('Supersample: each texture is made twice as big, then shrunk back (calmer sharpening).');
   if (p.copyOther !== false && others.length) {
     let copied = 0, notCopied = 0;
     for (const o of others) {
       if (outInside && inside(o.src, p.output)) continue;
       const dest = path.join(p.output, o.rel);
       if (p.existing === 'skip' && fs.existsSync(dest)) continue;
-      try { fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(o.src, dest); copied++; }
+      try {
+        fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(o.src, dest); copied++;
+        if (halfRoot) { const h = path.join(halfRoot, o.rel); fs.mkdirSync(path.dirname(h), { recursive: true }); fs.copyFileSync(o.src, h); }
+      }
       catch (e) { if (++notCopied <= 5) ctx.log(`Could not copy ${o.rel}: ${e.message}`); }
     }
     if (copied) ctx.log(`Copied ${copied} other file(s) (such as rt64.json) alongside.`);
@@ -332,7 +340,7 @@ async function upscaleTask(p, ctx, tools) {
     for (const g of groups) {
       const gctx = { ...ctx, progress: (d, _t, name) => prog(base + d, name) };
       if (!g.ai) {
-        const r = await runAll(pool, g.list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }), gctx, (it) => it.rel);
+        const r = await runAll(pool, g.list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, halfNoExt: it.halfNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }), gctx, (it) => it.rel);
         failed += r.failed; written += r.results.filter(Boolean).length;
       } else {
         // One Real-ESRGAN run for the whole group: the model and GPU start once, not once per 32 textures.
@@ -369,14 +377,14 @@ async function upscaleTask(p, ctx, tools) {
           const ready = idx.filter((i) => !missing.has(i)).map((i) => ({ ...g.list[i], i }));
           const k0 = n * 0.7;
           const fctx = { ...ctx, progress: (d, _t, name) => show(k0 + d * 0.3 * n / Math.max(1, ready.length + missing.size), name) };
-          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: outOf(it.i), pad: 'auto', outNoExt: it.outNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }),
+          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: outOf(it.i), pad: 'auto', outNoExt: it.outNoExt, halfNoExt: it.halfNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }),
             fctx, (it) => it.rel);
           failed += r.failed; written += r.results.filter(Boolean).length;
           if (missing.size) {
             // Anything the AI didn't finish (crash, out of memory, no output) still gets upscaled: HD 4× instead.
             const list = [...missing].map((i) => g.list[i]);
             ctx.log(`${aiErr ? aiErr.message : 'Real-ESRGAN produced no output for some images'}. These ${list.length.toLocaleString()} image(s) use HD 4× instead.`);
-            const fb = await runAll(pool, list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }),
+            const fb = await runAll(pool, list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, halfNoExt: it.halfNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }),
               { ...fctx, progress: (d, _t, name) => fctx.progress(ready.length + d, 0, name) }, (it) => it.rel);
             failed += fb.failed; written += fb.results.filter(Boolean).length;
           }
@@ -384,9 +392,9 @@ async function upscaleTask(p, ctx, tools) {
       }
       base += g.list.length;
     }
-  } finally { await pool.close(); if (ctx.cancelled()) cleanupParts(p.output); }
+  } finally { await pool.close(); if (ctx.cancelled()) { cleanupParts(p.output); if (halfRoot) cleanupParts(halfRoot); } }
   const fromO2r = roots.some((r) => fs.existsSync(path.join(r, require('./o2r').INFO_FILE)));
-  return { title: 'Upscaled', written, failed, output: p.output, packable: written > 0, fromO2r, seconds: (Date.now() - t0) / 1000 };
+  return { title: 'Upscaled', written, failed, output: p.output, half: halfRoot, packable: written > 0, fromO2r, seconds: (Date.now() - t0) / 1000 };
 }
 
 // Real-ESRGAN command line: model, 4x, PNG, plus the graphics card and memory (tile size) choices.
@@ -752,8 +760,10 @@ async function estimate(p, tools, workers) {
       cpuMs += x.px * msPerPx;
       if (x.r === 'ai') aiPx += x.px;
     }
-    const seconds = cpuMs / 1000 / Math.max(1, workers) + aiPx / 1e6 * 1.5 + (aiPx ? Math.ceil(groups.ai / 32) * 0.8 : 0);
-    return { count: rows.length, disk: Math.round(disk), vram: Math.round(vram), seconds: Math.round(seconds), groups, smart: p.method === 'smart', aiReady };
+    let seconds = cpuMs / 1000 / Math.max(1, workers) + aiPx / 1e6 * 1.5 + (aiPx ? Math.ceil(groups.ai / 32) * 0.8 : 0);
+    if (p.half) disk *= 1.25;                                      // the half-size copy: a quarter of the pixels
+    if (p.supersample) seconds *= 3;                               // four times the pixels before the shrink, roughly
+    return { count: rows.length, disk: Math.round(disk), vram: Math.round(vram), seconds: Math.round(seconds), groups, smart: p.method === 'smart', aiReady, half: !!p.half };
   } finally { await pool.close(); }
 }
 
@@ -769,7 +779,7 @@ async function preview(req, tools) {
   const NAMES = { clamp: 'normal', wrap: 'tile', mirror: 'mirror' };
   const edgesLabel = `${NAMES[edges[0]]} × ${NAMES[edges[1]]}${auto ? (known ? ' (from dump)' : ' (no dump info)') : ''}`;
   req = { ...req, edges };
-  let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha, alphaThreshold: (req.alphaThreshold ?? 50) / 100, colourFix: req.colourFix !== false };
+  let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha, alphaThreshold: (req.alphaThreshold ?? 50) / 100, colourFix: req.colourFix !== false, supersample: !!req.supersample };
   const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false, bc7: tools.bc7Quality, edges: req.edges };
   let r, route = '', routeModelLabel = '';
   if (req.method === 'smart') {                                   // the method Smart would pick for this texture

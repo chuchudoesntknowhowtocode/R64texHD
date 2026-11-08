@@ -188,3 +188,29 @@ test('AI padding: textures up to 32 px get a full tile on every side, bigger one
   assert.strictEqual(aiPad(64, 32), 8);
   assert.strictEqual(aiPad(33, 8), 8);
 });
+
+test('supersample: same size out, cut-outs stay hard; half-size copy mirrors the output', async () => {
+  const { upscale } = core('upscale');
+  const W = 16, H = 16, d = new Uint8Array(W * H * 4);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = (y * W + x) * 4, on = (x - 8) ** 2 + (y - 8) ** 2 < 40; d.set([x * 15, y * 15, 90, on ? 255 : 0], o); }
+  const img = { width: W, height: H, data: d };
+  const a = upscale(img, { size: 4, method: 'standard', sharpness: 'normal', hardAlpha: true });
+  const b = upscale(img, { size: 4, method: 'standard', sharpness: 'normal', hardAlpha: true, supersample: true });
+  assert.deepStrictEqual([b.width, b.height], [a.width, a.height]);
+  for (let i = 3; i < b.data.length; i += 4) assert.ok(b.data[i] === 0 || b.data[i] === 255);
+  const capped = upscale(img, { size: 4, maxSize: 64, method: 'standard', supersample: true });   // already at the cap: plain 4x
+  assert.deepStrictEqual([capped.width, capped.height], [64, 64]);
+
+  const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'half-')), inDir = path.join(dir, 'in', 'sub'), out = path.join(dir, 'out');
+  fs.mkdirSync(inDir, { recursive: true });
+  fs.writeFileSync(path.join(inDir, 'a.png'), png.encodePNG(img));
+  fs.writeFileSync(path.join(dir, 'in', 'rt64.json'), '{}');
+  const q = { workers: 2, cancelled: () => false, onCancel: () => {}, log: () => {}, progress: () => {} };
+  const r = await tasks.upscaleTask({ inputs: [path.join(dir, 'in')], output: out, size: 4, method: 'standard', sharpness: 'normal', edges: 'clamp', format: 'png', hardAlpha: true, half: true, supersample: true }, q, {});
+  assert.strictEqual(r.half, path.resolve(out) + ' (half size)');
+  const big = png.decodePNG(fs.readFileSync(path.join(out, 'sub', 'a.png'))), half = png.decodePNG(fs.readFileSync(path.join(r.half, 'sub', 'a.png')));
+  assert.deepStrictEqual([big.width, half.width], [64, 32]);
+  assert.ok(fs.existsSync(path.join(r.half, 'rt64.json')));
+  fs.rmSync(dir, { recursive: true, force: true });
+});

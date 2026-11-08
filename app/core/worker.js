@@ -4,13 +4,21 @@ const { parentPort } = require('worker_threads');
 const fs = require('fs');
 const path = require('path');
 const { loadImage, saveImage } = require('./image');
-const { upscale, fillTransparent, pad, aiPad, edgeIndex, dedither } = require('./upscale');
+const { upscale, fillTransparent, pad, aiPad, edgeIndex, dedither, shrinkCut, alphaKind } = require('./upscale');
 const padOf = (job, img) => (job.pad === 'auto' ? aiPad(img.width, img.height) : job.pad);
 const { loadDump } = require('./tmem');
 const png = require('./png');
 const rtz = require('./rtz');
 const dds = require('./dds');
 const smart = require('./smart');
+
+// Dual export: the same result at half size into the "(half size)" folder (never smaller than the original).
+function saveHalf(job, src, out) {
+  if (!job.halfNoExt) return;
+  const w = Math.max(src.width, Math.round(out.width / 2)), h = Math.max(src.height, Math.round(out.height / 2));
+  const half = w === out.width && h === out.height ? out : shrinkCut(out, w, h, job.opts, alphaKind(src));
+  saveImage(half, job.halfNoExt, job.save);
+}
 
 function padImage(img, p, edges) {
   const { width: w, height: h, data } = img, W = w + 2 * p, H = h + 2 * p, out = new Uint8Array(W * H * 4);
@@ -50,6 +58,7 @@ const handlers = {
     const img = loadImage(job.src);
     const out = upscale(img, { ...job.opts, edges: edgesOf(job) });
     const file = saveImage(out, job.outNoExt, job.save);
+    saveHalf(job, img, out);
     return { out: file, from: [img.width, img.height], to: [out.width, out.height] };
   },
   aiPrep(job) {
@@ -71,6 +80,7 @@ const handlers = {
     ai = crop(ai, padOf(job, img) * 4, padOf(job, img) * 4, img.width * 4, img.height * 4);
     const out = upscale(img, { ...job.opts, edges: edgesOf(job) }, { img: ai, scale: 4 });
     const file = saveImage(out, job.outNoExt, job.save);
+    saveHalf(job, img, out);
     return { out: file, from: [img.width, img.height], to: [out.width, out.height] };
   },
   dump(job) {
