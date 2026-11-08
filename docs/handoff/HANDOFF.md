@@ -13,7 +13,7 @@ Portable Windows Electron app (app/, plain JS, Electron 38). Roadmap 1–12 done
 - Pushed by user: handoff/next = ac76f5d. Not pushed: b06de12
 
 ## Changes we should make
-- H: user pushes; Windows test of dist\R64texHD-v0.9.2.0: ONNX engine (DirectML start, speed/VRAM), Upscale page (grip, Output panel, reset, small windows), pan/click-centre, Compare with real AI, own model add (4× ok, 2× refused), Smart aidither; first-start prompt (fresh unzip)
+- H: user pushes (b06de12, 215e440, this commit)
 - H: owner merges handoff/next + releases v0.9.2.0 (build\release.cmd); until then in-app pack downloads 404 (local zips next to the folder work)
 - M: aidither still untested on real data: no dithered texture in SF2T/PD/GE/MK64 reaches the AI route (colours < 96)
 - L: pan: points near the edge can't reach the centre (no padding); split line lost its black outline when zoomed
@@ -21,8 +21,7 @@ Portable Windows Electron app (app/, plain JS, Electron 38). Roadmap 1–12 done
 
 ## Current state
 - Works: tests 98 pass; pan verified in Chromium harness; download fallback verified (texconv via API, sha ok); dist build + 4 zips consistent (remote.json sha = zips)
-- User confirmed helper tools "looking good" after restart (11-08)
-- Untested on Windows: DirectML, pan on real app, own-model add with real files
+- Windows test of v0.9.2.0 passed: user ran the 8-item checklist (tools, ONNX, Upscale page, pan, Compare, own models, Smart, first start) → "all good" (11-08)
 
 ## Decisions
 - Dither: change the denominator, not the constants (small N64 textures have few flat pixels → scores ~unchanged)
