@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Upscaling
+- **Smart mode v2**: true pixel art (sprites, fonts, HUD with hard cut-outs and few colours, flat tiles) now goes to **MMPX**, which smooths diagonals but only uses the texture's own colours. With the texture models installed, big detailed textures use **GameAI** and colourful cut-out sprites (16–64 px) the **Pixel** model; HDCube is never picked for small textures. Dithered textures (checker / ordered dither dots) are softened before HD or AI upscaling. The preview names the route (e.g. "AI 4× (GameAI), dither softened").
+- New method **MMPX** (pixel art with smooth diagonals) under Advanced options › Method.
 - **Texture models** (Settings › Helper tools): an optional download of three AI models made for game textures, for Real-ESRGAN: **HDCube** (CC0, keeps the game's look), **GameAI 2.0** (WTFPL, game textures) and **Pixel** (PixelPerfectV4, WTFPL, sprites). Pick them under Settings › AI model; the Scale slider's AI stop uses that choice. Credits in `texture-models-CREDITS.txt`.
 - AI upscale: textures 32 px or smaller get a full copy of themselves on every side (by their tiling) before Real-ESRGAN, instead of an 8 px border, so tiny repeating textures don't get seams.
 - Preview: the box grows with the window (300–720 px tall) and Fit fills it with the whole texture. New − / + buttons and the **mouse wheel** zoom from 100% up to 800%, centred on the cursor; the % button jumps to 100% (actual size). Replaces Fit / 1:1 / 2:1.

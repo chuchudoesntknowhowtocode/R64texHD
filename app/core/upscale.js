@@ -184,13 +184,57 @@ function fillTransparent(img, iterations = Infinity) {
   return { width: w, height: h, data: out };
 }
 
+// ---------------------------------------------------------------- dithering
+// N64 textures are often dithered: neighbouring pixels alternate between close colours in a checker or ordered
+// (Bayer) pattern, to fake more colours. Upscaling magnifies those dots. A pixel counts as a dither dot when its
+// left and right neighbours match each other, its upper and lower neighbours match each other, and both pairs
+// differ from it by a small amount. That catches checkers and isolated dots; a 1 px line (same colour above and
+// below) and real edges are left alone.
+const DITHER_NEAR = 56;   // per-channel limit (0-255): further apart than this is detail, not dither
+function ditherAt(d, w, h, x, y, edges) {
+  const ex = edges ? edges[0] : 'clamp', ey = edges ? edges[1] : 'clamp';
+  const px = (dx, dy) => (edgeIndex(y + dy, h, ey) * w + edgeIndex(x + dx, w, ex)) * 4;
+  const e = (y * w + x) * 4;
+  if (d[e + 3] < 128) return false;
+  const same = (a, b) => d[a] === d[b] && d[a + 1] === d[b + 1] && d[a + 2] === d[b + 2];
+  const near = (a, b) => Math.abs(d[a] - d[b]) <= DITHER_NEAR && Math.abs(d[a + 1] - d[b + 1]) <= DITHER_NEAR && Math.abs(d[a + 2] - d[b + 2]) <= DITHER_NEAR;
+  const L = px(-1, 0), R = px(1, 0), U = px(0, -1), D = px(0, 1);
+  return same(L, R) && same(U, D) && !same(L, e) && !same(U, e) && near(L, e) && near(U, e) && d[L + 3] >= 128 && d[U + 3] >= 128;
+}
+// Share of visible pixels that look dithered (0..1).
+function ditherScore(img) {
+  const { width: w, height: h, data: d } = img;
+  if (w < 4 || h < 4) return 0;
+  let hit = 0, seen = 0;
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {          // interior: border pixels have no full neighbourhood
+    if (d[(y * w + x) * 4 + 3] < 128) continue;
+    seen++; if (ditherAt(d, w, h, x, y, null)) hit++;
+  }
+  return seen ? hit / seen : 0;
+}
+// Softens the dither dots only: each dithered pixel moves halfway to the average of its side neighbours.
+// Flat areas, edges and detail are left alone; alpha is untouched.
+function dedither(img, edges = ['clamp', 'clamp']) {
+  const { width: w, height: h, data: d } = img, out = new Uint8Array(d);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (!ditherAt(d, w, h, x, y, edges)) continue;
+    const e = (y * w + x) * 4;
+    for (let c = 0; c < 3; c++) {
+      let sum = 0;
+      for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1]]) sum += d[(edgeIndex(y + dy, h, edges[1]) * w + edgeIndex(x + dx, w, edges[0])) * 4 + c];
+      out[e + c] = Math.round((d[e + c] + sum / 4) / 2);
+    }
+  }
+  return { width: w, height: h, data: out };
+}
+
 // ---------------------------------------------------------------- public
 // Target size for an image under the options (scale 2/3/4/6/8 or fit: longest side), capped by maxSize.
 function targetSize(w, h, opts) {
   let s = opts.size === 'fit' ? (Number(opts.fit) || 2048) / Math.max(w, h) : Number(opts.size) || 4;
   const cap = Number(opts.maxSize) || 4096;
   if (Math.max(w, h) * s > cap) s = cap / Math.max(w, h);
-  if (opts.method === 'pixel') s = Math.max(1, Math.floor(s));
+  if (opts.method === 'pixel' || opts.method === 'mmpx') s = Math.max(1, Math.floor(s));
   return { scale: s, width: Math.max(1, Math.round(w * s)), height: Math.max(1, Math.round(h * s)) };
 }
 
@@ -330,6 +374,8 @@ function upscale(img, opts, start = null) {
   if (t.width === w && t.height === h) return img;
   if (opts.method === 'pixel') return nearest(img, t.width, t.height);
   const edges = Array.isArray(opts.edges) ? opts.edges : [opts.edges || 'clamp', opts.edges || 'clamp'];
+  if (opts.method === 'mmpx') return require('./mmpx').mmpxScale(img, t.width, t.height, edges);
+  if (opts.dedither) img = dedither(img, edges);
   const kind = alphaKind(img), opaque = kind === 'opaque';
   const base = opts.method === 'smooth' ? 0 : (SHARPNESS[opts.sharpness] ?? SHARPNESS.normal);
   const src = start ? (opts.colourFix !== false ? colourFix(start.img, img) : start.img) : img, current = start ? start.scale : 1;
@@ -366,4 +412,4 @@ function resizeRGBA(img, nw, nh) {
   return { width: nw, height: nh, data: out };
 }
 
-module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, aiPad, edgeIndex, resizeRGBA, SHARPNESS };
+module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, aiPad, edgeIndex, ditherScore, dedither, resizeRGBA, SHARPNESS };

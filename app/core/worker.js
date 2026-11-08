@@ -4,7 +4,7 @@ const { parentPort } = require('worker_threads');
 const fs = require('fs');
 const path = require('path');
 const { loadImage, saveImage } = require('./image');
-const { upscale, fillTransparent, pad, aiPad, edgeIndex } = require('./upscale');
+const { upscale, fillTransparent, pad, aiPad, edgeIndex, dedither } = require('./upscale');
 const padOf = (job, img) => (job.pad === 'auto' ? aiPad(img.width, img.height) : job.pad);
 const { loadDump } = require('./tmem');
 const png = require('./png');
@@ -54,7 +54,9 @@ const handlers = {
   },
   aiPrep(job) {
     // Pad (by tiling mode) and fill transparent colours, then hand the PNG to Real-ESRGAN.
-    const img = loadImage(job.src);
+    // Dithered textures are softened first (Smart), so the AI doesn't magnify the dither dots.
+    let img = loadImage(job.src);
+    if (job.dedither) img = dedither(img, edgesOf(job));
     // Real-ESRGAN gets colour only (alpha set to 255): upscale() grows the alpha itself from the source.
     const filled = fillTransparent(img);
     for (let i = 3; i < filled.data.length; i += 4) filled.data[i] = 255;

@@ -278,26 +278,29 @@ async function upscaleTask(p, ctx, tools) {
     try {
       ctx.progress(0, T, 'Looking at the textures…');
       const r = await runAll(pool0, todo, 'classify', (it) => ({ src: it.src }), { ...ctx, progress: (d) => ctx.progress(d, T, 'Looking at the textures…') }, (it) => it.rel);
-      kinds = r.results.map((st) => (st ? smart.route(st) : 'hd'));
+      kinds = r.results.map((st) => (st ? smart.route(st, { models: !!tools.models }) : 'hd'));
+      todo.forEach((it, i) => { const st = r.results[i]; if (st && smart.dithered(st)) it.dedither = true; });
     } finally { await pool0.close(); }
     if (ctx.cancelled()) throw new Cancelled();
-    const by = { pixel: [], hd: [], ai: [] };
+    const by = { pixel: [], mmpx: [], hd: [], ai: [], aisprite: [] };
     todo.forEach((it, i) => by[kinds[i]].push(it));
-    if (by.ai.length && !aiReady) {
-      ctx.log(tools.realesrgan ? `No Vulkan graphics card, so the ${by.ai.length.toLocaleString()} AI texture(s) use HD 4× instead.`
-        : `Real-ESRGAN isn't downloaded, so the ${by.ai.length.toLocaleString()} AI texture(s) use HD 4× instead.`);
-      by.hd = by.hd.concat(by.ai); by.ai = [];
+    const aiCount = by.ai.length + by.aisprite.length;
+    if (aiCount && !aiReady) {
+      ctx.log(tools.realesrgan ? `No Vulkan graphics card, so the ${aiCount.toLocaleString()} AI texture(s) use HD 4× instead.`
+        : `Real-ESRGAN isn't downloaded, so the ${aiCount.toLocaleString()} AI texture(s) use HD 4× instead.`);
+      by.hd = by.hd.concat(by.ai, by.aisprite); by.ai = []; by.aisprite = [];
     }
-    ctx.log(`Smart: ${by.hd.length.toLocaleString()} HD 4×, ${by.ai.length.toLocaleString()} AI 4×, ${by.pixel.length.toLocaleString()} pixel-perfect.`);
-    groups = [['hd', by.hd], ['pixel', by.pixel], ['ai', by.ai]].filter(([, l]) => l.length)
-      .map(([k, l]) => ({ list: l, opts: { ...opts, ...smart.ROUTE_OPTS[k], method: k === 'ai' ? 'standard' : smart.ROUTE_OPTS[k].method }, ai: k === 'ai' }));
+    const nd = todo.filter((it) => it.dedither).length;
+    ctx.log(`Smart: ${by.hd.length.toLocaleString()} HD 4×, ${by.ai.length.toLocaleString()} AI 4×${tools.models ? ' (GameAI)' : ''}, ${by.aisprite.length ? `${by.aisprite.length.toLocaleString()} AI sprite 4× (Pixel model), ` : ''}${by.mmpx.length.toLocaleString()} pixel art (MMPX), ${by.pixel.length.toLocaleString()} pixel-perfect${nd ? `; ${nd.toLocaleString()} dithered texture(s) softened first` : ''}.`);
+    groups = [['hd', by.hd], ['pixel', by.pixel], ['mmpx', by.mmpx], ['ai', by.ai], ['aisprite', by.aisprite]].filter(([, l]) => l.length)
+      .map(([k, l]) => ({ list: l, opts: { ...opts, ...smart.ROUTE_OPTS[k], method: smart.isAi(k) ? 'standard' : smart.ROUTE_OPTS[k].method }, ai: smart.isAi(k), model: smart.routeModel(k, { models: !!tools.models }) }));
   } else {
     let useAi = p.method === 'ai';
     if (useAi && !tools.realesrgan) { ctx.log('Real-ESRGAN is not installed (Settings), so Standard is used instead.'); useAi = false; opts.method = 'standard'; }
     if (useAi) opts.method = 'standard';                       // the AI result is finished by the Standard steps
     groups = [{ list: todo, opts, ai: useAi }];
     const sizeText0 = p.size === 'fit' ? `to ${p.fit} px` : `${p.size}x`;
-    ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText0} with ${useAi ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art' }[p.method] || 'Standard'}${p.method === 'standard' || useAi ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
+    ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText0} with ${useAi ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', mmpx: 'Pixel art (MMPX)' }[p.method] || 'Standard'}${p.method === 'standard' || useAi ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
   }
   fs.mkdirSync(p.output, { recursive: true });
   if (p.copyOther !== false && others.length) {
@@ -312,6 +315,7 @@ async function upscaleTask(p, ctx, tools) {
     if (copied) ctx.log(`Copied ${copied} other file(s) (such as rt64.json) alongside.`);
     if (notCopied > 5) ctx.log(`... ${notCopied} other file(s) could not be copied.`);
   }
+  const optsOf = (g, it) => (it.dedither ? { ...g.opts, dedither: true } : g.opts);
   const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv, keepCoverage: p.keepCoverage !== false, bc7: tools.bc7Quality, edges: edgesOf(it) });
   // Edges: Auto uses each texture's own tiling from the RT64 dump (saved by Convert).
   const tileMap = p.edges === 'auto' ? tiling.loadFor(roots.length ? roots : inputs) : null;
@@ -328,11 +332,12 @@ async function upscaleTask(p, ctx, tools) {
     for (const g of groups) {
       const gctx = { ...ctx, progress: (d, _t, name) => prog(base + d, name) };
       if (!g.ai) {
-        const r = await runAll(pool, g.list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }), gctx, (it) => it.rel);
+        const r = await runAll(pool, g.list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }), gctx, (it) => it.rel);
         failed += r.failed; written += r.results.filter(Boolean).length;
       } else {
         // One Real-ESRGAN run for the whole group: the model and GPU start once, not once per 32 textures.
         // Progress per texture: 10% prepare, 60% AI (counted from the output folder), 30% finish.
+        const gTools = g.model ? { ...tools, realesrganModel: g.model } : tools;   // Smart's AI routes pick their model
         const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-ai-'));
         const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
         const inOf = (i) => path.join(inDir, `${i}.png`), outOf = (i) => path.join(outDir, `${i}.png`);
@@ -341,7 +346,7 @@ async function upscaleTask(p, ctx, tools) {
         const show = (k, name) => prog(base + k, name);
         try {
           fs.mkdirSync(inDir, { recursive: true }); fs.mkdirSync(outDir, { recursive: true });
-          const pr = await runAll(pool, g.list.map((it, i) => ({ ...it, i })), 'aiPrep', (it) => ({ src: it.src, tmpPng: inOf(it.i), pad: 'auto', edges: edgesOf(it) }),
+          const pr = await runAll(pool, g.list.map((it, i) => ({ ...it, i })), 'aiPrep', (it) => ({ src: it.src, tmpPng: inOf(it.i), pad: 'auto', edges: edgesOf(it), dedither: !!it.dedither }),
             { ...ctx, progress: (d) => { prepDone = d; show(d * 0.1, 'Getting the textures ready for AI…'); } }, (it) => it.rel);
           failed += pr.failed;
           const idx = g.list.map((_, i) => i).filter((i) => pr.results[i]);
@@ -349,14 +354,14 @@ async function upscaleTask(p, ctx, tools) {
           const countOut = () => { try { return fs.readdirSync(outDir).filter((f) => f.endsWith('.png')).length; } catch { return aiDone; } };
           watch = setInterval(() => { aiDone = countOut(); show(prepDone * 0.1 + aiDone * 0.6, `AI upscaling ${aiDone.toLocaleString()} of ${idx.length.toLocaleString()}…`); }, 500);
           let aiErr = null;
-          if (idx.length) try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools, { maxSide, many: true }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
+          if (idx.length) try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, gTools, { maxSide, many: true }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
           // Out of video memory is the usual failure: try what's left once more with Low memory use.
           const left = () => idx.filter((i) => !fs.existsSync(outOf(i)));
           if (aiErr && String(tools.aiTile) !== '128' && left().length) {
             ctx.log(`${aiErr.message}. Trying the remaining ${left().length.toLocaleString()} image(s) again with Low GPU memory use.`);
             for (const i of idx) if (fs.existsSync(outOf(i))) fs.rmSync(inOf(i), { force: true });
             aiErr = null;
-            try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools, { maxSide, tile: 128 }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
+            try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, gTools, { maxSide, tile: 128 }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
           }
           clearInterval(watch); watch = null;
           if (ctx.cancelled()) throw new Cancelled();
@@ -364,14 +369,14 @@ async function upscaleTask(p, ctx, tools) {
           const ready = idx.filter((i) => !missing.has(i)).map((i) => ({ ...g.list[i], i }));
           const k0 = n * 0.7;
           const fctx = { ...ctx, progress: (d, _t, name) => show(k0 + d * 0.3 * n / Math.max(1, ready.length + missing.size), name) };
-          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: outOf(it.i), pad: 'auto', outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
+          const r = await runAll(pool, ready, 'aiFinish', (it) => ({ src: it.src, aiPng: outOf(it.i), pad: 'auto', outNoExt: it.outNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }),
             fctx, (it) => it.rel);
           failed += r.failed; written += r.results.filter(Boolean).length;
           if (missing.size) {
             // Anything the AI didn't finish (crash, out of memory, no output) still gets upscaled: HD 4× instead.
             const list = [...missing].map((i) => g.list[i]);
             ctx.log(`${aiErr ? aiErr.message : 'Real-ESRGAN produced no output for some images'}. These ${list.length.toLocaleString()} image(s) use HD 4× instead.`);
-            const fb = await runAll(pool, list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: g.opts, edges: edgesOf(it), save: save(it) }),
+            const fb = await runAll(pool, list, 'upscale', (it) => ({ src: it.src, outNoExt: it.outNoExt, opts: optsOf(g, it), edges: edgesOf(it), save: save(it) }),
               { ...fctx, progress: (d, _t, name) => fctx.progress(ready.length + d, 0, name) }, (it) => it.rel);
             failed += fb.failed; written += fb.results.filter(Boolean).length;
           }
@@ -708,10 +713,10 @@ async function estimate(p, tools, workers) {
     const base = { size: p.size, fit: p.fit, maxSize: p.maxSize, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100, colourFix: p.colourFix !== false };
     const routeOf = (s) => {
       if (p.method !== 'smart') return p.method === 'ai' ? (tools.realesrgan ? 'ai' : 'hd') : 'same';
-      const r = smart.route(s); return r === 'ai' && !aiReady ? 'hd' : r;
+      const r = smart.route(s, { models: !!tools.models }); return smart.isAi(r) && !aiReady ? 'hd' : r;
     };
-    const optsFor = (r) => (r === 'same' ? { ...base, method: p.method } : { ...base, ...smart.ROUTE_OPTS[r], method: r === 'ai' ? 'standard' : smart.ROUTE_OPTS[r].method });
-    const groups = { pixel: 0, hd: 0, ai: 0 };
+    const optsFor = (r) => (r === 'same' ? { ...base, method: p.method } : { ...base, ...smart.ROUTE_OPTS[r], method: smart.isAi(r) ? 'standard' : smart.ROUTE_OPTS[r].method });
+    const groups = { pixel: 0, mmpx: 0, hd: 0, ai: 0, aisprite: 0 };
     const rows = [];
     items.forEach((it, i) => {
       const s = st[i]; if (!s) return;
@@ -721,7 +726,7 @@ async function estimate(p, tools, workers) {
       rows.push({ it, s, r, px: t.width * t.height, fmt });
     });
     // time a few real ones (not AI: that runs on the graphics card)
-    const sample = rows.filter((x) => x.r !== 'ai').sort((a, b) => a.px - b.px);
+    const sample = rows.filter((x) => !smart.isAi(x.r)).sort((a, b) => a.px - b.px);
     const pick = [0.2, 0.5, 0.8, 0.95].map((q) => sample[Math.floor(q * (sample.length - 1))]).filter(Boolean);
     let msPerPx = 2.5e-4, pngBpp = 1.6;
     if (seq !== estimateSeq) return { superseded: true };
@@ -766,18 +771,21 @@ async function preview(req, tools) {
   req = { ...req, edges };
   let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha, alphaThreshold: (req.alphaThreshold ?? 50) / 100, colourFix: req.colourFix !== false };
   const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false, bc7: tools.bc7Quality, edges: req.edges };
-  let r, route = '';
+  let r, route = '', routeModelLabel = '';
   if (req.method === 'smart') {                                   // the method Smart would pick for this texture
-    route = smart.route(await previewPool.run('classify', { src: req.src }));
-    if (route === 'ai' && !(tools.realesrgan && req.aiOk !== false)) route = 'hd';
-    opts = { ...opts, ...smart.ROUTE_OPTS[route] };
+    const st = await previewPool.run('classify', { src: req.src }), models = !!tools.models;
+    route = smart.route(st, { models });
+    if (smart.isAi(route) && !(tools.realesrgan && req.aiOk !== false)) route = 'hd';
+    opts = { ...opts, ...smart.ROUTE_OPTS[route], dedither: smart.dithered(st) && route !== 'mmpx' && route !== 'pixel' };
+    const m = smart.routeModel(route, { models });
+    if (m) { tools = { ...tools, realesrganModel: m }; routeModelLabel = { 'gameai2-x4': 'GameAI', 'pixelperfect4-x4': 'Pixel model' }[m] || ''; }
   }
   if (opts.method === 'ai' && tools.realesrgan) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-preview-'));
     try {
       const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
       fs.mkdirSync(inDir); fs.mkdirSync(outDir);
-      await previewPool.run('aiPrep', { src: req.src, tmpPng: path.join(inDir, '0.png'), pad: 'auto', edges: req.edges });
+      await previewPool.run('aiPrep', { src: req.src, tmpPng: path.join(inDir, '0.png'), pad: 'auto', edges: req.edges, dedither: !!opts.dedither });
       const noCancel = { cancelled: () => false, onCancel: () => {} };
       await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), noCancel);
       r = await previewPool.run('previewAi', { src: req.src, aiPng: path.join(outDir, '0.png'), pad: 'auto', opts, edges: req.edges, save });
@@ -786,7 +794,8 @@ async function preview(req, tools) {
     if (opts.method === 'ai') opts.method = 'standard';
     r = await previewPool.run('preview', { src: req.src, opts, edges: req.edges, save });
   }
-  return { ...r, edges: edgesLabel, route: route ? smart.ROUTE_NAMES[route] : '' };
+  const routeName = route ? smart.ROUTE_NAMES[route] + (routeModelLabel ? ` (${routeModelLabel})` : '') + (opts.dedither ? ', dither softened' : '') : '';
+  return { ...r, edges: edgesLabel, route: routeName };
 }
 
 // Stops the preview worker (on quit, and in tests).
