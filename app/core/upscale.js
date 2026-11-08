@@ -232,24 +232,24 @@ function fillTransparent(img, iterations = Infinity) {
 // differ from it by a small amount. That catches checkers and isolated dots; a 1 px line (same colour above and
 // below) and real edges are left alone.
 const DITHER_NEAR = 56;   // per-channel limit (0-255): further apart than this is detail, not dither
-function ditherAt(d, w, h, x, y, edges) {
+function ditherAt(d, w, h, x, y, edges, lim = DITHER_NEAR) {
   const ex = edges ? edges[0] : 'clamp', ey = edges ? edges[1] : 'clamp';
   const px = (dx, dy) => (edgeIndex(y + dy, h, ey) * w + edgeIndex(x + dx, w, ex)) * 4;
   const e = (y * w + x) * 4;
   if (d[e + 3] < 128) return false;
   const same = (a, b) => d[a] === d[b] && d[a + 1] === d[b + 1] && d[a + 2] === d[b + 2];
-  const near = (a, b) => Math.abs(d[a] - d[b]) <= DITHER_NEAR && Math.abs(d[a + 1] - d[b + 1]) <= DITHER_NEAR && Math.abs(d[a + 2] - d[b + 2]) <= DITHER_NEAR;
+  const near = (a, b) => Math.abs(d[a] - d[b]) <= lim && Math.abs(d[a + 1] - d[b + 1]) <= lim && Math.abs(d[a + 2] - d[b + 2]) <= lim;
   const L = px(-1, 0), R = px(1, 0), U = px(0, -1), D = px(0, 1);
   return same(L, R) && same(U, D) && !same(L, e) && !same(U, e) && near(L, e) && near(U, e) && d[L + 3] >= 128 && d[U + 3] >= 128;
 }
 // Share of visible pixels that look dithered (0..1).
-function ditherScore(img) {
+function ditherScore(img, lim = DITHER_NEAR) {
   const { width: w, height: h, data: d } = img;
   if (w < 4 || h < 4) return 0;
   let hit = 0, seen = 0;
   for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {          // interior: border pixels have no full neighbourhood
     if (d[(y * w + x) * 4 + 3] < 128) continue;
-    seen++; if (ditherAt(d, w, h, x, y, null)) hit++;
+    seen++; if (ditherAt(d, w, h, x, y, null, lim)) hit++;
   }
   return seen ? hit / seen : 0;
 }
@@ -477,4 +477,4 @@ function resizeRGBA(img, nw, nh, edges = null) {
   return { width: nw, height: nh, data: out };
 }
 
-module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, aiPad, edgeIndex, ditherScore, dedither, resizeRGBA, shrinkCut, SHARPNESS };
+module.exports = { upscale, targetSize, fillTransparent, alphaKind, colourFix, ALPHA_TOL, pad, aiPad, edgeIndex, ditherScore, dedither, DITHER_NEAR, resizeRGBA, shrinkCut, SHARPNESS };
