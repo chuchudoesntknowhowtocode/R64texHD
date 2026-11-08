@@ -31,16 +31,17 @@ function stats(img) {
 }
 
 // models: the texture models are installed (they add the aisprite route and pick GameAI for ai).
-function route(s, { models = false } = {}) {
+// onnx: the ONNX engine is installed: dithered AI textures go to RGT-S dither (trained with dithering), not softened first.
+function route(s, { models = false, onnx = false } = {}) {
   const side = Math.max(s.w, s.h), small = Math.min(s.w, s.h);
   if (s.alpha === 'binary' && s.colors <= 16 && side <= 64) return 'mmpx';
   if (side <= 16) return 'pixel';
   if (s.colors <= 8 && side <= 64) return 'mmpx';
-  if (small >= 32 && s.colors >= 96) return 'ai';
+  if (small >= 32 && s.colors >= 96) return onnx && dithered(s) ? 'aidither' : 'ai';
   if (models && s.alpha === 'binary' && side <= 64 && small >= 16) return 'aisprite';
   return 'hd';
 }
-const isAi = (r) => r === 'ai' || r === 'aisprite';
+const isAi = (r) => r === 'ai' || r === 'aisprite' || r === 'aidither';
 const dithered = (s) => (s.dither || 0) >= DITHERED;
 
 // What each route does. size / fit / maxSize come from the run's own settings.
@@ -50,11 +51,13 @@ const ROUTE_OPTS = {
   hd: { method: 'standard', sharpness: 'normal' },
   ai: { method: 'ai', sharpness: 'normal' },
   aisprite: { method: 'ai', sharpness: 'normal' },
+  aidither: { method: 'ai', sharpness: 'normal' },
 };
-const ROUTE_NAMES = { pixel: 'Pixel-perfect', mmpx: 'Pixel art (MMPX)', hd: 'HD 4×', ai: 'AI 4×', aisprite: 'AI sprite 4×' };
+const ROUTE_NAMES = { pixel: 'Pixel-perfect', mmpx: 'Pixel art (MMPX)', hd: 'HD 4×', ai: 'AI 4×', aisprite: 'AI sprite 4×', aidither: 'AI dither 4×' };
 // Real-ESRGAN model for an AI route (null: the model chosen in Settings).
 function routeModel(r, { models = false } = {}) {
   if (r === 'aisprite') return 'pixelperfect4-x4';
+  if (r === 'aidither') return 'rgts-dither-x4';
   if (r === 'ai' && models) return 'gameai2-x4';
   return null;
 }

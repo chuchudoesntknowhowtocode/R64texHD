@@ -281,12 +281,14 @@ async function upscaleTask(p, ctx, tools) {
     try {
       ctx.progress(0, T, 'Looking at the textures…');
       const r = await runAll(pool0, todo, 'classify', (it) => ({ src: it.src }), { ...ctx, progress: (d) => ctx.progress(d, T, 'Looking at the textures…') }, (it) => it.rel);
-      kinds = r.results.map((st) => (st ? smart.route(st, { models: !!tools.models }) : 'hd'));
+      kinds = r.results.map((st) => (st ? smart.route(st, { models: !!tools.models, onnx: !!tools.onnx }) : 'hd'));
       todo.forEach((it, i) => { const st = r.results[i]; if (st && smart.dithered(st)) it.dedither = true; });
     } finally { await pool0.close(); }
     if (ctx.cancelled()) throw new Cancelled();
-    const by = { pixel: [], mmpx: [], hd: [], ai: [], aisprite: [] };
+    const by = { pixel: [], mmpx: [], hd: [], ai: [], aisprite: [], aidither: [] };
     todo.forEach((it, i) => by[kinds[i]].push(it));
+    if (by.aidither.length && !aiCan(tools, 'rgts-dither-x4', p.aiOk)) { by.ai = by.ai.concat(by.aidither); by.aidither = []; }   // engine there but its model isn't
+    for (const it of by.aidither) it.dedither = false;                // RGT-S dither handles dithering itself
     const aiCount = by.ai.length + by.aisprite.length;
     if (aiCount && !aiReady) {
       ctx.log(tools.realesrgan ? `No Vulkan graphics card, so the ${aiCount.toLocaleString()} AI texture(s) use HD 4× instead.`
@@ -294,9 +296,9 @@ async function upscaleTask(p, ctx, tools) {
       by.hd = by.hd.concat(by.ai, by.aisprite); by.ai = []; by.aisprite = [];
     }
     const nd = todo.filter((it) => it.dedither).length;
-    ctx.log(`Smart: ${by.hd.length.toLocaleString()} HD 4×, ${by.ai.length.toLocaleString()} AI 4×${tools.models ? ' (GameAI)' : ''}, ${by.aisprite.length ? `${by.aisprite.length.toLocaleString()} AI sprite 4× (Pixel model), ` : ''}${by.mmpx.length.toLocaleString()} pixel art (MMPX), ${by.pixel.length.toLocaleString()} pixel-perfect${nd ? `; ${nd.toLocaleString()} dithered texture(s) softened first` : ''}.`);
-    groups = [['hd', by.hd], ['pixel', by.pixel], ['mmpx', by.mmpx], ['ai', by.ai], ['aisprite', by.aisprite]].filter(([, l]) => l.length)
-      .map(([k, l]) => ({ list: l, opts: { ...opts, ...smart.ROUTE_OPTS[k], method: smart.isAi(k) ? 'standard' : smart.ROUTE_OPTS[k].method }, ai: smart.isAi(k), model: smart.routeModel(k, { models: !!tools.models }) }));
+    ctx.log(`Smart: ${by.hd.length.toLocaleString()} HD 4×, ${by.ai.length.toLocaleString()} AI 4×${tools.models ? ' (GameAI)' : ''}, ${by.aisprite.length ? `${by.aisprite.length.toLocaleString()} AI sprite 4× (Pixel model), ` : ''}${by.mmpx.length.toLocaleString()} pixel art (MMPX), ${by.pixel.length.toLocaleString()} pixel-perfect${by.aidither.length ? `, ${by.aidither.length.toLocaleString()} AI dither 4× (RGT-S, ONNX engine)` : ''}${nd ? `; ${nd.toLocaleString()} dithered texture(s) softened first` : ''}.`);
+    groups = [['hd', by.hd], ['pixel', by.pixel], ['mmpx', by.mmpx], ['ai', by.ai], ['aisprite', by.aisprite], ['aidither', by.aidither]].filter(([, l]) => l.length)
+      .map(([k, l]) => ({ list: l, opts: { ...opts, ...smart.ROUTE_OPTS[k], method: smart.isAi(k) ? 'standard' : smart.ROUTE_OPTS[k].method }, ai: smart.isAi(k), model: smart.routeModel(k, { models: !!tools.models }), noDedither: k === 'aidither' }));
   } else {
     let useAi = p.method === 'ai';
     if (useAi && !aiCan(tools, tools.realesrganModel || 'realesrgan-x4plus', p.aiOk)) {
@@ -789,10 +791,12 @@ async function estimate(p, tools, workers) {
     const base = { size: p.size, fit: p.fit, maxSize: p.maxSize, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100, colourFix: p.colourFix !== false };
     const routeOf = (s) => {
       if (p.method !== 'smart') return p.method === 'ai' ? (aiCan(tools, tools.realesrganModel || 'realesrgan-x4plus', p.aiOk) ? 'ai' : 'hd') : 'same';
-      const r = smart.route(s, { models: !!tools.models }); return smart.isAi(r) && !aiReady ? 'hd' : r;
+      const r = smart.route(s, { models: !!tools.models, onnx: !!tools.onnx });
+      if (r === 'aidither') return aiCan(tools, 'rgts-dither-x4', p.aiOk) ? r : aiReady ? 'ai' : 'hd';
+      return smart.isAi(r) && !aiReady ? 'hd' : r;
     };
     const optsFor = (r) => (r === 'same' ? { ...base, method: p.method } : { ...base, ...smart.ROUTE_OPTS[r], method: smart.isAi(r) ? 'standard' : smart.ROUTE_OPTS[r].method });
-    const groups = { pixel: 0, mmpx: 0, hd: 0, ai: 0, aisprite: 0 };
+    const groups = { pixel: 0, mmpx: 0, hd: 0, ai: 0, aisprite: 0, aidither: 0 };
     const rows = [];
     items.forEach((it, i) => {
       const s = st[i]; if (!s) return;
@@ -860,11 +864,12 @@ async function preview(req, tools) {
     forced = pickName(pk) + (dd ? ', dither softened' : '');
   } else if (req.method === 'smart') {                                   // the method Smart would pick for this texture
     const st = await previewPool.run('classify', { src: req.src }), models = !!tools.models;
-    route = smart.route(st, { models });
-    if (smart.isAi(route) && !(tools.realesrgan && req.aiOk !== false)) route = 'hd';
-    opts = { ...opts, ...smart.ROUTE_OPTS[route], dedither: smart.dithered(st) && route !== 'mmpx' && route !== 'pixel' };
+    route = smart.route(st, { models, onnx: !!tools.onnx });
+    if (route === 'aidither' && !aiCan(tools, 'rgts-dither-x4', req.aiOk)) route = 'ai';
+    if (smart.isAi(route) && route !== 'aidither' && !(tools.realesrgan && req.aiOk !== false)) route = 'hd';
+    opts = { ...opts, ...smart.ROUTE_OPTS[route], dedither: smart.dithered(st) && route !== 'mmpx' && route !== 'pixel' && route !== 'aidither' };
     const m = smart.routeModel(route, { models });
-    if (m) { tools = { ...tools, realesrganModel: m }; routeModelLabel = { 'gameai2-x4': 'GameAI', 'pixelperfect4-x4': 'Pixel model' }[m] || ''; }
+    if (m) { tools = { ...tools, realesrganModel: m }; routeModelLabel = { 'gameai2-x4': 'GameAI', 'pixelperfect4-x4': 'Pixel model', 'rgts-dither-x4': 'RGT-S, ONNX engine' }[m] || ''; }
   }
   if (opts.method === 'ai' && aiCan(tools, tools.realesrganModel || 'realesrgan-x4plus', req.aiOk)) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-preview-'));

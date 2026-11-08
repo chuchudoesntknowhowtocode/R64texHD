@@ -950,7 +950,7 @@ function estimateText() {
   if (e.error) return '<span>No estimate: ' + esc(e.error === 'no images' ? 'no PNG or DDS images in the input' : e.error) + '</span>';
   const g = e.groups;
   return `<span>Estimate for <b>${e.count.toLocaleString()}</b> textures:</span><span><b>~${mb(e.disk)}</b> on disk</span><span><b>~${mb(e.vram)}</b> video memory in game</span><span><b>~${dur(e.seconds)}</b> on this PC</span>`
-    + (e.smart ? `<span>Smart: <b>${g.hd.toLocaleString()}</b> HD 4× · <b>${(g.ai + (g.aisprite || 0)).toLocaleString()}</b> AI 4× · <b>${(g.mmpx || 0).toLocaleString()}</b> pixel art (MMPX) · <b>${g.pixel.toLocaleString()}</b> pixel-perfect${!e.aiReady ? ' <em>(AI not available: the big detailed ones go HD)</em>' : ''}</span>` : '')
+    + (e.smart ? `<span>Smart: <b>${g.hd.toLocaleString()}</b> HD 4× · <b>${(g.ai + (g.aisprite || 0) + (g.aidither || 0)).toLocaleString()}</b> AI 4× · <b>${(g.mmpx || 0).toLocaleString()}</b> pixel art (MMPX) · <b>${g.pixel.toLocaleString()}</b> pixel-perfect${!e.aiReady ? ' <em>(AI not available: the big detailed ones go HD)</em>' : ''}</span>` : '')
     + (EST.busy ? '<span class="upd">updating…</span>' : '');
 }
 function refreshEstimate() {

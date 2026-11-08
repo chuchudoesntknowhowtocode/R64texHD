@@ -117,7 +117,7 @@ test('estimate: counts, disk, video memory and the Smart split', async () => {
   fs.writeFileSync(path.join(dir, 'stone.png'), encodePNG(img(64, 64, noisy)));
   const e = await tasks.estimate({ inputs: [dir], method: 'smart', size: 4, sharpness: 'normal', format: 'dds', ddsFormat: 'bc7', maxSize: 4096 }, {}, 2);
   assert.strictEqual(e.count, 2);
-  assert.deepStrictEqual(e.groups, { pixel: 1, mmpx: 0, hd: 1, ai: 0, aisprite: 0 });               // no Real-ESRGAN: the stone goes HD
+  assert.deepStrictEqual(e.groups, { pixel: 1, mmpx: 0, hd: 1, ai: 0, aisprite: 0, aidither: 0 });               // no Real-ESRGAN: the stone goes HD
   const px = 32 * 32 + 256 * 256;
   assert.strictEqual(e.disk, Math.round(px * 4 / 3));                           // BC7: 1 byte a pixel, plus mipmaps
   assert.strictEqual(e.vram, e.disk);
@@ -147,4 +147,14 @@ test('scenes: the index lists only clips that are here; a downloaded pack fills 
   assert.ok(scenes.clipFile('fight_goblin_robed', appDir, data).startsWith(data));
   assert.strictEqual(scenes.clipFile('../x', appDir, data), null);
   fs.rmSync(root, { recursive: true, force: true });
+});
+
+test('smart: with the ONNX engine, dithered AI textures go to RGT-S dither (not softened first)', () => {
+  const { routeModel, isAi } = require('../app/core/smart');
+  const big = { w: 64, h: 64, colors: 200, alpha: 'opaque', dither: 0.3 };
+  assert.strictEqual(route(big), 'ai');
+  assert.strictEqual(route(big, { onnx: true }), 'aidither');
+  assert.strictEqual(route({ ...big, dither: 0.01 }, { onnx: true }), 'ai');
+  assert.strictEqual(routeModel('aidither'), 'rgts-dither-x4');
+  assert.ok(isAi('aidither'));
 });
