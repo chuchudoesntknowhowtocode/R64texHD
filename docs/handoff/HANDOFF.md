@@ -10,14 +10,15 @@ Portable Windows Electron app (app/, plain JS, Electron 38). Roadmap 1–12 done
 - ed504fd helper tools: first start offers all 4 tools (continues past failures); download() falls back to GitHub API asset link on 5xx/429 (github.com/releases/download gave 504 for every file on 11-08); fetchPack() installs …-onnx.zip / …-models.zip found next to the program folder (unpublished builds, offline)
 - e91b099 preview: zoomed → drag to pan, click centres the spot (also Compare grid, middle button); split line drags from the line (24 px grip); Fit unchanged
 - b06de12 (after #6) DITHERED 0.12 → 0.10: N64 Glide dumps (x64tractor/samples PD/GE/MK64, 4055 textures) — PD dithered 16-colour scenes 0.10–0.125, none on the AI route
+- 3d91c78 Compare grid Original cell; split-line outline fix (after #6, Unreleased in CHANGELOG; dist build has them but zips don't)
 - Pushed by user: handoff/next = ac76f5d. Not pushed: b06de12
 
 ## Changes we should make
 - H: user pushes (b06de12, 215e440, this commit)
 - H: owner merges handoff/next + releases v0.9.2.0 (build\release.cmd); until then in-app pack downloads 404 (local zips next to the folder work)
 - M: aidither still untested on real data: no dithered texture in SF2T/PD/GE/MK64 reaches the AI route (colours < 96)
-- L: pan: points near the edge can't reach the centre (no padding); split line lost its black outline when zoomed
-- L: roadmap 13 (ncnn vs DML timing AMD/Intel, CPU lane, TensorRT/WinML); ORT session per GPU, fp16; Compare "Original" cell
+- L: pan: points near the edge can't reach the centre (needs padding + zoom-anchor math in setPreviewZoom/setCompareZoom)
+- L: roadmap 13 (ncnn vs DML timing AMD/Intel, CPU lane, TensorRT/WinML); ORT session per GPU, fp16; 
 
 ## Current state
 - Works: tests 98 pass; pan verified in Chromium harness; download fallback verified (texconv via API, sha ok); dist build + 4 zips consistent (remote.json sha = zips)
