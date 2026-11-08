@@ -41,10 +41,10 @@ function Run($engine, $device, $file, [string[]]$argv, $n) {
   $q = $argv + @('-o', $out) | ForEach-Object { '"' + $_ + '"' }
   $t = Measure-Command { Start-Process -FilePath $file -ArgumentList ($q -join ' ') -Wait -NoNewWindow -RedirectStandardOutput "$logs\$tag.out.txt" -RedirectStandardError "$logs\$tag.err.txt" }
   $made = (Get-ChildItem $out -Filter *.png -ErrorAction SilentlyContinue).Count
-  $log = (Get-Content "$logs\$tag.err.txt", "$logs\$tag.out.txt" -ErrorAction SilentlyContinue) -join "`n"
+  $log = (Get-Content "$logs\$tag.out.txt", "$logs\$tag.err.txt" -ErrorAction SilentlyContinue) -join "`n"   # out first: the runner names its device there
   $name = ''
   if ($engine -like 'ncnn*') { $m = [regex]::Match($log, "\[$($device -replace '\D', '') ([^\]]+)\]"); if ($m.Success) { $name = $m.Groups[1].Value } }
-  else { $m = [regex]::Match($log, '(DirectML[^\r\n,.]*|using the CPU|CPU)'); if ($m.Success) { $name = $m.Groups[1].Value } }
+  else { $m = [regex]::Match($log, ' on (DirectML \(GPU \d+\)|CPU)'); if ($m.Success) { $name = $m.Groups[1].Value } }
   $row = [pscustomobject]@{ engine = $engine; device = $device; card = $name; textures = $made; of = $n; seconds = [math]::Round($t.TotalSeconds, 2); ms_per_texture = if ($made) { [math]::Round($t.TotalMilliseconds / $made) } else { 0 } }
   $script:rows += $row; $row | Format-Table -HideTableHeaders | Out-String | Write-Host -NoNewline
 }
