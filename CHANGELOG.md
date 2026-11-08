@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Tools
+- `tools\bench.ps1`: AI speed test on your PC: Real-ESRGAN (ncnn) on every graphics card vs the ONNX engine (DirectML per card, CPU), same textures; saves bench\bench-<date>.csv (roadmap 13).
+
 ### Upscale page
 - Zoomed in, any spot of the texture, edges and corners too, can be dragged or clicked to the middle of the preview (the zoomed view has room around the texture); zooming the Compare grid keeps the middle spot in place.
 - Compare grid: new **Original** cell (the texture itself with hard pixels, at the same size as the others) to compare against.
