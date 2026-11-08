@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Smart
+- Dither detection counts only the busy (non-flat) pixels, so a dithered sky or floor on a mostly black or flat texture is now found and softened (tuned on SF2 Turbo screen captures: 7 of 7 dithered gradients found, was 4; no noisy texture flagged). New `tools/dither-tune.js` scores a folder at several limits.
+
 ### Upscale page
 - The preview takes the left 70% and half the window's height; drag the small handle under it to make it taller or shorter (back to half the window when you leave the page or restart).
 - New **Output** panel on the right: **File type** (.PNG / .DDS, moved from Advanced options; "Same as input" is gone, old settings become DDS), **DDS compression**, **Compare** (on/off, picks saved, clear all), **Open folder** and **Reset Upscaler** (every Upscale setting back to default and the input cleared, after a Yes / Cancel).

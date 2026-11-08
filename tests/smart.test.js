@@ -39,6 +39,9 @@ test('smart: checker dithering is detected and softened, flat and noisy textures
   assert.ok(ditherScore(checker) > 0.9, String(ditherScore(checker)));
   assert.strictEqual(ditherScore(flat), 0);
   assert.ok(ditherScore(img(16, 16, noisy)) < 0.12);
+  // a dithered band on a mostly flat screen still counts (flat pixels don't water the share down)
+  const band = img(64, 64, (x, y) => (y >= 8 && y < 16 ? ((x + y) & 1 ? [120, 80, 60, 255] : [140, 96, 70, 255]) : [0, 0, 0, 255]));
+  assert.ok(ditherScore(band) >= 0.12, String(ditherScore(band)));
   const soft = dedither(checker);
   const at = (x, y) => soft.data[(y * 16 + x) * 4];
   assert.ok(Math.abs(at(5, 5) - at(6, 5)) < 4, `${at(5, 5)} vs ${at(6, 5)}`);               // dots pulled together

@@ -242,16 +242,21 @@ function ditherAt(d, w, h, x, y, edges, lim = DITHER_NEAR) {
   const L = px(-1, 0), R = px(1, 0), U = px(0, -1), D = px(0, 1);
   return same(L, R) && same(U, D) && !same(L, e) && !same(U, e) && near(L, e) && near(U, e) && d[L + 3] >= 128 && d[U + 3] >= 128;
 }
-// Share of visible pixels that look dithered (0..1).
+// Share of the busy visible pixels (not flat: some side neighbour differs) that look dithered (0..1).
+// Flat areas don't count, so a dithered sky or floor on a mostly black/flat screen isn't watered down
+// (tuned on SF2 Turbo screen captures: dithered gradients 0.14-0.23, noisy detail <= 0.03).
 function ditherScore(img, lim = DITHER_NEAR) {
   const { width: w, height: h, data: d } = img;
   if (w < 4 || h < 4) return 0;
-  let hit = 0, seen = 0;
+  const same = (a, b) => d[a] === d[b] && d[a + 1] === d[b + 1] && d[a + 2] === d[b + 2];
+  let hit = 0, busy = 0;
   for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {          // interior: border pixels have no full neighbourhood
-    if (d[(y * w + x) * 4 + 3] < 128) continue;
-    seen++; if (ditherAt(d, w, h, x, y, null, lim)) hit++;
+    const e = (y * w + x) * 4;
+    if (d[e + 3] < 128) continue;
+    if (same(e - 4, e) && same(e + 4, e) && same(e - w * 4, e) && same(e + w * 4, e)) continue;
+    busy++; if (ditherAt(d, w, h, x, y, null, lim)) hit++;
   }
-  return seen ? hit / seen : 0;
+  return busy ? hit / busy : 0;
 }
 // Softens the dither dots only: each dithered pixel moves halfway to the average of its side neighbours.
 // Flat areas, edges and detail are left alone; alpha is untouched.
