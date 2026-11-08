@@ -8,6 +8,7 @@ const path = require('path');
 const https = require('https');
 const tasks = require('./core/tasks');
 const rtz = require('./core/rtz');
+const ncnn = require('./core/ncnn');
 
 const APP_NAME = 'R64texHD';
 const REPO_URL = 'https://github.com/chuchudoesntknowhowtocode/R64texHD';
@@ -251,9 +252,13 @@ function addModel(paramFile) {
   if (!/\.param$/i.test(paramFile || '')) throw new Error('choose the model’s .param file');
   const bin = paramFile.replace(/\.param$/i, '.bin');
   if (!fs.existsSync(bin)) throw new Error(`${path.basename(bin)} must sit next to the .param file`);
-  const head = fs.readFileSync(paramFile, 'utf8').slice(0, 64);
-  if (/^(1|2|3|8|16)x[-_ ]/i.test(path.basename(paramFile))) throw new Error('only 4× models work here (the AI step always makes 4×)');
-  if (!/^\s*7767517/.test(head)) throw new Error('that is not an ncnn model (.param should start with 7767517)');
+  const text = fs.readFileSync(paramFile, 'utf8');
+  if (!/^\s*7767517/.test(text.slice(0, 64))) throw new Error('that is not an ncnn model (.param should start with 7767517)');
+  // Scale: from the model's own layers; the file name when the layers don't say, or says smaller (a model that
+  // shrinks its input first, like x2plus, reads too high from its layers; see core/ncnn.js).
+  const ls = ncnn.modelScale(text), ns = ncnn.nameScale(path.basename(paramFile));
+  const scale = ls === null || (ns !== null && ns < ls) ? ns : ls;
+  if (scale !== null && scale !== 4) throw new Error(`that is a ${scale}× model: only 4× models work here (the AI step always makes 4×)`);
   const name = path.basename(paramFile, path.extname(paramFile)).toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[^a-z0-9]+/, '').slice(0, 64);
   if (!MODEL_NAME_RE.test(name) || isBuiltinModel(name)) throw new Error('rename the files first: that name is taken by a built-in model');
   fs.mkdirSync(dir, { recursive: true });
