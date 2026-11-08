@@ -1,0 +1,17 @@
+R64texHD texture models
+=======================
+
+These AI models are converted for Real-ESRGAN (ncnn) by R64texHD's build/models/convert.py.
+The weights are the authors' own; only the file format changed (weights stored as 16-bit floats).
+
+hdcube-x4         4x_HDCube by Venomalia                     CC0 1.0 (public domain)
+                  https://openmodeldb.info/models/4x-HDCube  https://github.com/Venomalia/HDcube
+                  For GameCube / Wii-style textures. Not for pixel art, icons or text under 16 px.
+
+gameai2-x4        4x_GameAI 2.0 by Tal                       WTFPL
+                  https://openmodeldb.info/models/4x-GameAI-2-0
+                  Realistic and cartoon game textures. Not for very small textures such as item icons.
+
+pixelperfect4-x4  4x_PixelPerfectV4 by Mutin Choler          WTFPL
+                  https://openmodeldb.info/models/4x-PixelPerfectV4
+                  Pixel art and sprites.

@@ -8,3 +8,5 @@ build/wizard/frames_*/
 build/wizard/__pycache__/
 docs/handoff/.active
 docs/handoff/*.zip
+build/models/src/
+build/models/out/

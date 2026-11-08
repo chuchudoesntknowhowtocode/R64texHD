@@ -89,6 +89,7 @@ function tools() {
     texconv: findTool(settings.texconv, [path.join(toolsDir(), 'texconv.exe'), path.join(programDir(), 'tools', 'texconv.exe')]),
     realesrgan: findTool(settings.realesrgan, [path.join(toolsDir(), 'realesrgan', 'realesrgan-ncnn-vulkan' + exe),
       path.join(programDir(), 'tools', 'realesrgan', 'realesrgan-ncnn-vulkan' + exe)]),
+    models: textureModelsDir(),
     realesrganModel: settings.realesrganModel, aiGpu: settings.aiGpu, aiTile: settings.aiTile, bc7Quality: settings.bc7Quality || 'best',
   };
 }
@@ -211,6 +212,19 @@ const TOOL_URLS = {
   realesrgan: { url: 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip',
     sha256: 'abc02804e17982a3be33675e4d471e91ea374e65b70167abc09e31acb412802d' },
 };
+// Extra texture models (ESRGAN, converted for Real-ESRGAN by build/models/convert.py): one pack next to the release,
+// named in assets/models/remote.json by build/package.sh. They install into Real-ESRGAN's own models folder.
+const TEXTURE_MODELS = ['hdcube-x4', 'gameai2-x4', 'pixelperfect4-x4'];
+const MODELS_REMOTE = path.join(__dirname, 'assets', 'models', 'remote.json');
+function realesrganModelsDir() {
+  const exe = findTool(settings.realesrgan, [path.join(toolsDir(), 'realesrgan', 'realesrgan-ncnn-vulkan' + (process.platform === 'win32' ? '.exe' : '')),
+    path.join(programDir(), 'tools', 'realesrgan', 'realesrgan-ncnn-vulkan' + (process.platform === 'win32' ? '.exe' : ''))]);
+  return exe ? path.join(path.dirname(exe), 'models') : '';
+}
+function textureModelsDir() {
+  const dir = realesrganModelsDir();
+  return dir && TEXTURE_MODELS.every((m) => fs.existsSync(path.join(dir, m + '.param')) && fs.existsSync(path.join(dir, m + '.bin'))) ? dir : '';
+}
 function checkSha(file, want) {
   const got = require('crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex');
   if (got !== want) { fs.rmSync(file, { force: true }); throw new Error('the download did not match the expected file (checksum). Try again later.'); }
@@ -234,6 +248,20 @@ async function installTool(name) {
       const target = path.resolve(dir, e.name);
       if (!target.startsWith(path.resolve(dir) + path.sep)) continue;
       fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, rtz.readEntry(zip, e));
+    }
+    fs.rmSync(zip, { force: true });
+  } else if (name === 'models') {
+    const dir = realesrganModelsDir();
+    if (!dir) throw new Error('download Real-ESRGAN first: the texture models go into its models folder');
+    let remote; try { remote = JSON.parse(fs.readFileSync(MODELS_REMOTE, 'utf8')); } catch { throw new Error('this build has no texture model pack'); }
+    const zip = path.join(TEMP_DIR, 'htk-models.zip');
+    await download(remote.url, zip, progress);
+    checkSha(zip, remote.sha256);
+    fs.mkdirSync(dir, { recursive: true });
+    for (const e of rtz.readEntries(zip)) {
+      const target = path.resolve(dir, path.basename(e.name));
+      if (!/\.(param|bin|txt)$/i.test(e.name)) continue;
       fs.writeFileSync(target, rtz.readEntry(zip, e));
     }
     fs.rmSync(zip, { force: true });

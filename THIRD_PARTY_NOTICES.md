@@ -104,3 +104,13 @@ supplied in `app/ui/fonts/Pixelfy-LICENSE.txt`:
 > thankyou for downloading. this font is for Personal use. dont use it for any commercial
 > project.
 
+
+## Texture models (optional download)
+
+The texture model pack (Settings › Texture models) holds three ESRGAN models converted for Real-ESRGAN
+(ncnn) by `build/models/convert.py`; only the file format changed. Details and links: `build/models/CREDITS.txt`
+(shipped in the pack as `texture-models-CREDITS.txt`).
+
+- **4x_HDCube** by Venomalia: CC0 1.0
+- **4x_GameAI 2.0** by Tal: WTFPL
+- **4x_PixelPerfectV4** by Mutin Choler: WTFPL

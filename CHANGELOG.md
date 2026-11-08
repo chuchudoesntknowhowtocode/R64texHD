@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Upscaling
+- **Texture models** (Settings › Helper tools): an optional download of three AI models made for game textures, for Real-ESRGAN: **HDCube** (CC0, keeps the game's look), **GameAI 2.0** (WTFPL, game textures) and **Pixel** (PixelPerfectV4, WTFPL, sprites). Pick them under Settings › AI model; the Scale slider's AI stop uses that choice. Credits in `texture-models-CREDITS.txt`.
 - AI upscale: textures 32 px or smaller get a full copy of themselves on every side (by their tiling) before Real-ESRGAN, instead of an 8 px border, so tiny repeating textures don't get seams.
 - Preview: the box grows with the window (300–720 px tall) and Fit fills it with the whole texture. New − / + buttons and the **mouse wheel** zoom from 100% up to 800%, centred on the cursor; the % button jumps to 100% (actual size). Replaces Fit / 1:1 / 2:1.
 - **AI colour fix** (on by default): AI results are pulled back to the original's colours (broad hue / brightness drift removed, detail kept, colour only). Grey intensity textures stay grey.

@@ -88,6 +88,7 @@ nav.locked button { pointer-events: none; opacity: .45; }
 .row .l small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.45; }
 .row[hidden] { display: none; }
 .seg { display: flex; gap: 8px; }
+.seg.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); }
 .seg button { flex: 1; min-width: 0; padding: 7px 8px; border: 0; border-radius: 7px; background: var(--field); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .seg button:hover { background: var(--field-hover); }
 .seg button.on { background: var(--orange); color: var(--ink); font-weight: 600; }
@@ -1119,7 +1120,7 @@ const pages = {
   },
   settings() {
     const t = S.tools;
-    const tool = (name, path, label, size, extra = '') => `${extra}<div class="tool-state ${path ? 'have' : 'missing'}">${pixelIcon(path ? 'green' : 'red', path ? '' : 'x')}<span>${path ? 'Downloaded' : 'Not downloaded'}</span></div><div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}<button class="btn" data-browse="exe" data-for="${name}">Locate…</button></div><div class="tool" id="tool-${name}"></div>`;
+    const tool = (name, path, label, size, extra = '') => `${extra}<div class="tool-state ${path ? 'have' : 'missing'}">${pixelIcon(path ? 'green' : 'red', path ? '' : 'x')}<span>${path ? 'Downloaded' : 'Not downloaded'}</span></div><div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}${name === 'models' ? '' : `<button class="btn" data-browse="exe" data-for="${name}">Locate…</button>`}</div><div class="tool" id="tool-${name}"></div>`;
     const onOff = (key, v) => seg(key, [['true', 'On'], ['false', 'Off']], String(v));
     const anim = cfg.sceneAnimations !== false, wins = cfg.wizardWins || 0;
     const mc = window.Music ? Music.counts() : { yours: 0, yoursDmt: 0 }, now = window.Music && Music.now();
@@ -1131,10 +1132,12 @@ const pages = {
       ${sbox('Helper tools', '',
         row('texconv (BC7)', 'From Microsoft. Makes sharp BC7 DDS textures and keeps far-away fences visible.', tool('texconv', t.texconv, 'texconv', TOOL_INFO.texconv.size))
         + row('Real-ESRGAN (AI)', 'For the AI upscale method. Needs a graphics card with Vulkan.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', TOOL_INFO.realesrgan.size, `<div id="gpu-state">${gpuLines()}</div>`))
+        + row('Texture models (AI)', 'HDCube, GameAI and Pixel: AI models made for game textures and sprites, for Real-ESRGAN. Free to share (CC0 / WTFPL).', tool('models', t.models, 'texture models', TOOL_INFO.models.size))
         + row('Check tools at startup', 'If a tool is missing, R64texHD offers to download it when it starts.', onOff('checkTools', cfg.checkTools !== false)))}
       ${sbox('Upscaling', '',
         sub('AI upscaling',
-          row('AI model', 'General suits most textures. Art suits drawn or cartoon textures.', seg('realesrganModel', [['realesrgan-x4plus', 'General'], ['realesrgan-x4plus-anime', 'Art'], ['realesr-animevideov3', 'Fast art']], cfg.realesrganModel))
+          row('AI model', 'General suits most textures, Art drawn or cartoon ones. HDCube keeps the game\u2019s look (not for text or icons), GameAI suits game textures, Pixel suits sprites (these three need the texture models).',
+            seg('realesrganModel', AI_MODELS.map((m) => [m.id, m.label]), cfg.realesrganModel, S.tools.models ? [] : AI_MODELS.filter((m) => m.pack).map((m) => m.id), 'grid3'))
           + row('Graphics card', 'Which GPU the AI uses. Auto picks the best one.', seg('aiGpu', [['auto', 'Auto'], ['0', 'GPU 1'], ['1', 'GPU 2']], cfg.aiGpu))
           + row('GPU memory use', 'Pick Low if AI upscaling crashes or your graphics card has little memory.', seg('aiTile', [['auto', 'Auto'], ['256', 'Medium'], ['128', 'Low']], cfg.aiTile)))
         + sub('Performance',
@@ -1212,8 +1215,15 @@ const pages = {
 const TOOL_INFO = {
   texconv: { label: 'texconv', size: '1 MB', use: 'sharp BC7 DDS textures' },
   realesrgan: { label: 'Real-ESRGAN', size: '45 MB', use: 'AI upscaling' },
+  models: { label: 'texture models', size: '100 MB', use: 'AI models for game textures', optional: true },
 };
-const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !S.tools[n]);
+const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !TOOL_INFO[n].optional && !S.tools[n]);
+// Real-ESRGAN models: its own three, then the texture pack (Settings › Tools › Texture models).
+const AI_MODELS = [
+  { id: 'realesrgan-x4plus', label: 'General' }, { id: 'realesrgan-x4plus-anime', label: 'Art' }, { id: 'realesr-animevideov3', label: 'Fast art' },
+  { id: 'hdcube-x4', label: 'HDCube', pack: true }, { id: 'gameai2-x4', label: 'GameAI', pack: true }, { id: 'pixelperfect4-x4', label: 'Pixel', pack: true },
+];
+const aiModelLabel = (id) => (AI_MODELS.find((m) => m.id === id) || AI_MODELS[0]).label;
 // At startup (unless turned off in Settings), missing tools are offered in a small Yes / No window.
 let toolsBackTo = '';
 function askTools(backTo) {
@@ -2208,7 +2218,7 @@ const SCALE_STEPS = [
   { id: '1', label: '1×', note: 'Same size, cleaned up and saved again' }, { id: '2', label: '2×' }, { id: '4', label: '4×' }, { id: '8', label: '8×' }, { id: '16', label: '16×' },
   { id: 'fit', label: 'Fit', note: 'Longest side set below' },
   { id: 'anime', label: 'Anime', ai: true, model: 'realesrgan-x4plus-anime', note: 'Real-ESRGAN Art model, 4× (drawn and cartoon textures)' },
-  { id: 'ai', label: 'AI', ai: true, model: 'realesrgan-x4plus', note: 'Real-ESRGAN General model, 4×' },
+  { id: 'ai', label: 'AI', ai: true, model: null },                 // the AI model chosen in Settings (not Art)
 ];
 function scaleStepIndex() {
   const u = cfg.upscale;
@@ -2223,7 +2233,7 @@ const stepOk = (s) => !s.ai || !!S.tools.realesrgan;
 function scaleNote() {
   const { i, custom } = scaleStepIndex(), s = SCALE_STEPS[i];
   if (custom) return `${cfg.upscale.size}× (custom, from Advanced options)`;
-  const base = s.note || `${s.label} bigger · nothing goes past ${cfg.maxSize} px`;
+  const base = s.id === 'ai' ? `Real-ESRGAN, ${aiModelLabel(cfg.realesrganModel)} model, 4× (pick the model in Settings)` : s.note || `${s.label} bigger · nothing goes past ${cfg.maxSize} px`;
   return S.tools.realesrgan ? base : base + ' · Anime and AI need Real-ESRGAN (Settings)';
 }
 function scaleSteps() {
@@ -2236,7 +2246,11 @@ function scaleSteps() {
 function applyScaleStep(j) {
   const s = SCALE_STEPS[j]; if (!s || !stepOk(s)) return false;
   const u = cfg.upscale;
-  if (s.ai) { u.method = 'ai'; u.size = 4; cfg.realesrganModel = s.model; }
+  if (s.ai) {
+    u.method = 'ai'; u.size = 4;
+    const keep = cfg.realesrganModel && !/anime/.test(cfg.realesrganModel) && (S.tools.models || !(AI_MODELS.find((m) => m.id === cfg.realesrganModel) || {}).pack);
+    cfg.realesrganModel = s.model || (keep ? cfg.realesrganModel : 'realesrgan-x4plus');
+  }
   else { if (u.method === 'ai') u.method = 'standard'; u.size = s.id === 'fit' ? 'fit' : Number(s.id); }
   return true;
 }

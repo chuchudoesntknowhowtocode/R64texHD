@@ -53,6 +53,23 @@ data = open(out, 'rb').read()
 json.dump({'url': url, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(data), 'clips': len(moved)}, open(os.path.join(src, 'remote.json'), 'w'), indent=1)
 print(f'scenes pack: {len(moved)} clips, {len(data) / 1e6:.1f} MB')
 PY
+# Texture models pack (build/models/out, made by build/models/convert.py): a separate download next to the release,
+# installed from Settings into Real-ESRGAN's models folder. Skipped when the models haven't been converted.
+MODELS_URL="${MODELS_URL:-$REPO_URL/releases/download/v$VERSION/$NAME-models.zip}"
+if ls "$HERE/build/models/out/"*.param >/dev/null 2>&1; then
+  python3 - "$HERE/build/models" "$HERE/dist/$NAME-models.zip" "$MODELS_URL" "$OUT/resources/app/assets/models" <<'PY'
+import hashlib, json, os, sys, zipfile
+src, out, url, dest = sys.argv[1:5]
+names = ['hdcube-x4', 'gameai2-x4', 'pixelperfect4-x4']
+with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+    for n in names:
+        for ext in ('.param', '.bin'): z.write(os.path.join(src, 'out', n + ext), n + ext)
+    z.write(os.path.join(src, 'CREDITS.txt'), 'texture-models-CREDITS.txt')
+data = open(out, 'rb').read(); os.makedirs(dest, exist_ok=True)
+json.dump({'url': url, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(data), 'models': names}, open(os.path.join(dest, 'remote.json'), 'w'), indent=1)
+print(f'texture models pack: {len(names)} models, {len(data) / 1e6:.1f} MB')
+PY
+fi
 sed 's/$/\r/' "$HERE/docs/README.txt" > "$OUT/README.txt"
 cp "$HERE/LICENSE" "$OUT/LICENSE.R64texHD.txt"
 cp "$HERE/THIRD_PARTY_NOTICES.md" "$OUT/THIRD_PARTY_NOTICES.md"
@@ -63,4 +80,4 @@ with zipfile.ZipFile('$NAME-Windows.zip', 'w', zipfile.ZIP_DEFLATED, compresslev
         for f in sorted(files):
             z.write(os.path.join(root, f))
 " )
-echo "Done: $HERE/dist/$NAME-Windows.zip and $HERE/dist/$NAME-scenes.zip (attach both to the release)"
+echo "Done: $HERE/dist/$NAME-Windows.zip, $NAME-scenes.zip and (if built) $NAME-models.zip: attach them all to the release"
