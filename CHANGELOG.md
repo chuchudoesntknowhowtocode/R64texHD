@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Upscale page
+- Compare grid: new **Original** cell (the texture itself with hard pixels, at the same size as the others) to compare against.
+
 ## v0.9.2.0
 
 ### Helper tools

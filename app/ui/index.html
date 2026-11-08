@@ -656,7 +656,7 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .pv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .pv-grid.n3 { grid-template-columns: 1fr 1fr 1fr; }
 .pv-cell { min-width: 0; }
-.pv-cell-cap { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); margin-bottom: 5px; white-space: nowrap; overflow: hidden; }
+.pv-cell-cap { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); margin-bottom: 5px; min-height: 26px; white-space: nowrap; overflow: hidden; }
 .pv-cell-cap b { color: var(--text); font-weight: 600; }
 .pv-cell-info { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .pv-use { padding: 4px 10px; font-size: 12px; flex: none; }
@@ -2306,7 +2306,8 @@ function drawPreview() {
 // 2–4 versions of the same texture side by side (same zoom, scrolled together). "Use this" saves the pick
 // for that texture (by its RT64 hash), and the Upscale run then makes that version instead.
 function compareChoices() {
-  const list = [{ id: 'hd', label: 'HD 4×' }, { id: 'mmpx', label: 'MMPX' }, { id: 'pixel', label: 'Pixel-perfect' }];
+  // orig: the texture itself, blown up with hard pixels to the same size (to compare against; can't be picked)
+  const list = [{ id: 'orig', label: 'Original' }, { id: 'hd', label: 'HD 4×' }, { id: 'mmpx', label: 'MMPX' }, { id: 'pixel', label: 'Pixel-perfect' }];
   for (const m of aiModels()) {
     const ok = m.onnx ? !!S.tools.onnx : !!S.tools.realesrgan && aiOk() && (!m.pack || S.tools.models);
     if (ok) list.push({ id: 'ai:' + m.id, label: 'AI ' + m.label });
@@ -2328,7 +2329,7 @@ function compareBody() {
   const chips = compareChoices().map((c) => `<button class="chip ${set.includes(c.id) ? 'on' : ''}" data-pvchip="${c.id}">${esc(c.label)}</button>`).join('');
   const cells = set.map((id) => `<div class="pv-cell ${pick === id ? 'picked' : ''}" data-cell="${id}">
       <div class="pv-cell-cap"><b>${esc(pickLabelOf(id))}</b><span class="pv-cell-info"></span>
-        <button class="btn pv-use ${pick === id ? 'on' : ''}" data-pvuse="${id}">${pick === id ? '✓ Picked' : 'Use this'}</button></div>
+        ${id === 'orig' ? '' : `<button class="btn pv-use ${pick === id ? 'on' : ''}" data-pvuse="${id}">${pick === id ? '✓ Picked' : 'Use this'}</button>`}</div>
       <div class="pv-view pv-cv"><canvas></canvas><div class="pv-cell-msg"></div></div></div>`).join('');
   return `<div class="pv-chips"><span>Show (2–4):</span>${chips}</div>
     <div class="pv-grid n${set.length}" id="pv-grid">${cells}</div>
@@ -2351,6 +2352,7 @@ function scheduleCompare() {
   PV.cmpTimer = setTimeout(async () => {
     const seq = ++PV.cmpSeq;
     for (const id of compareSet()) {
+      if (id === 'orig') continue;                                   // drawn from another cell's original
       const req = { ...previewParams(), pick: id }, key = JSON.stringify(req);
       if (PV.cache.has(key) || PV.cmpErr[key]) continue;
       PV.cmpBusy = key; drawCompare();
@@ -2365,6 +2367,8 @@ function scheduleCompare() {
 function drawCompare() {
   const grid = $('#pv-grid'); if (!grid) return;
   const cells = [...grid.querySelectorAll('.pv-cell')].map((el) => ({ el, id: el.dataset.cell, view: el.querySelector('.pv-cv'), r: PV.cache.get(cellKey(el.dataset.cell)) }));
+  const base = (cells.find((c) => c.id !== 'orig' && c.r) || {}).r;
+  for (const c of cells) if (c.id === 'orig') c.r = base;          // same size as the others, the original's pixels
   let fitK = Infinity;
   for (const c of cells) if (c.r) fitK = Math.min(fitK, (c.view.clientWidth - 8) / c.r.up.width, (c.view.clientHeight - 8) / c.r.up.height);
   if (!isFinite(fitK)) fitK = 1;
@@ -2382,12 +2386,14 @@ function drawCompare() {
       msg.classList.toggle('err', !!err); info.textContent = ''; continue;
     }
     msg.textContent = '';
-    if (cv.dataset.key !== key) { paint(cv, c.r.up); cv.dataset.key = key; }
+    const orig = c.id === 'orig', ck = orig ? cellKey(cells.find((o) => o.r === c.r && o.id !== 'orig').id) + '#orig' : key;
+    if (cv.dataset.key !== ck) { paint(cv, orig ? c.r.orig : c.r.up); cv.dataset.key = ck; }
     const w = Math.max(1, Math.round(c.r.up.width * k)), h = Math.max(1, Math.round(c.r.up.height * k));
     cv.style.width = w + 'px'; cv.style.height = h + 'px';
-    cv.classList.toggle('px', w >= c.r.up.width);
+    cv.classList.toggle('px', orig || w >= c.r.up.width);
     cv.style.marginTop = fit ? '' : Math.max(0, Math.floor((c.view.clientHeight - h) / 2)) + 'px';
     if (!fit) { c.view.scrollLeft = PV.scroll.x; c.view.scrollTop = PV.scroll.y; }
+    if (orig) { info.textContent = ` · ${c.r.orig.width}×${c.r.orig.height}`; continue; }
     info.textContent = ` · ${c.r.up.width}×${c.r.up.height} · ${(c.r.ms / 1000).toFixed(2)} s` + (c.r.route && /dither/.test(c.r.route) ? ' · dither softened' : '');
   }
   document.querySelectorAll('[data-pvzoom="fit"]').forEach((b) => b.classList.toggle('on', fit));
