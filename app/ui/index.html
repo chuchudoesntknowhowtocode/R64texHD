@@ -646,6 +646,7 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .pv-cell-msg.err { color: var(--bad); }
 .pv-pickline { margin-top: 8px; font-size: 12px; color: var(--muted); }
 .pv-pickline b { color: var(--text); }
+.own-models { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .linkbtn { background: none; border: 0; padding: 0; color: var(--orange-hi); cursor: pointer; font: inherit; text-decoration: underline; }
 
 /* Collapsible left pane: the grey tab on its right edge folds it to a rail of number chips */
@@ -1161,7 +1162,10 @@ const pages = {
       ${sbox('Upscaling', '',
         sub('AI upscaling',
           row('AI model', 'General suits most textures, Art drawn or cartoon ones. HDCube keeps the game\u2019s look (not for text or icons), GameAI suits game textures, Pixel suits sprites (these three need the texture models).',
-            seg('realesrganModel', AI_MODELS.map((m) => [m.id, m.label]), cfg.realesrganModel, S.tools.models ? [] : AI_MODELS.filter((m) => m.pack).map((m) => m.id), 'grid3'))
+            seg('realesrganModel', aiModels().map((m) => [m.id, m.label]), cfg.realesrganModel, S.tools.models ? [] : AI_MODELS.filter((m) => m.pack).map((m) => m.id), 'grid3'))
+          + row('Your own models', 'Any 4× Real-ESRGAN ncnn model (.param + .bin, e.g. from OpenModelDB, converted). Check each model’s licence: many are non-commercial. They stay on this PC; R64texHD never ships or shares them.',
+            `<div class="own-models">${(t.customModels || []).map((n) => `<span class="chip">${esc(n)} <button class="linkbtn" data-model-del="${esc(n)}" title="Remove this model">✕</button></span>`).join('')}
+              <button class="btn" id="model-add" ${t.realesrgan ? '' : 'disabled title="Download Real-ESRGAN first"'}>Add a model…</button></div><div class="tool" id="model-msg"></div>`)
           + row('Graphics card', 'Which GPU the AI uses. Auto picks the best one.', seg('aiGpu', [['auto', 'Auto'], ['0', 'GPU 1'], ['1', 'GPU 2']], cfg.aiGpu))
           + row('GPU memory use', 'Pick Low if AI upscaling crashes or your graphics card has little memory.', seg('aiTile', [['auto', 'Auto'], ['256', 'Medium'], ['128', 'Low']], cfg.aiTile)))
         + sub('Performance',
@@ -1247,7 +1251,9 @@ const AI_MODELS = [
   { id: 'realesrgan-x4plus', label: 'General' }, { id: 'realesrgan-x4plus-anime', label: 'Art' }, { id: 'realesr-animevideov3', label: 'Fast art' },
   { id: 'hdcube-x4', label: 'HDCube', pack: true }, { id: 'gameai2-x4', label: 'GameAI', pack: true }, { id: 'pixelperfect4-x4', label: 'Pixel', pack: true },
 ];
-const aiModelLabel = (id) => (AI_MODELS.find((m) => m.id === id) || AI_MODELS[0]).label;
+// Built-in models, then your own (Settings › Your own models).
+const aiModels = () => AI_MODELS.concat(((S && S.tools.customModels) || []).map((n) => ({ id: n, label: n, custom: true })));
+const aiModelLabel = (id) => (aiModels().find((m) => m.id === id) || AI_MODELS[0]).label;
 // At startup (unless turned off in Settings), missing tools are offered in a small Yes / No window.
 let toolsBackTo = '';
 function askTools(backTo) {
@@ -1695,6 +1701,19 @@ document.addEventListener('click', async (e) => {
   if (sp) { selectPort(sp.dataset.port); return; }
   if (id === 'tools-no') { toolsDone(); return; }
   if (e.target.closest('#home')) { page = 'welcome'; cfg.page = page; render(); nextHeaderPhrase(); return; }
+  if (e.target.id === 'model-add') {
+    const f = await window.htk.dialog({ kind: 'open-param', title: 'Choose the model’s .param file (its .bin must be next to it)' });
+    if (!f) return;
+    const r = await window.htk.addModel(f);
+    if (r.ok) { S.tools = r.tools; toast(`Added ${r.name}`); render(); } else { const m = $('#model-msg'); if (m) m.textContent = 'Couldn’t add it: ' + r.error; }
+    return;
+  }
+  const mdel = e.target.closest('[data-model-del]');
+  if (mdel) {
+    const r = await window.htk.removeModel(mdel.dataset.modelDel);
+    if (r.ok) { S.tools = r.tools; cfg.realesrganModel = r.settings.realesrganModel; if (cfg.compareSet) cfg.compareSet = cfg.compareSet.filter((id) => id !== 'ai:' + mdel.dataset.modelDel); render(); } else toast(r.error);
+    return;
+  }
   const inst = e.target.closest('[data-install]');
   if (inst) {
     inst.disabled = true; inst.textContent = 'Downloading…';
@@ -2226,7 +2245,7 @@ function drawPreview() {
 // for that texture (by its RT64 hash), and the Upscale run then makes that version instead.
 function compareChoices() {
   const list = [{ id: 'hd', label: 'HD 4×' }, { id: 'mmpx', label: 'MMPX' }, { id: 'pixel', label: 'Pixel-perfect' }];
-  if (S.tools.realesrgan && aiOk()) for (const m of AI_MODELS) if (!m.pack || S.tools.models) list.push({ id: 'ai:' + m.id, label: 'AI ' + m.label });
+  if (S.tools.realesrgan && aiOk()) for (const m of aiModels()) if (!m.pack || S.tools.models) list.push({ id: 'ai:' + m.id, label: 'AI ' + m.label });
   return list;
 }
 function compareSet() {

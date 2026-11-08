@@ -3,6 +3,7 @@
 ## v0.9.0.0
 
 ### Upscaling
+- **Your own models** (Settings › AI upscaling): add any 4× Real-ESRGAN ncnn model (.param + .bin), e.g. a converted OpenModelDB model. It joins the AI model choices and the Compare grid, and can be removed again. Models stay on your PC: many popular ones are non-commercial, so R64texHD never ships or shares them.
 - **Compare** (Upscale preview): a button next to the zoom shows 2–4 versions of the same texture side by side (HD 4×, MMPX, Pixel-perfect and each AI model you have), with one zoom and scroll for all. **Use this** saves the pick for that texture (by its RT64 hash); the run then makes that version instead of the chosen method or Smart's route. Picked textures get a ✓ in the texture list; picks can be cleared one by one or all at once.
 - **Supersample** (Advanced options): each texture is made twice as big, then shrunk back with Lanczos, for calmer sharpening and fewer AI artefacts (with AI on a 2× target, the AI's 4× result is shrunk to 2×). Cut-outs stay hard.
 - **Half-size copy** (Advanced options): also saves everything at half size in "<output> (half size)", other files included, so one run gives a 4K pack and an HD pack. Tiling textures (wrap / mirror edges) are shrunk across their border, so the half copy and Supersample have no seams. When the run finishes, **Pack the half-size copy** opens Pack with that folder.

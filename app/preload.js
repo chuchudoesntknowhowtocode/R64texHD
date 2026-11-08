@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('htk', {
   createShortcuts: () => ipcRenderer.invoke('shortcuts'),
   openRepo: () => ipcRenderer.invoke('repo'),
   installTool: (name) => ipcRenderer.invoke('tool:install', name),
+  addModel: (file) => ipcRenderer.invoke('model:add', file),
+  removeModel: (name) => ipcRenderer.invoke('model:remove', name),
   quit: () => ipcRenderer.invoke('quit'),
   previewList: (inputs, subfolders) => ipcRenderer.invoke('preview:list', { inputs, subfolders }),
   preview: (req) => ipcRenderer.invoke('preview', req),

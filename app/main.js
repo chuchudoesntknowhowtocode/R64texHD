@@ -89,7 +89,7 @@ function tools() {
     texconv: findTool(settings.texconv, [path.join(toolsDir(), 'texconv.exe'), path.join(programDir(), 'tools', 'texconv.exe')]),
     realesrgan: findTool(settings.realesrgan, [path.join(toolsDir(), 'realesrgan', 'realesrgan-ncnn-vulkan' + exe),
       path.join(programDir(), 'tools', 'realesrgan', 'realesrgan-ncnn-vulkan' + exe)]),
-    models: textureModelsDir(),
+    models: textureModelsDir(), customModels: customModels(),
     realesrganModel: settings.realesrganModel, aiGpu: settings.aiGpu, aiTile: settings.aiTile, bc7Quality: settings.bc7Quality || 'best',
   };
 }
@@ -224,6 +224,40 @@ function realesrganModelsDir() {
 function textureModelsDir() {
   const dir = realesrganModelsDir();
   return dir && TEXTURE_MODELS.every((m) => fs.existsSync(path.join(dir, m + '.param')) && fs.existsSync(path.join(dir, m + '.bin'))) ? dir : '';
+}
+// Your own models (roadmap 12): any extra Real-ESRGAN ncnn model (.param + .bin) in its models folder, added in
+// Settings. They stay on this PC (many popular models are non-commercial, so R64texHD never ships or shares them).
+const MODEL_NAME_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i;
+const isBuiltinModel = (n) => /^realesr/i.test(n) || TEXTURE_MODELS.includes(n);
+function customModels() {
+  const dir = realesrganModelsDir();
+  if (!dir || !fs.existsSync(dir)) return [];
+  try {
+    return fs.readdirSync(dir).filter((f) => /\.param$/i.test(f)).map((f) => f.slice(0, -6))
+      .filter((n) => MODEL_NAME_RE.test(n) && !isBuiltinModel(n) && fs.existsSync(path.join(dir, n + '.bin'))).sort();
+  } catch { return []; }
+}
+function addModel(paramFile) {
+  const dir = realesrganModelsDir();
+  if (!dir) throw new Error('download Real-ESRGAN first: models go into its models folder');
+  if (!/\.param$/i.test(paramFile || '')) throw new Error('choose the model’s .param file');
+  const bin = paramFile.replace(/\.param$/i, '.bin');
+  if (!fs.existsSync(bin)) throw new Error(`${path.basename(bin)} must sit next to the .param file`);
+  const head = fs.readFileSync(paramFile, 'utf8').slice(0, 64);
+  if (/^(1|2|3|8|16)x[-_ ]/i.test(path.basename(paramFile))) throw new Error('only 4× models work here (the AI step always makes 4×)');
+  if (!/^\s*7767517/.test(head)) throw new Error('that is not an ncnn model (.param should start with 7767517)');
+  const name = path.basename(paramFile, path.extname(paramFile)).toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^[^a-z0-9]+/, '').slice(0, 64);
+  if (!MODEL_NAME_RE.test(name) || isBuiltinModel(name)) throw new Error('rename the files first: that name is taken by a built-in model');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.copyFileSync(paramFile, path.join(dir, name + '.param'));
+  fs.copyFileSync(bin, path.join(dir, name + '.bin'));
+  return name;
+}
+function removeModel(name) {
+  const dir = realesrganModelsDir();
+  if (!dir || !customModels().includes(name)) throw new Error('not one of your own models');
+  for (const ext of ['.param', '.bin']) fs.rmSync(path.join(dir, name + ext), { force: true });
+  if (settings.realesrganModel === name) { settings.realesrganModel = 'realesrgan-x4plus'; saveSettings(); }
 }
 function checkSha(file, want) {
   const got = require('crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex');
@@ -452,6 +486,7 @@ function registerIpc() {
     else if (kind === 'images') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile', 'multiSelections'], filters: [{ name: 'Textures', extensions: ['png', 'dds'] }] });
     else if (kind === 'open-rtz') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'RT64 texture pack', extensions: ['rtz'] }, { name: 'All files', extensions: ['*'] }] });
     else if (kind === 'exe') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'Programs', extensions: process.platform === 'win32' ? ['exe'] : ['*'] }] });
+    else if (kind === 'open-param') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'ncnn model', extensions: ['param'] }] });
     else if (kind === 'image') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'Picture', extensions: ['png'] }] });
     else if (kind === 'open-o2r') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'Game archive', extensions: ['o2r', 'otr'] }, { name: 'All files', extensions: ['*'] }] });
     else if (kind === 'open-hts') r = await dialog.showOpenDialog(win, { ...base, properties: ['openFile'], filters: [{ name: 'GLideN64 texture pack', extensions: ['hts', 'htc'] }, { name: 'All files', extensions: ['*'] }] });
@@ -475,6 +510,8 @@ function registerIpc() {
   });
   ipcMain.handle('repo', () => { shell.openExternal(REPO_URL); return REPO_URL; });
   ipcMain.handle('shortcuts', () => createShortcuts());
+  ipcMain.handle('model:add', (_e, file) => { try { return { ok: true, name: addModel(file), tools: tools() }; } catch (e) { return { ok: false, error: e.message }; } });
+  ipcMain.handle('model:remove', (_e, name) => { try { removeModel(name); return { ok: true, tools: tools(), settings }; } catch (e) { return { ok: false, error: e.message }; } });
   ipcMain.handle('tool:install', async (_e, name) => { try { return { ok: true, tools: await installTool(name) }; } catch (e) { return { ok: false, error: e.message }; } });
   ipcMain.handle('quit', () => { if (running) cancelTask(); quitting = true; setTimeout(() => app.quit(), 200); return true; });
 }
