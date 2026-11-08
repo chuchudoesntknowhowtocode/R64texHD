@@ -75,17 +75,58 @@ function resize(plane, w, h, nw, nh) {
   return out;
 }
 
+// Lanczos weights that read past the border by the texture's edge mode (wrap / mirror), so a tiling
+// texture shrinks without a seam: each tap is a source index (already wrapped) and its weight.
+function edgeWeights(inSize, outSize, mode) {
+  const scale = inSize / outSize, filterScale = Math.max(scale, 1), support = 3 * filterScale;
+  const list = [];
+  for (let o = 0; o < outSize; o++) {
+    const center = (o + 0.5) * scale;
+    const lo = Math.floor(center - support), hi = Math.ceil(center + support);
+    const idx = [], w = [];
+    let sum = 0;
+    for (let i = lo; i < hi; i++) { const v = lanczos3((i + 0.5 - center) / filterScale); idx.push(edgeIndex(i, inSize, mode)); w.push(v); sum += v; }
+    list.push({ idx: Int32Array.from(idx), w: Float32Array.from(w.map((v) => v / (sum || 1))) });
+  }
+  return list;
+}
+function resizeEdges(plane, w, h, nw, nh, edges) {
+  const wx = edgeWeights(w, nw, edges[0]), wy = edgeWeights(h, nh, edges[1]);
+  const tmp = new Float32Array(nw * h);
+  for (let y = 0; y < h; y++) {
+    const row = y * w;
+    for (let x = 0; x < nw; x++) {
+      const { idx, w: k } = wx[x];
+      let s = 0;
+      for (let i = 0; i < k.length; i++) s += plane[row + idx[i]] * k[i];
+      tmp[y * nw + x] = s;
+    }
+  }
+  const out = new Float32Array(nw * nh);
+  for (let y = 0; y < nh; y++) {
+    const { idx, w: k } = wy[y];
+    for (let x = 0; x < nw; x++) {
+      let s = 0;
+      for (let i = 0; i < k.length; i++) s += tmp[idx[i] * nw + x] * k[i];
+      out[y * nw + x] = s;
+    }
+  }
+  return out;
+}
+const isClamp = (edges) => !edges || (edges[0] !== 'wrap' && edges[0] !== 'mirror' && edges[1] !== 'wrap' && edges[1] !== 'mirror');
+
 // 3x3 neighbourhood min and max (separable).
-function localRange(plane, w, h) {
+function localRange(plane, w, h, edges = null) {
+  const ex = edges ? edges[0] : 'clamp', ey = edges ? edges[1] : 'clamp';
   const mnH = new Float32Array(w * h), mxH = new Float32Array(w * h);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const o = y * w;
-    const a = plane[o + Math.max(x - 1, 0)], b = plane[o + x], c = plane[o + Math.min(x + 1, w - 1)];
+    const a = plane[o + edgeIndex(x - 1, w, ex)], b = plane[o + x], c = plane[o + edgeIndex(x + 1, w, ex)];
     mnH[o + x] = Math.min(a, b, c); mxH[o + x] = Math.max(a, b, c);
   }
   const mn = new Float32Array(w * h), mx = new Float32Array(w * h);
   for (let y = 0; y < h; y++) {
-    const u = Math.max(y - 1, 0) * w, m = y * w, d = Math.min(y + 1, h - 1) * w;
+    const u = edgeIndex(y - 1, h, ey) * w, m = y * w, d = edgeIndex(y + 1, h, ey) * w;
     for (let x = 0; x < w; x++) {
       mn[m + x] = Math.min(mnH[u + x], mnH[m + x], mnH[d + x]);
       mx[m + x] = Math.max(mxH[u + x], mxH[m + x], mxH[d + x]);
@@ -95,9 +136,9 @@ function localRange(plane, w, h) {
 }
 
 // Resize, then clamp every output pixel to the range of the source pixels it came from (anti-ringing).
-function resizeClamped(plane, w, h, nw, nh) {
-  const up = resize(plane, w, h, nw, nh);
-  const [mn, mx] = localRange(plane, w, h);
+function resizeClamped(plane, w, h, nw, nh, edges) {
+  const up = isClamp(edges) ? resize(plane, w, h, nw, nh) : resizeEdges(plane, w, h, nw, nh, edges);
+  const [mn, mx] = localRange(plane, w, h, isClamp(edges) ? null : edges);
   for (let y = 0; y < nh; y++) {
     const sy = Math.min(h - 1, Math.floor((y + 0.5) * h / nh)) * w, o = y * nw;
     for (let x = 0; x < nw; x++) {
@@ -413,7 +454,8 @@ function upscale(img, opts, start = null) {
 // Lanczos shrink that keeps cut-outs hard: when the source alpha was binary (and hard alpha is on),
 // alpha is cut again at the threshold after resizing.
 function shrinkCut(img, nw, nh, opts = {}, kind = 'opaque') {
-  const out = resizeRGBA(img, nw, nh);
+  const e = opts.edges, edges = Array.isArray(e) ? e : e && e !== 'auto' ? [e, e] : null;
+  const out = resizeRGBA(img, nw, nh, edges);
   if (kind === 'opaque') { for (let i = 3; i < out.data.length; i += 4) out.data[i] = 255; }
   else if (kind === 'binary' && opts.hardAlpha !== false) {
     const thr = Math.round(255 * Math.max(0.02, Math.min(0.98, Number(opts.alphaThreshold ?? 0.5))));
@@ -422,13 +464,14 @@ function shrinkCut(img, nw, nh, opts = {}, kind = 'opaque') {
   return out;
 }
 
-function resizeRGBA(img, nw, nh) {
+// edges: [x, y] edge modes; wrap / mirror read across the border (no seam on tiling textures).
+function resizeRGBA(img, nw, nh, edges = null) {
   if (img.width === nw && img.height === nh) return img;
   const filled = fillTransparent(img), n = img.width * img.height, out = new Uint8Array(nw * nh * 4);
   for (let c = 0; c < 4; c++) {
     const src = c === 3 ? img : filled, plane = new Float32Array(n);
     for (let i = 0; i < n; i++) plane[i] = src.data[i * 4 + c] / 255;
-    const r = resizeClamped(plane, img.width, img.height, nw, nh);
+    const r = resizeClamped(plane, img.width, img.height, nw, nh, edges);
     for (let i = 0; i < nw * nh; i++) out[i * 4 + c] = Math.max(0, Math.min(255, Math.round(r[i] * 255)));
   }
   return { width: nw, height: nh, data: out };

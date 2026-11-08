@@ -16,7 +16,7 @@ const smart = require('./smart');
 function saveHalf(job, src, out) {
   if (!job.halfNoExt) return;
   const w = Math.max(src.width, Math.round(out.width / 2)), h = Math.max(src.height, Math.round(out.height / 2));
-  const half = w === out.width && h === out.height ? out : shrinkCut(out, w, h, job.opts, alphaKind(src));
+  const half = w === out.width && h === out.height ? out : shrinkCut(out, w, h, { ...job.opts, edges: job.edges }, alphaKind(src));   // tiling textures shrink by their edges (no seam)
   saveImage(half, job.halfNoExt, job.save);
 }
 
