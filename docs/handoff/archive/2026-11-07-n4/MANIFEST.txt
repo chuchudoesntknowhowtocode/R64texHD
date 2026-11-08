@@ -1,0 +1,3 @@
+handoff #4 2026-11-07
+RESUME.md HANDOFF.md PLACES.md INDEX.md
+HEAD 66368e4

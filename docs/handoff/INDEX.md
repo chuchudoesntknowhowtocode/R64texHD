@@ -2,3 +2,4 @@
 #2 | 2026-11-04 | review+QoL fixes, Upscale card, estimate cache, Scale slider, upscaling research; next: roadmap 1–6 | 08a848a
 #3 | 2026-11-04 (redone 20:01 with new handoffchat) | roadmap 1 (AI one spawn) + 3 (BC7 quality, tiling mips) done; 2 skipped; next 4 | 0b45703
 #4 | 2026-11-07 | preview zoom; roadmap 6–9 (small-tile pad, texture models, Smart v2, supersample/half); next 10 | 66368e4
+#5 | 2026-11-08 | roadmap 10–12 done, ONNX engine, releases v0.9.0.0/v0.9.1.0, release scripts, new Upscale page, README; next: Windows test | 06ebb06

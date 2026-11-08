@@ -1,15 +1,15 @@
-Project: R64texHD — #4 — 2026-11-07 — 66368e4
+Project: R64texHD — #5 — 2026-11-08 — 06ebb06
 Root: C:\GitHub\R64texHD
 Scope: portable Windows Electron app: upscale DDS/PNG, convert RT64 dumps, pack/unpack .rtz
-Goal: roadmap item 10 — comparison grid: 2–4 models per texture side by side, remember the pick per hash
-Done when: grid works in the Upscale preview, choice saved and used by the run, tests pass, picture sent
-Stopped at: items 1–9 done (2 skipped: one GPU); item 10 not started — plan first (> 3 files)
-Next action: read app/ui/index.html preview (drawPreview ~2140, PV state ~2050) + tasks.js preview(); give a 3–5 bullet plan, wait for "go"
-Last cmd: zip dist/R64texHD-v0.8.0.1-Windows.zip → ok (build refreshed with items 7–9)
+Goal: Windows test of v0.9.1.0 + unreleased work (ONNX engine DirectML, new Upscale page, Smart RGT-S dither route)
+Done when: each item run on the PC (or bot mode), issues fixed, results noted in HANDOFF §Current state
+Stopped at: all roadmap 1–12 done (12 lite), 13 left; nothing mid-task
+Next action: ask user: they test on PC, or /chuchulazy bot (computer use); checklist = HANDOFF §Changes we should make H items
+Last cmd: node --test tests/*.test.js → 96 pass, 2 skipped (ONNX tests need onnxruntime-node)
 Last error: none
 Uncommitted: none
-Settings: chuchu on; previews=yes (send pictures); visual=screenshot (Chromium harness); commit locally, never push, never ask the user to push or publish releases (the repo owner does both; just list unpushed commits + ready dist files); user wants Claude to do downloads/moves itself
+Settings: chuchu on; previews=yes; visual=screenshot (Chromium harness); commit locally, never push; owner pushes + publishes: give user `git push origin HEAD:refs/heads/handoff/next`, owner runs build\release.cmd; user wants Claude to do downloads/moves itself
 Open Qs: none
-Prev chat: https://claude.ai/code/session_01AbsEdHWAkbULMdhrGUj8Ss — "Claude.ai E1 upgraded conversation"
+Prev chat: https://claude.ai/code/session_01Rvrfis6HfTjpFvHdwAu6fj
 WSL: no
 Read more: HANDOFF §Changes we should make, §Watch out for
