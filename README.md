@@ -1,27 +1,32 @@
 # R64texHD - Reimagine Every Pixel
 
-**HD textures for N64 games** · current version **v0.8.0.1** · Windows x64 · GPL-2.0-or-later
+**HD textures for N64 games** · current version **v0.9.1.0** · Windows x64 · GPL-2.0-or-later
 
 R64texHD is an all-in-one tool for N64 HD texture packs. It gets textures out of RT64 dumps and Ship
 port archives, upscales them, and packs them back up for RT64 emulators, recomps and Ship ports. It
 also brings classic Rice / GLideN64 packs along, and has a quick ROM explorer for your N64 ROMs.
 
-![R64texHD](docs/r64texhd-title.png)
+![R64texHD](docs/r64texhd-title-phrase.png)
 
-**[Download](../../releases)** · [What's new](#whats-new-in-v0801) · [Features](#features-at-a-glance) ·
+**[Download](../../releases)** · [What's new](#whats-new-in-v09) · [Features](#features-at-a-glance) ·
 [The pages](#the-pages) · [The wizard of R64](#the-wizard-of-r64) · [Download and run](#download-and-run) ·
 [Building](#building-from-source) · [Changelog](CHANGELOG.md)
 
-## What's new in v0.8.0.1
+## What's new in v0.9
 
-- **Upscaler presets**: Smart (the new default), Faithful 2×, HD 4×, Ultra AI 4×, Pixel-perfect, and your own.
-- **Smart mode** picks a method per texture: pixel-perfect for tiny and text textures, HD or AI for the rest.
-- **Estimate before you run**: disk size, video memory in game and time on your PC.
-- **Before / after preview**: one image, drag the line between the original and the result.
-- **The wizard of R64**: the footer is now the progress bar, with animated scenes, fights and a bonus stage.
-- **Sound**: background music, sound effects, your own tracks and clips, and a mute button.
-- **Tidier Settings**: a box per area, a graphics card check for the AI upscaler, and a collapsible menu.
-- **Smaller download**: 222 MB → 163 MB. The fights and trips download once on first run.
+- **ONNX engine** (v0.9.1.0, optional download): a second AI engine with DirectML (any DirectX 12 graphics card,
+  the CPU otherwise) and the two strongest game-texture models, **TextureDAT2** and **RGT-S dither** (CC BY 4.0).
+- **Compare**: 2–4 versions of a texture side by side (HD, MMPX, Pixel-perfect, every AI model); **Use this**
+  remembers the pick for that texture and the run makes that version.
+- **Your own AI models**: add any 4× Real-ESRGAN ncnn model in Settings; it joins the AI choices and Compare.
+- **Texture models** for Real-ESRGAN: HDCube, GameAI 2.0 and Pixel (free to share), one optional download.
+- **Smart mode v2**: MMPX for true pixel art, GameAI / Pixel model for detailed textures and sprites, dithered
+  textures softened first.
+- **Cleaner results**: cut-out alpha kept hard, AI colour fix, seam-free tiny tiling textures, Supersample, a
+  half-size copy (4K and HD packs in one run), BC7 Best quality and mipmaps that follow each texture's tiling.
+- **Faster AI**: Real-ESRGAN starts once per job instead of once per 32 textures.
+- **Next release**: a new Upscale page with the preview on the left (resizable) and an **Output** panel on the
+  right: file type .PNG / .DDS, DDS compression, Compare, Open folder and Reset Upscaler.
 
 Full list: [CHANGELOG.md](CHANGELOG.md).
 
@@ -31,7 +36,7 @@ Click a picture for the full-size screenshot.
 
 <table>
 <tr>
-<td width="33%" valign="top"><a href="docs/screenshots/upscale.png"><img src="docs/screenshots/thumbs/upscale.jpg" alt="Upscale presets"></a><br><b>1a) Upscale presets</b><br>Smart, Faithful, HD, Ultra AI, Pixel-perfect, with an estimate.</td>
+<td width="33%" valign="top"><a href="docs/screenshots/upscale.png"><img src="docs/screenshots/thumbs/upscale.jpg" alt="Upscale preview and Output panel"></a><br><b>1a) Upscale</b><br>Live preview with the Output panel: file type, DDS, Compare, reset.</td>
 <td width="33%" valign="top"><a href="docs/screenshots/upscale-compare.png"><img src="docs/screenshots/thumbs/upscale-compare.jpg" alt="Before and after"></a><br><b>1b) Before / after</b><br>Drag the line to compare the original and the result.</td>
 <td width="33%" valign="top"><a href="docs/screenshots/convert-rt64-dump.png"><img src="docs/screenshots/thumbs/convert-rt64-dump.jpg" alt="Convert RT64 Dump"></a><br><b>2) Convert RT64 Dump</b><br>RT64 dumps to PNG / DDS plus rt64.json.</td>
 </tr>
@@ -50,6 +55,10 @@ Click a picture for the full-size screenshot.
 <td valign="top"><a href="docs/screenshots/settings-sound.png"><img src="docs/screenshots/thumbs/settings-sound.jpg" alt="Sound settings"></a><br><b>Settings: Sound and music</b><br>Volumes, now playing, your own sounds.</td>
 <td valign="top"><a href="docs/screenshots/menu-folded.png"><img src="docs/screenshots/thumbs/menu-folded.jpg" alt="Folded menu"></a><br><b>Menu: Folded menu</b><br>More room for the page; icons for each section.</td>
 </tr>
+<tr>
+<td valign="top"><a href="docs/screenshots/upscale-grid.png"><img src="docs/screenshots/thumbs/upscale-grid.jpg" alt="Compare grid"></a><br><b>1c) Compare</b><br>2–4 versions side by side; pick the best per texture.</td>
+<td></td><td></td>
+</tr>
 </table>
 
 **Portable:** nothing is installed. Settings, downloaded tools, your sounds and temporary files stay in a
@@ -59,18 +68,24 @@ Click a picture for the full-size screenshot.
 
 ### 1 · Upscale Textures
 
-- A whole folder of PNG / DDS textures (subfolders kept) or picked files.
+- A whole folder of PNG / DDS textures (subfolders kept) or picked files, saved as **PNG or DDS**. The input
+  starts empty each time (grey "Normal Textures"); the output folder ("HD Upscaled Textures") is remembered.
 - **Presets**: **Smart** (default), **Faithful 2×**, **HD 4×**, **Ultra AI 4×**, **Pixel-perfect**, and
   **Save as preset** for your own. The options fold away under **Advanced options**; changing one makes it Custom.
-- **Smart** looks at every texture (size, colours, transparency): tiny, font and HUD textures go
-  pixel-perfect, big detailed ones go AI (when Real-ESRGAN is installed and the graphics card has Vulkan),
-  the rest go HD 4×. The log says what each texture got.
+- **Smart** looks at every texture (size, colours, transparency, dithering): tiny, font and HUD textures go
+  pixel-perfect or MMPX, big detailed ones go AI (GameAI with the texture models), the rest go HD 4×.
+  The log says what each texture got.
+- **Preview** on the left, half the window tall; drag the small handle under it for more or less. Before /
+  after with a draggable line, zoom with − / + or the mouse wheel, and it re-renders whenever a setting changes.
+- **Output panel** on the right: **File type** (.PNG / .DDS), **DDS compression** (Auto, BC7, BC3, BC1, None),
+  **Compare** (2–4 versions side by side, **Use this** saves the pick for that texture), **Open folder**
+  and **Reset Upscaler**.
 - **Estimate** under the presets: disk size, video memory in game, time on this PC, and Smart's split.
-- **Before / after preview** that re-renders whenever a setting changes.
-- Methods Standard, Smooth, Pixel art, AI (Real-ESRGAN); 2× to 8× or fit to 512–4096 px.
+- Methods Smart, Standard, Smooth, Pixel art, MMPX and AI: Real-ESRGAN (General, Art, HDCube, GameAI, Pixel,
+  your own models) or the ONNX engine (TextureDAT2, RGT-S dither); 1× to 16× or fit to 512–4096 px.
 - **Edges: Auto** keeps tiling floors and walls seamless using each texture's tiling from the RT64 dump.
-- Output as the same format, PNG or DDS (BC1, BC3, BC7 via texconv, uncompressed), always with mipmaps;
-  **Fences far away** keeps cut-out textures solid in the distance.
+- DDS always comes with mipmaps; **Fences far away** keeps cut-out textures solid in the distance.
+  **Supersample** and a **half-size copy** are under Advanced options.
 
 ### 2 · Convert RT64 Dump
 
@@ -195,8 +210,8 @@ Everything here can be turned off in Settings › Look and feel and Settings ›
 
 ## Download and run
 
-1. Download `R64texHD-v0.8.0.1-Windows.zip` from [Releases](../../releases).
-2. Unzip it anywhere you can write to, for example `C:\Tools\R64texHD-v0.8.0.1`.
+1. Download `R64texHD-v0.9.1.0-Windows.zip` from [Releases](../../releases).
+2. Unzip it anywhere you can write to, for example `C:\Tools\R64texHD-v0.9.1.0`.
 3. Run **R64texHD.exe**. The first launch asks about the optional helper tools and Psychedelic mode.
 
 **Updating:** unzip the new version next to the old one and copy the old `data` folder into it to keep
@@ -215,13 +230,18 @@ everything (PNG and DDS codecs, block encoders and decoders, the upscaler, `.rtz
 build/package.sh
 ```
 
-Needs `curl`, `unzip` and Python 3 with Pillow (Linux, macOS, or Windows with Git Bash / WSL). It
-downloads Electron 38.4.0 for win32-x64, sets the exe icon and version info, and makes two files to
+Needs `curl`, `git`, `npm` and Python 3 with Pillow (Linux, macOS, or Windows with Git Bash / WSL). It
+downloads Electron 38.4.0 for win32-x64, sets the exe icon and version info, and makes four files to
 attach to the release:
 
 - `dist/R64texHD-v<version>-Windows.zip`: the app, with the starter scenes;
-- `dist/R64texHD-v<version>-scenes.zip`: the fights and trips the app downloads on first run, from the
-  release tagged `v<version>` (set `SCENES_URL` to use another).
+- `dist/R64texHD-v<version>-scenes.zip`: the fights and trips the app downloads on first run;
+- `dist/R64texHD-v<version>-models.zip`: the Real-ESRGAN texture models (Settings download);
+- `dist/R64texHD-v<version>-onnx.zip`: the ONNX engine and its models (Settings download).
+
+The app downloads the three extras from the release tagged `v<version>`. **Publishing** (repo owner):
+`build\release.cmd` (or `bash build/release.sh`) brings a contributor's `handoff/v<version>` branch onto
+main, uses or builds the zips, checks them, writes the notes from CHANGELOG.md and creates the release.
 
 The version is set in one place, `app/package.json`.
 
@@ -237,9 +257,9 @@ app/
   ui/nav-icons.js    folded menu icons                         ui/pixel-icons.js  status icons
   core/              png, dds, bc, upscale, smart (Smart mode), tmem (RT64 dumps), tiling, rt64db,
                      rtz, recomp, check, o2r (Ship ports), rice + legacy (GPL), rom, scenes,
-                     gpuinfo (graphics card check), tasks + worker (parallel jobs)
+                     gpuinfo (graphics card check), tasks + worker (parallel jobs), onnx-run (ONNX engine)
   assets/            scenes (starter set), sounds, music, nav icons, N64 library and box art
-build/               package.sh; wizard/ (scene toolkit); ui-preview/ (screenshots, self-test);
+build/               package.sh, release.sh / .cmd; onnx/; wizard/ (scene toolkit); ui-preview/ (screenshots, self-test);
                      nav_icons.py; n64-library/
 tests/               automated tests
 docs/                README.txt shipped in the release, screenshots (+ thumbs)

@@ -22,6 +22,10 @@ const orig = { width: W, height: H, data: d };
 const up = upscale(orig, { size: 4, method: 'standard', sharpness: 'normal', edges: ['wrap', 'wrap'], hardAlpha: true, maxSize: 4096 });
 const shown = dds.decodeDDS(dds.encodeDDS(up, 'auto', { mipmaps: false }));
 const b64 = (img) => Buffer.from(img.data).toString('base64');
+const pack = (img) => ({ width: img.width, height: img.height, data: b64(img) });
+// Compare grid cells (pick id -> result); the AI cell is a Smooth stand-in, there is no Real-ESRGAN here.
+const opt = { size: 4, edges: ['wrap', 'wrap'], hardAlpha: true, maxSize: 4096 };
+const picks = { hd: shown, mmpx: upscale(orig, { ...opt, method: 'mmpx' }), pixel: upscale(orig, { ...opt, method: 'pixel' }), 'ai:realesrgan-x4plus': upscale(orig, { ...opt, method: 'smooth' }) };
 fs.writeFileSync(path.join(__dirname, 'preview-data.js'),
-  `window.__PREVIEW = ${JSON.stringify({ orig: { width: W, height: H, data: b64(orig) }, up: { width: shown.width, height: shown.height, data: b64(shown) }, encoded: 'DDS BC1' })};\n`);
+  `window.__PREVIEW = ${JSON.stringify({ orig: pack(orig), up: pack(shown), encoded: 'DDS BC1', picks: Object.fromEntries(Object.entries(picks).map(([k, v]) => [k, pack(v)])) })};\n`);
 console.log('preview-data.js written', up.width + 'x' + up.height);

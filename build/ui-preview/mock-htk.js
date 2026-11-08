@@ -127,13 +127,14 @@
     },
     romInfo: async (file) => (window.__ROMS && window.__ROMS.info[file]) || { error: 'Not in the preview data' },
     thumbnail: async () => 'splash.png',
-    previewList: async () => ({ items: [{ src: 'a', rel: 'textures/0f3a9c21d8e4b7a1.png' }, { src: 'b', rel: 'textures/1b77e0a4c2d39f05.png' }], total: 4812 }),
-    preview: async () => {
+    previewList: async () => ({ items: [{ src: 'a', rel: 'textures/0f3a9c21d8e4b7a1.png', key: '0f3a9c21d8e4b7a1' }, { src: 'b', rel: 'textures/1b77e0a4c2d39f05.png', key: '1b77e0a4c2d39f05' }], total: 4812 }),
+    preview: async (req = {}) => {
       // Real upscale result from make-preview-data.js when present; a quick stand-in otherwise.
       const P = window.__PREVIEW;
       if (P) {
         const dec = (x) => ({ width: x.width, height: x.height, data: Uint8Array.from(atob(x.data), (c) => c.charCodeAt(0)) });
-        return { orig: dec(P.orig), up: dec(P.up), encoded: P.encoded, ms: 140, edges: 'tile × tile (from dump)', route: 'HD 4×' };
+        const up = req.pick && P.picks && P.picks[req.pick] ? P.picks[req.pick] : P.up;   // a Compare grid cell
+        return { orig: dec(P.orig), up: dec(up), encoded: P.encoded, ms: { mmpx: 90, pixel: 20, 'ai:realesrgan-x4plus': 1830 }[req.pick] || 140, edges: 'tile × tile (from dump)', route: 'HD 4×' };
       }
       const o = brick(32, 32); return { orig: o, up: smoothUp(o, 4), encoded: 'DDS BC7', ms: 180, edges: 'tile × tile (from dump)', route: 'HD 4×' };
     },

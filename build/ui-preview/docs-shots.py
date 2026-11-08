@@ -29,8 +29,10 @@ SHOTS = [
     ('welcome', 'page=welcome', [], 'HD Texture Packs for Games That Refuse to Die.'),
     ('first-launch-psychedelic', 'setup', ['sleep:3700'], 'HD Texture Packs for Games That Refuse to Die.'),
     ('first-launch-tools', 'setup&notools', ['sleep:3700'], 'HD Texture Packs for Games That Refuse to Die.'),
-    ('upscale', 'page=upscale', ['wait', 'js:document.querySelector("#preview").style.position="static"', 'scroll:330', 'wait'], 'Making Muddy Textures Eat Their Vegetables.'),
-    ('upscale-compare', 'page=upscale', ['wait', 'js:setSplit(.42)'], 'Making Muddy Textures Eat Their Vegetables.'),
+    # the input isn't remembered between starts, so the shots choose one first
+    ('upscale', 'page=upscale', ['js:cfg.upscale.inputs=["D:\\\\N64\\\\dump\\\\textures"];render()', 'wait', 'scroll:150', 'wait'], 'Making Muddy Textures Eat Their Vegetables.'),
+    ('upscale-compare', 'page=upscale', ['js:cfg.upscale.inputs=["D:\\\\N64\\\\dump\\\\textures"];render()', 'wait', 'js:setSplit(.42)'], 'Making Muddy Textures Eat Their Vegetables.'),
+    ('upscale-grid', 'page=upscale', ['js:cfg.upscale.inputs=["D:\\\\N64\\\\dump\\\\textures"];render()', 'wait', 'js:cfg.compareSet=["hd","mmpx","pixel","ai:realesrgan-x4plus"]', 'click:[data-pvcompare]', 'sleep:1500', 'click:[data-pvuse="mmpx"]', 'sleep:600', 'scroll:215', 'wait'], 'Making Muddy Textures Eat Their Vegetables.'),
     ('convert-rt64-dump', 'page=convert', ['scroll:250'], 'Expansion Pak for Your Eyeballs.'),
     ('pack-recomp-info', 'page=pack&mode=pack', ['scroll:430'], 'More Pixels Than Nintendo Ever Intended.'),
     ('check-a-pack', 'page=pack&mode=check', ['run'], 'Rendering Nostalgia. Destroying Blur.'),
@@ -41,7 +43,7 @@ SHOTS = [
     ('settings', 'page=settings&notools', ['sleep:3700', 'js:closeModal()', 'wait'], 'Same Game. Less Fugly.'),
     ('settings-wizard', 'page=settings', ['wait', 'js:document.querySelector("#page").scrollTop = document.querySelector("#page .sbox:nth-of-type(4)").offsetTop + 200'], 'Rendering Nostalgia. Destroying Blur.'),
     ('settings-sound', 'page=settings', ['wait', 'js:document.querySelector("#page").scrollTop = document.querySelector("#page .sbox:nth-of-type(5)").offsetTop - 16'], 'Rendering Nostalgia. Destroying Blur.'),
-    ('menu-folded', 'page=upscale', ['wait', 'click:#nav-fold', 'sleep:400'], 'Same Game. Less Fugly.'),
+    ('menu-folded', 'page=upscale', ['js:cfg.upscale.inputs=["D:\\\\N64\\\\dump\\\\textures"];render()', 'wait', 'click:#nav-fold', 'sleep:400'], 'Same Game. Less Fugly.'),
 ]
 FOOTER = 'wizard-footer'           # animated: a fight in the footer while a job runs
 
