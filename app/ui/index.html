@@ -235,6 +235,9 @@ body.job-on .stage .fx-click { cursor: pointer; }
   background-color: #1f1436; background-image: conic-gradient(#2c1b46 25%, transparent 0 50%, #2c1b46 0 75%, transparent 0); background-size: 16px 16px; }
 .pv-view.z1 { display: block; overflow: auto; }
 .pv-view.z1 canvas { display: block; margin: 0 auto; }
+.pv-view.z1 .pv-cmp, .pv-view.z1 canvas { cursor: grab; }
+.pv-view.z1.panning, .pv-view.z1.panning * { cursor: grabbing !important; }
+.pv-view.z1 .pv-line { pointer-events: auto; cursor: ew-resize; width: 24px; margin-left: -12px; background: linear-gradient(90deg, transparent 11px, #fff 11px 13px, transparent 13px); box-shadow: none; }
 .pv-view canvas.px { image-rendering: pixelated; }
 .pv-busy { position: absolute; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 8px; background: rgba(19,10,34,.88); border: 1px solid #47305f; padding: 6px 12px; border-radius: 8px; font-size: 12px; }
 .pv-busy[hidden] { display: none; }
@@ -2537,6 +2540,40 @@ document.addEventListener('pointerdown', (e) => {
   const up = () => { g.removeEventListener('pointermove', move); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up); };
   g.addEventListener('pointermove', move); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
 });
+// Zoomed in: drag the texture to move it around, or click a spot to bring it to the middle of the box
+// (Original / Upscaled view and the Compare grid). The split line still drags from the line itself; at Fit a
+// click anywhere moves the split line as before. The middle mouse button always drags the texture.
+const PAN_CLICK = 4;                                                 // px: less movement than this is a click
+function panDrag(view, e) {
+  e.preventDefault(); view.setPointerCapture(e.pointerId);
+  const x0 = e.clientX, y0 = e.clientY, sx = view.scrollLeft, sy = view.scrollTop;
+  let moved = false;
+  view.classList.add('panning');
+  const move = (ev) => {
+    if (!moved && Math.abs(ev.clientX - x0) + Math.abs(ev.clientY - y0) < PAN_CLICK) return;
+    moved = true; view.scrollLeft = sx - (ev.clientX - x0); view.scrollTop = sy - (ev.clientY - y0);
+  };
+  const up = (ev) => {
+    view.removeEventListener('pointermove', move); view.removeEventListener('pointerup', up); view.removeEventListener('pointercancel', up);
+    view.classList.remove('panning');
+    if (moved || ev.type === 'pointercancel') return;
+    const b = view.getBoundingClientRect();                          // click: that spot to the middle
+    view.scrollLeft += ev.clientX - b.left - view.clientWidth / 2;
+    view.scrollTop += ev.clientY - b.top - view.clientHeight / 2;
+  };
+  view.addEventListener('pointermove', move); view.addEventListener('pointerup', up); view.addEventListener('pointercancel', up);
+}
+document.addEventListener('pointerdown', (e) => {
+  if (!(e.target instanceof Element) || (e.button !== 0 && e.button !== 1) || PV.zoom === 'fit') return;
+  const view = e.target.closest('.pv-view.z1'); if (!view || !e.target.closest('canvas, .pv-cmp')) return;
+  const c = view.querySelector('#pv-cmp');
+  if (c && e.button === 0) {                                         // grabbing the split line: leave it to the split drag
+    const r = c.getBoundingClientRect();
+    if (Math.abs(e.clientX - (r.left + PV.split * r.width)) <= 12) return;
+  }
+  e.stopImmediatePropagation(); panDrag(view, e);
+}, true);
+document.addEventListener('mousedown', (e) => { if (e.button === 1 && e.target instanceof Element && e.target.closest('.pv-view.z1')) e.preventDefault(); });   // no autoscroll
 document.addEventListener('pointerdown', (e) => {
   const c = e.target.closest('#pv-cmp'); if (!c || e.button !== 0) return;
   e.preventDefault(); c.setPointerCapture(e.pointerId);
