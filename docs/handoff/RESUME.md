@@ -8,7 +8,7 @@ Next action: read app/ui/index.html preview (drawPreview ~2140, PV state ~2050) 
 Last cmd: zip dist/R64texHD-v0.8.0.1-Windows.zip → ok (build refreshed with items 7–9)
 Last error: none
 Uncommitted: none
-Settings: chuchu on; previews=yes (send pictures); visual=screenshot (Chromium harness); commit locally, never push; user wants Claude to do downloads/moves itself
+Settings: chuchu on; previews=yes (send pictures); visual=screenshot (Chromium harness); commit locally, never push, never ask the user to push or publish releases (the repo owner does both; just list unpushed commits + ready dist files); user wants Claude to do downloads/moves itself
 Open Qs: none
 Prev chat: https://claude.ai/code/session_01AbsEdHWAkbULMdhrGUj8Ss — "Claude.ai E1 upgraded conversation"
 WSL: no
