@@ -266,7 +266,7 @@ body.job-on .stage .fx-click { cursor: pointer; }
   background-image: linear-gradient(rgba(233,80,138,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,181,150,.4) 1px, transparent 1px);
   background-size: 60px 30px; transform: perspective(380px) rotateX(62deg); transform-origin: top; mask-image: linear-gradient(transparent, #000 40%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 40%, transparent); }
 .phrase { position: relative; margin-top: -6px; padding: 0 20px; text-align: center; font-weight: 400; font-style: normal;
-  font-size: var(--phrase-size, 32.8px); letter-spacing: 2px; text-transform: uppercase; line-height: 1.2; white-space: nowrap;   /* always one line */
+  font-size: var(--phrase-size, 32.8px); letter-spacing: 0; text-transform: uppercase; line-height: 1.2; white-space: nowrap;   /* always one line */
   width: 96vw; box-sizing: border-box; flex: none;   /* may be wider than the logo; the column centres it */
   font-family: "Pixelfy", "Segoe UI Black", system-ui, sans-serif; -webkit-font-smoothing: none; font-smooth: never;
   /* a 2 px black outline (one Pixelfy pixel at 32.8 px), then the cyan / magenta glow around it */
@@ -843,7 +843,9 @@ function showSplash() {
   const p = window.__phrase || pickPhrase(cfg.cleanPhrases === true);
   const text = p.text.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');   // Pixelfy has straight quotes only
   const [a, b] = splitPhrase(text);
-  $('#phrase').innerHTML = `<span class="p1">${esc(a)}</span>${b ? ` <span class="p2">${esc(b)}</span>` : ''}`; $('#phrase').dataset.text = text;
+  // Two characters' more room between the blue and the pink half (no-break spaces; the glitch copies get the same gap).
+  const gap = ' \u00a0\u00a0';
+  $('#phrase').innerHTML = `<span class="p1">${esc(a)}</span>${b ? `${gap}<span class="p2">${esc(b)}</span>` : ''}`; $('#phrase').dataset.text = b ? a + gap + b : text;
   fitPhrase();
   $('#phrase-sub').textContent = `R64texHD v${S.version}`;
   const started = performance.now();                 // the animation started with the page
