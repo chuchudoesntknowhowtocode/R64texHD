@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Builds the portable Windows release:  dist/R64texHD-v<version>/R64texHD.exe  and  dist/R64texHD-v<version>-Windows.zip
 #
-# Needs: bash, curl, unzip, python3 with Pillow (pip install Pillow). pefile is fetched automatically.
+# Needs: bash, curl, git, npm, python3 with Pillow (pip install Pillow). pefile is fetched automatically.
 # Works on Linux, macOS or Windows (Git Bash / WSL).
 set -euo pipefail
+for t in curl git npm python3; do command -v "$t" >/dev/null || { echo "package.sh needs $t on the PATH (Git Bash or WSL with $t installed)." >&2; exit 1; }; done
+python3 -c "import PIL" 2>/dev/null || { echo "package.sh needs Pillow: python3 -m pip install Pillow" >&2; exit 1; }
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 ELECTRON_VERSION="${ELECTRON_VERSION:-38.4.0}"
 CACHE="$HERE/build/.cache"
@@ -24,7 +26,7 @@ if ! python3 -c "import pefile" 2>/dev/null; then
 fi
 
 rm -rf "$HERE/dist" && mkdir -p "$OUT"
-unzip -q "$ZIP" -d "$OUT"
+python3 -c "import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$ZIP" "$OUT"   # no unzip needed
 rm -f "$OUT/resources/default_app.asar"
 # R64texHD.exe: Electron's exe with the app icon and R64texHD version info (the name Task Manager shows).
 python3 "$HERE/build/set_icon.py" "$OUT/electron.exe" "$HERE/app/assets/icon.ico" "$OUT/icon.tmp.exe"
