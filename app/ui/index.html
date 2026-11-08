@@ -1657,7 +1657,7 @@ document.addEventListener('click', async (e) => {
   }
   if (e.target.id === 'up-reset-no') { closeModal(); return; }
   if (e.target.id === 'up-reset-yes') { closeModal(); resetUpscaler(); return; }
-  if (e.target.closest('[data-pvcompare]')) { PV.compare = !PV.compare; PV.zoom = 'fit'; PV.scroll = { x: 0, y: 0 }; render(); return; }
+  if (e.target.closest('[data-pvcompare]')) { PV.compare = !PV.compare; PV.zoom = 'fit'; PV.scroll = null; render(); return; }
   const pch = e.target.closest('[data-pvchip]');
   if (pch) {
     const id = pch.dataset.pvchip; let set = compareSet();
@@ -1677,7 +1677,7 @@ document.addEventListener('click', async (e) => {
   if (ps && PV.list.length) {
     const i = PV.list.findIndex((x) => x.src === PV.src);
     const n = (i + Number(ps.dataset.pvstep) + PV.list.length) % PV.list.length;
-    PV.src = PV.list[n].src; PV.scroll = { x: 0, y: 0 };
+    PV.src = PV.list[n].src; PV.scroll = null;
     if (PV.compare) { render(); return; }
     fillPreviewPicker(); drawPreview(); schedulePreview(); return;
   }
@@ -2157,7 +2157,7 @@ document.addEventListener('input', (e) => { if (e.target.id === 'rom-search') { 
 
 // ---------------------------------------------------------------- live preview (1 · Upscale)
 const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new Map(), shown: null, shownKey: '', pendingKey: '', split: 0.5,
-  error: '', timer: null, scroll: { x: 0, y: 0 }, loadingList: false, compare: false, cmpSeq: 0, cmpBusy: '', cmpErr: {}, cmpTimer: null, cmpK: 1, cmpFit: 1 };
+  error: '', timer: null, scroll: null, loadingList: false, compare: false, cmpSeq: 0, cmpBusy: '', cmpErr: {}, cmpTimer: null, cmpK: 1, cmpFit: 1 };
 
 function previewParams() {
   const u = cfg.upscale;
@@ -2287,7 +2287,8 @@ function drawPreview() {
   vu.classList.toggle('z1', !fit);
   const w = Math.max(1, Math.round(r.up.width * k)), h = Math.max(1, Math.round(r.up.height * k));
   cmp.style.width = w + 'px'; cmp.style.height = h + 'px';
-  cmp.style.marginTop = fit ? '' : Math.max(0, Math.floor((vu.clientHeight - h) / 2)) + 'px';
+  cmp.style.marginTop = '';
+  padView(vu, fit, w, h);
   for (const c of [co, cu]) { c.style.width = w + 'px'; c.style.height = h + 'px'; }
   cu.classList.toggle('px', w >= r.up.width);
   if (!fit) { vu.scrollLeft = PV.scroll.x; vu.scrollTop = PV.scroll.y; }
@@ -2391,7 +2392,8 @@ function drawCompare() {
     const w = Math.max(1, Math.round(c.r.up.width * k)), h = Math.max(1, Math.round(c.r.up.height * k));
     cv.style.width = w + 'px'; cv.style.height = h + 'px';
     cv.classList.toggle('px', orig || w >= c.r.up.width);
-    cv.style.marginTop = fit ? '' : Math.max(0, Math.floor((c.view.clientHeight - h) / 2)) + 'px';
+    cv.style.marginTop = '';
+    padView(c.view, fit, w, h);
     if (!fit) { c.view.scrollLeft = PV.scroll.x; c.view.scrollTop = PV.scroll.y; }
     if (orig) { info.textContent = ` · ${c.r.orig.width}×${c.r.orig.height}`; continue; }
     info.textContent = ` · ${c.r.up.width}×${c.r.up.height} · ${(c.r.ms / 1000).toFixed(2)} s` + (c.r.route && /dither/.test(c.r.route) ? ' · dither softened' : '');
@@ -2400,9 +2402,13 @@ function drawCompare() {
   const pct = $('#pv-pct'); if (pct) { pct.textContent = Math.round(k * 100) + '%'; pct.classList.toggle('on', !fit && Math.abs(k - 1) < 1e-6); }
 }
 function setCompareZoom(next) {
-  const lo = Math.min(PV.cmpFit, 1);
+  const lo = Math.min(PV.cmpFit, 1), k0 = PV.cmpK, was = PV.zoom === 'fit', v = document.querySelector('.pv-cv');
+  // the texture point in the middle of the cells stays there (from Fit: the texture's centre)
+  const mid = !was && v && k0 ? { x: (v.scrollLeft + v.clientWidth / 2 - padOf(v).x) / k0, y: (v.scrollTop + v.clientHeight / 2 - padOf(v).y) / k0 } : null;
   if (next === 'fit') PV.zoom = 'fit';
   else { const k = Math.min(ZOOM_MAX, Math.max(lo, next)); PV.zoom = Math.abs(k - PV.cmpFit) < 0.02 ? 'fit' : k; }
+  if (PV.zoom === 'fit' || !mid || !v) PV.scroll = null;
+  else PV.scroll = { x: Math.max(0, Math.round(padOf(v).x + mid.x * PV.zoom - v.clientWidth / 2)), y: Math.max(0, Math.round(padOf(v).y + mid.y * PV.zoom - v.clientHeight / 2)) };
   drawCompare();
 }
 function usePick(id) {
@@ -2416,6 +2422,16 @@ function usePick(id) {
 // wheel step by 25% up to 8 screen pixels per texture pixel, and down to 100% for textures smaller than the box;
 // the % button jumps to 100% (actual size).
 const ZOOM_STEP = 1.25, ZOOM_MAX = 8;
+// Zoomed in, the preview box gets half its own size as padding on every side, so any spot of the texture
+// can be dragged or clicked to the middle. Scroll (0, 0) then shows the texture's top-left corner in the
+// middle of the box; PV.scroll null means "texture centred" (a new texture, Compare on/off, Fit).
+const padOf = (v) => ({ x: Math.floor(v.clientWidth / 2), y: Math.floor(v.clientHeight / 2) });
+function padView(v, fit, w, h) {
+  if (fit) { v.style.padding = ''; return; }
+  const p = padOf(v);
+  v.style.padding = `${p.y}px ${p.x}px`;
+  if (!PV.scroll) PV.scroll = { x: Math.round(w / 2), y: Math.round(h / 2) };   // w + 2p − client = w: centre = half
+}
 function minScale() { return Math.min(fitScale(), 1); }
 function fitScale() {
   const vu = $('#pv-view-u'), r = PV.shown;
@@ -2434,13 +2450,14 @@ function setPreviewZoom(next, at) {
   const ax = at ? at.x : vu.clientWidth / 2, ay = at ? at.y : vu.clientHeight / 2;
   // texture point under the anchor before the zoom (fit draws the texture centred in the box)
   const w0 = r.up.width * k0, h0 = r.up.height * k0;
-  const ox0 = Math.max(0, (vu.clientWidth - w0) / 2) - (PV.zoom === 'fit' ? 0 : vu.scrollLeft);
-  const oy0 = Math.max(0, (vu.clientHeight - h0) / 2) - (PV.zoom === 'fit' ? 0 : vu.scrollTop);
+  const p = padOf(vu), was = PV.zoom === 'fit';
+  const ox0 = was ? Math.max(0, (vu.clientWidth - w0) / 2) : p.x - vu.scrollLeft;
+  const oy0 = was ? Math.max(0, (vu.clientHeight - h0) / 2) : p.y - vu.scrollTop;
   const tx = (ax - ox0) / k0, ty = (ay - oy0) / k0;
-  if (next === 'fit' || Math.abs(k - fk) < 1e-6) { PV.zoom = 'fit'; PV.scroll = { x: 0, y: 0 }; drawPreview(); return; }
+  if (next === 'fit' || Math.abs(k - fk) < 1e-6) { PV.zoom = 'fit'; PV.scroll = null; drawPreview(); return; }
   PV.zoom = k;
   const w = r.up.width * k, h = r.up.height * k;
-  PV.scroll = { x: Math.max(0, Math.min(w - vu.clientWidth, tx * k - ax)), y: Math.max(0, Math.min(h - vu.clientHeight, ty * k - ay)) };
+  PV.scroll = { x: Math.max(0, Math.min(w, p.x + tx * k - ax)), y: Math.max(0, Math.min(h, p.y + ty * k - ay)) };
   drawPreview();
 }
 document.addEventListener('wheel', (e) => {
@@ -2599,7 +2616,7 @@ document.addEventListener('scroll', (e) => {
 document.addEventListener('change', (e) => {
   if (e.target.id !== 'pv-file') return;
   const item = PV.list[Number(e.target.value)];
-  if (item) { PV.src = item.src; PV.scroll = { x: 0, y: 0 }; if (PV.compare) { render(); return; } drawPreview(); schedulePreview(); }
+  if (item) { PV.src = item.src; PV.scroll = null; if (PV.compare) { render(); return; } drawPreview(); schedulePreview(); }
 });
 
 // Back in the app (maybe after dumping more textures): look at the input again.

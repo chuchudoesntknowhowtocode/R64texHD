@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Upscale page
+- Zoomed in, any spot of the texture, edges and corners too, can be dragged or clicked to the middle of the preview (the zoomed view has room around the texture); zooming the Compare grid keeps the middle spot in place.
 - Compare grid: new **Original** cell (the texture itself with hard pixels, at the same size as the others) to compare against.
 
 ## v0.9.2.0
