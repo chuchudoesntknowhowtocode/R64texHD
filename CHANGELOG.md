@@ -2,6 +2,11 @@
 
 ## v0.9.2.0
 
+### Helper tools
+- The first start offers every helper tool (texture models and ONNX engine too, not just texconv and Real-ESRGAN); one failed download no longer stops the rest.
+- Downloads from GitHub releases fall back to GitHub's API link when the normal link answers 5xx (seen: HTTP 504 on every release file).
+- A pack zip (…-onnx.zip, …-models.zip) next to the program folder is installed from there instead of downloaded (a new build before its release is out, or a PC offline).
+
 ### Your own models
 - Adding a model reads its scale from the .param layers (Interp / PixelShuffle), not just the file name: a renamed 2× model is turned away, a 4× model with no scale in its name is let in. The name still decides when the layers don't say or say more (x2plus-style models).
 

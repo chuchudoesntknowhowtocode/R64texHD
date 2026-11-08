@@ -168,7 +168,29 @@ async function runTask(task, params) {
 }
 
 // ---------------------------------------------------------------- tool downloads
-function download(url, dest, onProgress, redirects = 0) {
+// GitHub release links (github.com/<owner>/<repo>/releases/download/<tag>/<file>) sometimes answer 5xx for a
+// while (seen: HTTP 504 on every release file) while the API's asset link still works, so download() falls back to it.
+const GH_RELEASE_RE = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/;
+function getJson(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { headers: { 'User-Agent': APP_NAME, Accept: 'application/vnd.github+json' } }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); reject(new Error(`HTTP ${res.statusCode}`)); return; }
+      let body = ''; res.setEncoding('utf8'); res.on('data', (d) => { body += d; });
+      res.on('end', () => { try { resolve(JSON.parse(body)); } catch (e) { reject(e); } });
+    });
+    req.on('error', reject);
+    req.setTimeout(30000, () => req.destroy(new Error('no answer')));
+  });
+}
+async function githubApiAsset(url) {
+  const m = url.match(GH_RELEASE_RE);
+  if (!m) return null;
+  const rel = await getJson(`https://api.github.com/repos/${m[1]}/${m[2]}/releases/tags/${m[3]}`);
+  const a = (rel.assets || []).find((x) => x.name === decodeURIComponent(m[4]));
+  return a ? a.url : null;
+}
+function download(url, dest, onProgress, redirects = 0, o = {}) {
+  const orig = o.orig || url;
   return new Promise((resolve, reject) => {
     const part = dest + '.part';
     let out = null, over = false;
@@ -178,13 +200,24 @@ function download(url, dest, onProgress, redirects = 0) {
       if (out) { if (out.closed) rmPart(); else { out.once('close', rmPart); out.destroy(); } }
       reject(e);
     };
-    const req = https.get(url, { headers: { 'User-Agent': APP_NAME } }, (res) => {
+    const req = https.get(url, { headers: { 'User-Agent': APP_NAME, ...(o.headers || {}) } }, (res) => {
       if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location && redirects < 8) {
         res.resume();
-        resolve(download(new URL(res.headers.location, url).toString(), dest, onProgress, redirects + 1));
+        resolve(download(new URL(res.headers.location, url).toString(), dest, onProgress, redirects + 1, { ...o, orig }));
         return;
       }
-      if (res.statusCode !== 200) { res.resume(); reject(new Error(`download failed (HTTP ${res.statusCode})`)); return; }
+      if (res.statusCode !== 200) {
+        res.resume();
+        const err = new Error(`download failed (HTTP ${res.statusCode})`);
+        if ((res.statusCode >= 500 || res.statusCode === 429) && !o.api && GH_RELEASE_RE.test(orig)) {
+          resolve(githubApiAsset(orig).catch(() => null).then((api) => {
+            if (!api) throw err;
+            return download(api, dest, onProgress, 0, { api: true, orig, headers: { Accept: 'application/octet-stream' } });
+          }));
+          return;
+        }
+        reject(err); return;
+      }
       const total = Number(res.headers['content-length'] || 0);
       let got = 0;
       fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -277,6 +310,14 @@ function checkSha(file, want) {
   if (got !== want) { fs.rmSync(file, { force: true }); throw new Error('the download did not match the expected file (checksum). Try again later.'); }
 }
 
+// A release pack (…-onnx.zip, …-models.zip) sitting next to the program folder or inside it is used instead of
+// downloading: a fresh build in dist/ before its release is published, or a PC without internet. Still SHA-checked.
+async function fetchPack(remote, zip, progress) {
+  const base = path.basename(new URL(remote.url).pathname);
+  const local = [path.join(programDir(), '..', base), path.join(programDir(), base)].find((f) => fs.existsSync(f));
+  if (local) { fs.mkdirSync(path.dirname(zip), { recursive: true }); fs.copyFileSync(local, zip); return; }
+  await download(remote.url, zip, progress);
+}
 async function installTool(name) {
   const progress = (got, total) => send('tool:progress', { name, got, total });
   if (name === 'texconv') {
@@ -301,7 +342,7 @@ async function installTool(name) {
   } else if (name === 'onnx') {
     let remote; try { remote = JSON.parse(fs.readFileSync(ONNX_REMOTE, 'utf8')); } catch { throw new Error('this build has no ONNX engine pack'); }
     const zip = path.join(TEMP_DIR, 'htk-onnx.zip');
-    await download(remote.url, zip, progress);
+    await fetchPack(remote, zip, progress);
     checkSha(zip, remote.sha256);
     const dir = onnxHome();
     fs.rmSync(dir, { recursive: true, force: true });
@@ -317,7 +358,7 @@ async function installTool(name) {
     if (!dir) throw new Error('download Real-ESRGAN first: the texture models go into its models folder');
     let remote; try { remote = JSON.parse(fs.readFileSync(MODELS_REMOTE, 'utf8')); } catch { throw new Error('this build has no texture model pack'); }
     const zip = path.join(TEMP_DIR, 'htk-models.zip');
-    await download(remote.url, zip, progress);
+    await fetchPack(remote, zip, progress);
     checkSha(zip, remote.sha256);
     fs.mkdirSync(dir, { recursive: true });
     for (const e of rtz.readEntries(zip)) {

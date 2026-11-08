@@ -1268,7 +1268,8 @@ const TOOL_INFO = {
   models: { label: 'texture models', size: '93 MB', use: 'AI models for game textures', optional: true },
   onnx: { label: 'ONNX engine', size: '108 MB', use: 'the strongest texture models (DirectML)', optional: true },
 };
-const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !TOOL_INFO[n].optional && !S.tools[n]);
+// all: the optional ones too (the first start offers every tool).
+const missingTools = (all = false) => Object.keys(TOOL_INFO).filter((n) => (all || !TOOL_INFO[n].optional) && !S.tools[n]);
 // Real-ESRGAN models: its own three, then the texture pack (Settings › Tools › Texture models).
 const AI_MODELS = [
   { id: 'realesrgan-x4plus', label: 'General' }, { id: 'realesrgan-x4plus-anime', label: 'Art' }, { id: 'realesr-animevideov3', label: 'Fast art' },
@@ -1279,11 +1280,12 @@ const AI_MODELS = [
 const aiModels = () => AI_MODELS.concat(((S && S.tools.customModels) || []).map((n) => ({ id: n, label: n, custom: true })));
 const aiModelLabel = (id) => (aiModels().find((m) => m.id === id) || AI_MODELS[0]).label;
 // At startup (unless turned off in Settings), missing tools are offered in a small Yes / No window.
-let toolsBackTo = '';
+let toolsBackTo = '', toolsAll = false;
 function askTools(backTo) {
-  if (cfg.checkTools === false || !missingTools().length) return false;
+  toolsAll = backTo === 'welcome';                                   // first start: every tool, optional ones included
+  if (cfg.checkTools === false || !missingTools(toolsAll).length) return false;
   toolsBackTo = backTo || '';
-  const miss = missingTools();
+  const miss = missingTools(toolsAll);
   modal(`<div class="ask-tools"><h3>New install, who dis?</h3><p>Download Helper Tools?</p>
     <ul>${miss.map((n) => `<li>${pixelIcon('red', 'x')}<b>${TOOL_INFO[n].label}</b><span>${TOOL_INFO[n].use} · ${TOOL_INFO[n].size}</span></li>`).join('')}</ul>
     <div class="tool" id="tool-all"></div>
@@ -1399,12 +1401,15 @@ function askGeo() {
 async function installAll() {
   const yes = $('#tools-yes'), no = $('#tools-no');
   yes.disabled = no.disabled = true; yes.textContent = 'Downloading…';
-  for (const name of missingTools()) {
+  const failed = [];                                                 // one failure doesn't stop the rest
+  for (const name of missingTools(toolsAll)) {
+    if (name === 'models' && !S.tools.realesrgan) { failed.push(`${TOOL_INFO.models.label}: needs Real-ESRGAN`); continue; }
     $('#tool-all').textContent = `Downloading ${TOOL_INFO[name].label}…`;
     const r = await window.htk.installTool(name);
-    if (!r.ok) { $('#tool-all').textContent = `${TOOL_INFO[name].label} didn’t download: ${r.error}. You can try again in Settings.`; no.disabled = false; no.textContent = 'Close'; yes.hidden = true; return; }
+    if (!r.ok) { failed.push(`${TOOL_INFO[name].label}: ${r.error}`); continue; }
     S.tools = r.tools;
   }
+  if (failed.length) { $('#tool-all').textContent = `Didn’t download: ${failed.join(' · ')}. You can try again in Settings.`; no.disabled = false; no.textContent = 'Close'; yes.hidden = true; return; }
   toast('Helper tools downloaded'); toolsDone();
 }
 
