@@ -4,7 +4,7 @@
 #   bash build/release.sh [handoff branch]
 #
 # 1. Checks the tools (git, gh logged in, python3).
-# 2. Takes the contributor's handoff branch (default handoff/v<version>) onto main and pushes main.
+# 2. Takes the contributor's handoff branch (default handoff/next, else handoff/v<version>) onto main and pushes main.
 # 3. Zips: uses the four zips already in dist/ if they're there, else builds them (build/package.sh).
 # 4. Checks the zips: they open, and the Windows build's download links / checksums match the other three.
 # 5. Writes the release notes (from CHANGELOG.md) and creates tag + release v<version> with the four zips.
@@ -24,7 +24,10 @@ ver_of() { git show "$1:app/package.json" | python3 -c "import json,sys; print(j
 # ---- 2. branch -> main
 say "Fetching $REPO"
 git fetch -q origin
-BRANCH="${1:-handoff/v$(ver_of origin/main)}"
+# default: handoff/next (where contributor chats push), else handoff/v<main's version>
+if [ -n "${1:-}" ]; then BRANCH="$1"
+elif git rev-parse -q --verify origin/handoff/next >/dev/null; then BRANCH="handoff/next"
+else BRANCH="handoff/v$(ver_of origin/main)"; fi
 if git rev-parse -q --verify "origin/$BRANCH" >/dev/null; then
   VERSION="$(ver_of "origin/$BRANCH")"
 else
@@ -35,7 +38,7 @@ TAG="v$VERSION"; NAME="R64texHD-$TAG"
 git checkout -q main
 git merge -q --ff-only origin/main || die "local main and GitHub main have split (different commits on both); sort that out by hand first"
 [ -n "$BRANCH" ] && { say "Merging $BRANCH into main"; git merge --ff-only "origin/$BRANCH" || die "$BRANCH can't fast-forward main; merge it by hand"; }
-[ "$(ver_of HEAD)" = "$VERSION" ] || die "version mismatch"
+[ "$(ver_of HEAD)" = "$VERSION" ] || die "version mismatch: main is v$(ver_of HEAD) after the merge, $BRANCH is v$VERSION (name the branch: build\\release.cmd handoff/next)"
 say "Pushing main"
 git push origin main
 
