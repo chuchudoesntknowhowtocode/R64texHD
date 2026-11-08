@@ -305,6 +305,32 @@ async function upscaleTask(p, ctx, tools) {
     const sizeText0 = p.size === 'fit' ? `to ${p.fit} px` : `${p.size}x`;
     ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText0} with ${useAi ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', mmpx: 'Pixel art (MMPX)' }[p.method] || 'Standard'}${p.method === 'standard' || useAi ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
   }
+  // Compare picks: textures with a saved pick leave their group and run with the version that was chosen.
+  const picks = p.picks && typeof p.picks === 'object' ? p.picks : {};
+  if (Object.keys(picks).length) {
+    const picked = new Map(); let unusable = 0;
+    for (const it of todo) {
+      const pk = parsePick(picks[pickKey(it.src, it.rel)]);
+      if (!pk) continue;
+      if (pickUsable(pk, tools, p.aiOk)) picked.set(it, pk); else unusable++;
+    }
+    if (picked.size) {
+      for (const g of groups) g.list = g.list.filter((it) => !picked.has(it));
+      const byPick = new Map();
+      for (const [it, pk] of picked) {
+        const k = pk.route + (pk.model ? ':' + pk.model : '');
+        if (!byPick.has(k)) byPick.set(k, { pk, list: [] });
+        byPick.get(k).list.push(it);
+      }
+      for (const { pk, list } of byPick.values()) {
+        groups.push({ list, ai: pk.route === 'ai', model: pk.model, noDedither: pk.route === 'pixel' || pk.route === 'mmpx',
+          opts: { ...opts, ...smart.ROUTE_OPTS[pk.route], method: pk.route === 'ai' ? 'standard' : smart.ROUTE_OPTS[pk.route].method } });
+      }
+      groups = groups.filter((g) => g.list.length);
+      ctx.log(`Your picks: ${picked.size.toLocaleString()} texture(s) use the version you chose in Compare (${[...byPick.values()].map((b) => `${b.list.length} ${pickName(b.pk)}`).join(', ')}).`);
+    }
+    if (unusable) ctx.log(`${unusable.toLocaleString()} pick(s) need AI or the texture models, which aren’t available here, so those textures use the normal method.`);
+  }
   fs.mkdirSync(p.output, { recursive: true });
   if (halfRoot) { fs.mkdirSync(halfRoot, { recursive: true }); ctx.log(`Also saving a half-size copy of everything in ${halfRoot}.`); }
   if (opts.supersample) ctx.log('Supersample: each texture is made twice as big, then shrunk back (calmer sharpening).');
@@ -323,7 +349,7 @@ async function upscaleTask(p, ctx, tools) {
     if (copied) ctx.log(`Copied ${copied} other file(s) (such as rt64.json) alongside.`);
     if (notCopied > 5) ctx.log(`... ${notCopied} other file(s) could not be copied.`);
   }
-  const optsOf = (g, it) => (it.dedither ? { ...g.opts, dedither: true } : g.opts);
+  const optsOf = (g, it) => (it.dedither && !g.noDedither ? { ...g.opts, dedither: true } : g.opts);
   const save = (it) => ({ format: it.fmt, ddsFormat: p.ddsFormat, texconv: tools.texconv, keepCoverage: p.keepCoverage !== false, bc7: tools.bc7Quality, edges: edgesOf(it) });
   // Edges: Auto uses each texture's own tiling from the RT64 dump (saved by Convert).
   const tileMap = p.edges === 'auto' ? tiling.loadFor(roots.length ? roots : inputs) : null;
@@ -672,6 +698,27 @@ async function fixTask(p, ctx, tools) {
   return { title: 'Fixed:', written: r.converted, failed: 0, output: r.output, sizeMB: r.sizeMB, fixed: true, seconds: (Date.now() - t0) / 1000 };
 }
 
+// ---------------------------------------------------------------- comparison picks (roadmap 10)
+// A pick is the version chosen for one texture in the preview's Compare grid: 'hd', 'pixel', 'mmpx' or 'ai:<model>'.
+// Saved per texture: its RT64 hash, or (no hash in the name) its path inside the input folder.
+const PICK_ROUTES = ['hd', 'pixel', 'mmpx'];
+const PACK_MODELS = ['hdcube-x4', 'gameai2-x4', 'pixelperfect4-x4'];
+function pickKey(src, rel) { return tiling.hashOf(src) || String(rel || path.basename(src)).replace(/\\/g, '/').toLowerCase(); }
+function parsePick(pick) {
+  if (typeof pick !== 'string') return null;
+  if (PICK_ROUTES.includes(pick)) return { route: pick, model: null };
+  const m = /^ai:([a-z0-9._-]+)$/i.exec(pick);
+  return m ? { route: 'ai', model: m[1] } : null;
+}
+// Can this PC make that pick? (AI needs Real-ESRGAN and a Vulkan card; texture models need the pack.)
+function pickUsable(pk, tools, aiOk) {
+  if (!pk) return false;
+  if (pk.route !== 'ai') return true;
+  return !!tools.realesrgan && aiOk !== false && (!PACK_MODELS.includes(pk.model) || !!tools.models);
+}
+const PICK_MODEL_NAMES = { 'realesrgan-x4plus': 'General', 'realesrgan-x4plus-anime': 'Art', 'realesr-animevideov3': 'Fast art', 'hdcube-x4': 'HDCube', 'gameai2-x4': 'GameAI', 'pixelperfect4-x4': 'Pixel' };
+const pickName = (pk) => (pk.route === 'ai' ? `AI 4× (${PICK_MODEL_NAMES[pk.model] || pk.model})` : smart.ROUTE_NAMES[pk.route]);
+
 // ---------------------------------------------------------------- live preview (1 · Upscale)
 // Textures available to preview for the current inputs.
 function previewList(inputs, subfolders) {
@@ -680,7 +727,7 @@ function previewList(inputs, subfolders) {
     if (!list.length) return { items: [], total: 0 };
     const { items } = gatherImages(list, subfolders !== false);
     items.sort((a, b) => a.rel.localeCompare(b.rel, undefined, { numeric: true, sensitivity: 'base' }));
-    return { items: items.slice(0, 5000).map((i) => ({ src: i.src, rel: i.rel })), total: items.length };
+    return { items: items.slice(0, 5000).map((i) => ({ src: i.src, rel: i.rel, key: pickKey(i.src, i.rel) })), total: items.length };
   } catch (e) { return { items: [], total: 0, error: e.message }; }
 }
 
@@ -781,8 +828,16 @@ async function preview(req, tools) {
   req = { ...req, edges };
   let opts = { size: req.size, fit: req.fit, maxSize: req.maxSize, method: req.method, sharpness: req.sharpness, hardAlpha: req.hardAlpha, alphaThreshold: (req.alphaThreshold ?? 50) / 100, colourFix: req.colourFix !== false, supersample: !!req.supersample };
   const save = { format: req.format, ddsFormat: req.ddsFormat, texconv: tools.texconv, keepCoverage: req.keepCoverage !== false, bc7: tools.bc7Quality, edges: req.edges };
-  let r, route = '', routeModelLabel = '';
-  if (req.method === 'smart') {                                   // the method Smart would pick for this texture
+  let r, route = '', routeModelLabel = '', forced = '';
+  const pk = parsePick(req.pick);
+  if (pk) {                                                       // one cell of the Compare grid: this version, whatever the method
+    if (!pickUsable(pk, tools, req.aiOk)) return { error: pk.route === 'ai' && !tools.realesrgan ? 'Real-ESRGAN isn’t downloaded (Settings).' : pk.route === 'ai' && req.aiOk === false ? 'AI needs a Vulkan graphics card.' : 'The texture models aren’t downloaded (Settings).' };
+    let dd = false;
+    if (req.method === 'smart' && pk.route !== 'pixel' && pk.route !== 'mmpx') dd = smart.dithered(await previewPool.run('classify', { src: req.src }));
+    opts = { ...opts, ...smart.ROUTE_OPTS[pk.route], dedither: dd };
+    if (pk.model) tools = { ...tools, realesrganModel: pk.model };
+    forced = pickName(pk) + (dd ? ', dither softened' : '');
+  } else if (req.method === 'smart') {                                   // the method Smart would pick for this texture
     const st = await previewPool.run('classify', { src: req.src }), models = !!tools.models;
     route = smart.route(st, { models });
     if (smart.isAi(route) && !(tools.realesrgan && req.aiOk !== false)) route = 'hd';
@@ -804,11 +859,11 @@ async function preview(req, tools) {
     if (opts.method === 'ai') opts.method = 'standard';
     r = await previewPool.run('preview', { src: req.src, opts, edges: req.edges, save });
   }
-  const routeName = route ? smart.ROUTE_NAMES[route] + (routeModelLabel ? ` (${routeModelLabel})` : '') + (opts.dedither ? ', dither softened' : '') : '';
+  const routeName = forced || route ? forced || smart.ROUTE_NAMES[route] + (routeModelLabel ? ` (${routeModelLabel})` : '') + (opts.dedither ? ', dither softened' : '') : '';
   return { ...r, edges: edgesLabel, route: routeName };
 }
 
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } if (romPool) { const p = romPool; romPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, stopEstimate, closePreview, aiArgs, Cancelled, Pool };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, stopEstimate, closePreview, aiArgs, Cancelled, Pool, pickKey, parsePick, pickUsable };

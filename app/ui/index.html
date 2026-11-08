@@ -625,6 +625,28 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .pv-line { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.7); pointer-events: none; }
 .pv-line i { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--orange); color: var(--ink); font: 800 10px/1 system-ui, sans-serif; font-style: normal; padding: 5px 6px; white-space: nowrap; box-shadow: 2px 2px 0 #000; }
 .pv-view.z1 .pv-cmp { margin: 0 auto; }
+/* Compare grid */
+.pv-cmp-t { flex: none; }
+.pv-cmp-t.on { background: rgba(255,141,122,.16); color: var(--orange-hi); box-shadow: inset 0 0 0 1px rgba(255,141,122,.45); }
+.pv-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 12px; color: var(--muted); }
+.pv-chips .chip { border: 0; cursor: pointer; font: inherit; }
+.pv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pv-grid.n3 { grid-template-columns: 1fr 1fr 1fr; }
+.pv-cell { min-width: 0; }
+.pv-cell-cap { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); margin-bottom: 5px; white-space: nowrap; overflow: hidden; }
+.pv-cell-cap b { color: var(--text); font-weight: 600; }
+.pv-cell-info { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.pv-use { padding: 4px 10px; font-size: 12px; flex: none; }
+.pv-use.on { background: #1d4f1f; color: #c4f7a6; box-shadow: inset 0 0 0 2px #46c43a; }
+.pv-grid .pv-cv { height: clamp(180px, calc((100vh - 660px) / 2), 420px); }
+.pv-grid.n2 .pv-cv, .pv-grid.n3 .pv-cv { height: clamp(260px, calc(100vh - 660px), 640px); }
+.pv-cell.picked .pv-cv { box-shadow: inset 0 0 0 2px #46c43a; }
+.pv-cell-msg { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; text-align: center; color: var(--muted); font-size: 12px; pointer-events: none; }
+.pv-cell-msg:empty { display: none; }
+.pv-cell-msg.err { color: var(--bad); }
+.pv-pickline { margin-top: 8px; font-size: 12px; color: var(--muted); }
+.pv-pickline b { color: var(--text); }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--orange-hi); cursor: pointer; font: inherit; text-decoration: underline; }
 
 /* Collapsible left pane: the grey tab on its right edge folds it to a rail of number chips */
 main { --navw: 272px; grid-template-columns: var(--navw) minmax(0, 1fr); transition: grid-template-columns .18s steps(4); }
@@ -1582,17 +1604,35 @@ document.addEventListener('click', async (e) => {
   if (ri) { selectRom(ri.dataset.rom); return; }
   const pz = e.target.closest('[data-pvzoom]');
   if (pz) {
-    const z = pz.dataset.pvzoom, k = previewScale();
+    const z = pz.dataset.pvzoom, k = PV.compare ? PV.cmpK : previewScale();
+    if (PV.compare) { setCompareZoom(z === 'fit' ? 'fit' : z === '100' ? 1 : z === 'in' ? k * ZOOM_STEP : k / ZOOM_STEP); return; }
     if (z === 'fit') setPreviewZoom('fit');
     else if (z === '100') setPreviewZoom(1);
     else setPreviewZoom(z === 'in' ? k * ZOOM_STEP : k / ZOOM_STEP);
     return;
+  }
+  if (e.target.closest('[data-pvcompare]')) { PV.compare = !PV.compare; PV.zoom = 'fit'; PV.scroll = { x: 0, y: 0 }; render(); return; }
+  const pch = e.target.closest('[data-pvchip]');
+  if (pch) {
+    const id = pch.dataset.pvchip; let set = compareSet();
+    if (set.includes(id)) { if (set.length > 2) set = set.filter((x) => x !== id); }
+    else { set = set.concat(id); if (set.length > 4) set = set.slice(set.length - 4); }
+    cfg.compareSet = set; save(true); render(); return;
+  }
+  const pu = e.target.closest('[data-pvuse]');
+  if (pu) { usePick(pu.dataset.pvuse); return; }
+  const pcl = e.target.closest('[data-pvclear]');
+  if (pcl) {
+    if (pcl.dataset.pvclear === 'all') cfg.picks = {};
+    else { const item = currentItem(); if (item && cfg.picks) { cfg.picks = { ...cfg.picks }; delete cfg.picks[item.key]; } }
+    save(true); render(); return;
   }
   const ps = e.target.closest('[data-pvstep]');
   if (ps && PV.list.length) {
     const i = PV.list.findIndex((x) => x.src === PV.src);
     const n = (i + Number(ps.dataset.pvstep) + PV.list.length) % PV.list.length;
     PV.src = PV.list[n].src; PV.scroll = { x: 0, y: 0 };
+    if (PV.compare) { render(); return; }
     fillPreviewPicker(); drawPreview(); schedulePreview(); return;
   }
   const pdel = e.target.closest('[data-preset-del]');
@@ -1716,7 +1756,7 @@ async function save(quiet) { await window.htk.saveSettings(cfg); if (!quiet) toa
 
 function params(task) {
   switch (task) {
-    case 'upscale': return { ...cfg.upscale, aiOk: aiOk() };
+    case 'upscale': return { ...cfg.upscale, aiOk: aiOk(), picks: cfg.picks || {} };
     case 'convert': return { ...cfg.convert, input: cfg.convert.input || cfg.dumpFolder };
     case 'unpack': return { ...cfg.unpack };
     case 'check': return { ...cfg.check };
@@ -2057,7 +2097,7 @@ document.addEventListener('input', (e) => { if (e.target.id === 'rom-search') { 
 
 // ---------------------------------------------------------------- live preview (1 · Upscale)
 const PV = { list: [], total: 0, listKey: '', src: '', zoom: 'fit', cache: new Map(), shown: null, shownKey: '', pendingKey: '', split: 0.5,
-  error: '', timer: null, scroll: { x: 0, y: 0 }, loadingList: false };
+  error: '', timer: null, scroll: { x: 0, y: 0 }, loadingList: false, compare: false, cmpSeq: 0, cmpBusy: '', cmpErr: {}, cmpTimer: null, cmpK: 1, cmpFit: 1 };
 
 function previewParams() {
   const u = cfg.upscale;
@@ -2071,9 +2111,11 @@ function previewPanel() {
       <div class="pv-pick"><button class="btn pv-step" data-pvstep="-1" title="Previous texture">◀</button>
         <select id="pv-file" title="Texture to preview"></select>
         <button class="btn pv-step" data-pvstep="1" title="Next texture">▶</button></div>
-      <div class="seg pv-zoom"><button data-pvzoom="out" title="Zoom out (or scroll down over the preview)">−</button><button data-pvzoom="fit" class="${PV.zoom === 'fit' ? 'on' : ''}" title="Fit the whole texture in the preview">Fit</button><button data-pvzoom="in" title="Zoom in (or scroll up over the preview)">+</button><button data-pvzoom="100" id="pv-pct" title="Actual size (100%)">Fit</button></div></div>`;
+      <div class="seg pv-zoom"><button data-pvzoom="out" title="Zoom out (or scroll down over the preview)">−</button><button data-pvzoom="fit" class="${PV.zoom === 'fit' ? 'on' : ''}" title="Fit the whole texture in the preview">Fit</button><button data-pvzoom="in" title="Zoom in (or scroll up over the preview)">+</button><button data-pvzoom="100" id="pv-pct" title="Actual size (100%)">Fit</button></div>
+      <button class="btn pv-cmp-t ${PV.compare ? 'on' : ''}" data-pvcompare title="Compare 2–4 versions of this texture side by side and pick the best one">Compare</button></div>`;
   const inputs = cfg.upscale.inputs || [];
   if (!inputs.length) return `<div class="preview"><div class="pv-head"><b>Preview</b></div><div class="pv-empty">Choose a folder or files and a side-by-side preview shows up here.</div></div>`;
+  if (PV.compare) return `<div class="preview" id="preview">${head}${compareBody()}</div>`;
   // Before / after: the full original underneath, the upscaled image over it right of the line; drag the line.
   return `<div class="preview" id="preview">${head}
     <div class="pv-caps"><div class="pv-cap" id="pv-cap-o"><b>◀ Original</b></div><div class="pv-cap r" id="pv-cap-u"><b>Upscaled ▶</b></div></div>
@@ -2100,7 +2142,8 @@ async function afterRenderPreview() {
 
 function fillPreviewPicker() {
   const sel = $('#pv-file'); if (!sel) return;
-  sel.innerHTML = PV.list.map((i, n) => `<option value="${n}" ${i.src === PV.src ? 'selected' : ''}>${esc(i.rel)}</option>`).join('')
+  const picks = cfg.picks || {};
+  sel.innerHTML = PV.list.map((i, n) => `<option value="${n}" ${i.src === PV.src ? 'selected' : ''}>${picks[i.key] ? '✓ ' : ''}${esc(i.rel)}</option>`).join('')
     + (PV.total > PV.list.length ? `<option disabled>… ${PV.total - PV.list.length} more not listed</option>` : '');
   sel.disabled = !PV.list.length;
   document.querySelectorAll('.pv-step').forEach((b) => { b.disabled = PV.list.length < 2; });
@@ -2108,6 +2151,7 @@ function fillPreviewPicker() {
 
 function schedulePreview() {
   if (!PV.src) return;
+  if (PV.compare) { scheduleCompare(); return; }
   const key = previewKey();
   if (key === PV.shownKey) return;
   const hit = PV.cache.get(key);
@@ -2143,6 +2187,7 @@ function paint(canvas, img) {
 }
 
 function drawPreview() {
+  if (PV.compare) { drawCompare(); return; }
   const vu = $('#pv-view-u'), co = $('#pv-o'), cu = $('#pv-u'), cmp = $('#pv-cmp');
   if (!vu || !co) return;
   const busy = $('#pv-busy');
@@ -2174,6 +2219,107 @@ function drawPreview() {
     + ((u.method === 'standard' || u.method === 'ai') ? `, ${u.sharpness}` : ''));
   $('#pv-cap-u').innerHTML = `${esc(how)} · ${r.up.width}×${r.up.height} · ${esc(r.encoded)}` + (stale ? ' · updating…' : ` · ${(r.ms / 1000).toFixed(2)} s`) + ' <b>Upscaled ▶</b>';
 }
+// ---------------------------------------------------------------- Compare grid (roadmap 10)
+// 2–4 versions of the same texture side by side (same zoom, scrolled together). "Use this" saves the pick
+// for that texture (by its RT64 hash), and the Upscale run then makes that version instead.
+function compareChoices() {
+  const list = [{ id: 'hd', label: 'HD 4×' }, { id: 'mmpx', label: 'MMPX' }, { id: 'pixel', label: 'Pixel-perfect' }];
+  if (S.tools.realesrgan && aiOk()) for (const m of AI_MODELS) if (!m.pack || S.tools.models) list.push({ id: 'ai:' + m.id, label: 'AI ' + m.label });
+  return list;
+}
+function compareSet() {
+  const ok = compareChoices().map((c) => c.id);
+  let set = (Array.isArray(cfg.compareSet) ? cfg.compareSet : []).filter((id) => ok.includes(id));
+  if (set.length < 2) set = ['hd', 'mmpx', 'ai:realesrgan-x4plus', 'ai:gameai2-x4', 'pixel'].filter((id) => ok.includes(id)).slice(0, 4);
+  return set.slice(0, 4);
+}
+const pickLabelOf = (id) => (compareChoices().find((c) => c.id === id) || { label: id.replace(/^ai:/, 'AI ') }).label;
+const currentItem = () => PV.list.find((i) => i.src === PV.src);
+const cellKey = (id) => JSON.stringify({ ...previewParams(), pick: id });
+function compareBody() {
+  const set = compareSet(), item = currentItem(), picks = cfg.picks || {}, pick = item ? picks[item.key] : '';
+  const n = Object.keys(picks).length;
+  const chips = compareChoices().map((c) => `<button class="chip ${set.includes(c.id) ? 'on' : ''}" data-pvchip="${c.id}">${esc(c.label)}</button>`).join('');
+  const cells = set.map((id) => `<div class="pv-cell ${pick === id ? 'picked' : ''}" data-cell="${id}">
+      <div class="pv-cell-cap"><b>${esc(pickLabelOf(id))}</b><span class="pv-cell-info"></span>
+        <button class="btn pv-use ${pick === id ? 'on' : ''}" data-pvuse="${id}">${pick === id ? '✓ Picked' : 'Use this'}</button></div>
+      <div class="pv-view pv-cv"><canvas></canvas><div class="pv-cell-msg"></div></div></div>`).join('');
+  return `<div class="pv-chips"><span>Show (2–4):</span>${chips}</div>
+    <div class="pv-grid n${set.length}" id="pv-grid">${cells}</div>
+    <div class="pv-pickline">${pick ? `This texture: <b>${esc(pickLabelOf(pick))}</b> (used by the run instead of the method above) · <button class="linkbtn" data-pvclear="one">clear</button>` : 'No pick for this texture: the run uses the method above.'}
+      ${n ? ` · ${n.toLocaleString()} texture pick(s) saved · <button class="linkbtn" data-pvclear="all">clear all</button>` : ''}</div>`;
+}
+function cachePut(key, r) {
+  PV.cache.set(key, r);
+  let pixels = 0;
+  for (const v of PV.cache.values()) pixels += v.up.width * v.up.height;
+  while (PV.cache.size > 1 && (PV.cache.size > 16 || pixels > 60e6)) {
+    const [k, v] = PV.cache.entries().next().value;
+    PV.cache.delete(k); pixels -= v.up.width * v.up.height;
+  }
+}
+// Makes the missing cells one at a time (the preview worker runs one job), then draws.
+function scheduleCompare() {
+  drawCompare();
+  clearTimeout(PV.cmpTimer);
+  PV.cmpTimer = setTimeout(async () => {
+    const seq = ++PV.cmpSeq;
+    for (const id of compareSet()) {
+      const req = { ...previewParams(), pick: id }, key = JSON.stringify(req);
+      if (PV.cache.has(key) || PV.cmpErr[key]) continue;
+      PV.cmpBusy = key; drawCompare();
+      const r = await window.htk.preview(req);
+      if (seq !== PV.cmpSeq || r.superseded) return;
+      if (r.error) PV.cmpErr[key] = r.error; else cachePut(key, r);
+      PV.cmpBusy = ''; drawCompare();
+    }
+    PV.cmpBusy = ''; drawCompare();
+  }, 140);
+}
+function drawCompare() {
+  const grid = $('#pv-grid'); if (!grid) return;
+  const cells = [...grid.querySelectorAll('.pv-cell')].map((el) => ({ el, id: el.dataset.cell, view: el.querySelector('.pv-cv'), r: PV.cache.get(cellKey(el.dataset.cell)) }));
+  let fitK = Infinity;
+  for (const c of cells) if (c.r) fitK = Math.min(fitK, (c.view.clientWidth - 8) / c.r.up.width, (c.view.clientHeight - 8) / c.r.up.height);
+  if (!isFinite(fitK)) fitK = 1;
+  PV.cmpFit = fitK;
+  if (PV.zoom !== 'fit' && PV.zoom < Math.min(fitK, 1) - 1e-6) PV.zoom = 'fit';
+  const fit = PV.zoom === 'fit', k = fit ? fitK : PV.zoom;
+  PV.cmpK = k;
+  for (const c of cells) {
+    const cv = c.view.querySelector('canvas'), msg = c.view.querySelector('.pv-cell-msg'), info = c.el.querySelector('.pv-cell-info');
+    const key = cellKey(c.id), err = PV.cmpErr[key];
+    c.view.classList.toggle('z1', !fit);
+    if (!c.r) {
+      cv.width = 0; cv.style.width = cv.style.height = '0px';
+      msg.textContent = err ? `Couldn’t make it: ${err}` : !PV.src ? 'No PNG or DDS textures in the input.' : PV.cmpBusy === key ? 'Making preview…' : 'Waiting…';
+      msg.classList.toggle('err', !!err); info.textContent = ''; continue;
+    }
+    msg.textContent = '';
+    if (cv.dataset.key !== key) { paint(cv, c.r.up); cv.dataset.key = key; }
+    const w = Math.max(1, Math.round(c.r.up.width * k)), h = Math.max(1, Math.round(c.r.up.height * k));
+    cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    cv.classList.toggle('px', w >= c.r.up.width);
+    cv.style.marginTop = fit ? '' : Math.max(0, Math.floor((c.view.clientHeight - h) / 2)) + 'px';
+    if (!fit) { c.view.scrollLeft = PV.scroll.x; c.view.scrollTop = PV.scroll.y; }
+    info.textContent = ` · ${c.r.up.width}×${c.r.up.height} · ${(c.r.ms / 1000).toFixed(2)} s` + (c.r.route && /dither/.test(c.r.route) ? ' · dither softened' : '');
+  }
+  document.querySelectorAll('[data-pvzoom="fit"]').forEach((b) => b.classList.toggle('on', fit));
+  const pct = $('#pv-pct'); if (pct) { pct.textContent = Math.round(k * 100) + '%'; pct.classList.toggle('on', !fit && Math.abs(k - 1) < 1e-6); }
+}
+function setCompareZoom(next) {
+  const lo = Math.min(PV.cmpFit, 1);
+  if (next === 'fit') PV.zoom = 'fit';
+  else { const k = Math.min(ZOOM_MAX, Math.max(lo, next)); PV.zoom = Math.abs(k - PV.cmpFit) < 0.02 ? 'fit' : k; }
+  drawCompare();
+}
+function usePick(id) {
+  const item = currentItem(); if (!item) return;
+  cfg.picks = { ...(cfg.picks || {}) };
+  if (cfg.picks[item.key] === id) delete cfg.picks[item.key]; else cfg.picks[item.key] = id;
+  save(true); render();
+}
+
 // Preview zoom. Fit shows the whole upscaled texture in the box (the smallest zoom); − / + and the mouse
 // wheel step by 25% up to 8 screen pixels per texture pixel, and down to 100% for textures smaller than the box;
 // the % button jumps to 100% (actual size).
@@ -2206,6 +2352,9 @@ function setPreviewZoom(next, at) {
   drawPreview();
 }
 document.addEventListener('wheel', (e) => {
+  if (PV.compare && e.target instanceof Element && e.target.closest('.pv-cv') && !e.ctrlKey) {
+    e.preventDefault(); setCompareZoom(PV.cmpK * (e.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP)); return;
+  }
   const vu = e.target instanceof Element && e.target.closest('#pv-view-u');
   if (!vu || !PV.shown || e.ctrlKey) return;
   e.preventDefault();
@@ -2304,12 +2453,13 @@ document.addEventListener('scroll', (e) => {
   const v = e.target;
   if (!(v instanceof HTMLElement) || !v.classList.contains('pv-view') || PV.zoom === 'fit') return;
   PV.scroll = { x: v.scrollLeft, y: v.scrollTop };
+  if (v.classList.contains('pv-cv')) document.querySelectorAll('.pv-cv').forEach((o) => { if (o !== v && (o.scrollLeft !== v.scrollLeft || o.scrollTop !== v.scrollTop)) { o.scrollLeft = v.scrollLeft; o.scrollTop = v.scrollTop; } });
 }, true);
 
 document.addEventListener('change', (e) => {
   if (e.target.id !== 'pv-file') return;
   const item = PV.list[Number(e.target.value)];
-  if (item) { PV.src = item.src; PV.scroll = { x: 0, y: 0 }; drawPreview(); schedulePreview(); }
+  if (item) { PV.src = item.src; PV.scroll = { x: 0, y: 0 }; if (PV.compare) { render(); return; } drawPreview(); schedulePreview(); }
 });
 
 // Back in the app (maybe after dumping more textures): look at the input again.
