@@ -17,7 +17,12 @@ echo "== $BRANCH -> main, release $TAG"
 git checkout -q main
 git merge --ff-only "origin/$BRANCH"
 git push origin main
-bash build/package.sh
+# Zips already built (all four in dist): publish those; otherwise build them. Delete dist to force a rebuild.
+if ls dist/R64texHD-$TAG-Windows.zip dist/R64texHD-$TAG-scenes.zip dist/R64texHD-$TAG-models.zip dist/R64texHD-$TAG-onnx.zip >/dev/null 2>&1; then
+  echo "== Using the zips already in dist (delete dist to rebuild them)"
+else
+  bash build/package.sh
+fi
 NOTES="$(mktemp)"; sed -n "/^## $TAG\$/,/^## v/p" CHANGELOG.md | sed '1d;$d' > "$NOTES"
 gh release create "$TAG" dist/R64texHD-$TAG-*.zip --target main --title "R64texHD $TAG" --notes-file "$NOTES"
 rm -f "$NOTES"
