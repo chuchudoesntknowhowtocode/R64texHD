@@ -13,6 +13,10 @@ test('ncnn: model scale read from the .param layers', () => {
   assert.equal(modelScale(head), null);                                                  // no upsample layer: can't tell
   assert.equal(modelScale(head + 'Interp  up  1 1 a b 0=1 3=256 4=256\n'), null);        // fixed output size
   assert.equal(modelScale('7767517\n3 3\nInterp  up  2 1 a s b 0=1 1=4.0 2=4.0\n'), 4); // two inputs
+  // realesr-animevideov3-x2: PixelShuffle ×4 beside Interp ×4 of the input, added, then Interp ×0.5
+  const compact = '7767517\n6 7\nInput  in  0 1 data\nConvolution  c  1 1 data 105 0=48\nPixelShuffle  ps  1 1 105 106 0=4\n'
+    + 'Interp  r37  1 1 data 111 0=1 1=4.000000e+00 2=4.000000e+00\nBinaryOp  add  2 1 106 111 112\nInterp  r40  1 1 112 output 0=3 1=5.000000e-01 2=5.000000e-01\n';
+  assert.equal(modelScale(compact), 2);
 });
 test('ncnn: scale a file name claims', () => {
   assert.equal(nameScale('4x-UltraSharp.param'), 4);
