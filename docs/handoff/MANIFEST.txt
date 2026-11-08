@@ -1,3 +1,3 @@
-handoff #5 2026-11-08
+handoff #6 2026-11-08
 RESUME.md HANDOFF.md PLACES.md INDEX.md
-HEAD 06ebb06
+HEAD e91b099
