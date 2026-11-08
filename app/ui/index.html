@@ -1537,6 +1537,7 @@ function renderJob() {
     let actions = `<button class="btn" data-open="${esc(r.output)}">Open</button>`;
     if (r.packable && job.task === 'convert') actions += `<button class="btn primary" id="pack-now">Pack into .rtz…</button>`;
     if (r.packable && job.task === 'upscale') actions += r.fromO2r ? `<button class="btn primary" id="go-ship">Create HD Texture Pack</button>` : `<button class="btn primary" id="go-pack">Go to Pack</button>`;
+    if (r.packable && job.task === 'upscale' && r.half && !r.fromO2r) actions += `<button class="btn" id="go-pack-half" title="${esc(r.half)}">Pack the half-size copy</button>`;
     if (r.upscalable) actions += `<button class="btn primary" id="go-upscale">Upscale these</button>`;
     if (r.checkable) actions += `<button class="btn primary" id="go-check">Check it</button>`;
     setCard('done', `${r.title} ${what}${r.failed ? ` (${r.failed} failed, see below)` : ''} in ${r.seconds.toFixed(1)} s`, r.note ? `${r.output}\n${r.note}` : r.output, undefined, actions);
@@ -1672,6 +1673,7 @@ document.addEventListener('click', async (e) => {
   if (id === 'pack-now') { packConverted(job.result.output); return; }
   if (id === 'go-pack' || id === 'm-go-pack') { goTo('pack', 'pack', { input: id === 'go-pack' ? job.result.output : packAfter, output: '' }); return; }
   if (id === 'm-go-ship') { goTo('ports', 'build', { hdInput: packAfter, modOutput: '' }); return; }
+  if (id === 'go-pack-half') { goTo('pack', 'pack', { input: job.result.half, output: '' }); return; }
   if (id === 'go-ship') { goTo('ports', 'build', { hdInput: job.result.output, modOutput: '' }); return; }
   if (id === 'go-check') { const out = job.result.output; goTo('pack', 'check', {}); cfg.check.input = out; render(); start('check'); return; }
   if (id === 'go-upscale') { goTo('upscale', null, { inputs: [job.result.output], output: '', edges: 'auto', ...(job.task === 'o2rExtract' ? { format: 'png' } : {}) }); return; }

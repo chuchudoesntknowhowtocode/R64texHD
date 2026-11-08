@@ -6,4 +6,4 @@ Lanczos shrink reads across the border by the texture's edge mode (wrap / mirror
 ## Files touched
 app/core/upscale.js · app/core/worker.js · tests/shrink-edges.test.js · CHANGELOG.md
 ## Follow-ups / open questions
-- Offer "pack the half-size copy too" in the finish dialog.
+- Done: "Pack the half-size copy" button on the finished Upscale card.
