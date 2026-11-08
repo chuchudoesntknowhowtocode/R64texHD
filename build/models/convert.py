@@ -20,7 +20,7 @@ class _Storage:
 def _rebuild_tensor(storage, offset, size, stride, *_):
     arr, = storage
     n = int(np.prod(size)) if size else 1
-    flat = arr[offset:offset + (max((s - 1) * st for s, st in zip(size, stride)) + 1 if size else 1)]
+    flat = arr[offset:offset + (sum((s - 1) * st for s, st in zip(size, stride)) + 1 if size else 1)]
     if size and list(stride) != [int(np.prod(size[i + 1:])) for i in range(len(size))]:
         return np.lib.stride_tricks.as_strided(flat, shape=size, strides=[s * flat.itemsize for s in stride]).copy()
     return flat[:n].reshape(size).copy()
@@ -31,7 +31,7 @@ class _Unpickler(pickle.Unpickler):
         super().__init__(f); self.load_storage = load_storage
     def find_class(self, module, name):
         if self.dry and module == 'torch._utils' and name.startswith('_rebuild'): return lambda *a: None
-        if module == 'collections' and name == 'OrderedDict': return collections.OrderedDict
+        if module in ('collections', 'typing') and name == 'OrderedDict': return collections.OrderedDict
         if module == 'torch._utils' and name in ('_rebuild_tensor_v2', '_rebuild_tensor'): return _rebuild_tensor
         if module == 'torch' and name in DTYPES: return _Storage(name)
         if module == 'torch._utils' and name == '_rebuild_parameter': return lambda data, *a: data

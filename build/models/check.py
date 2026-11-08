@@ -37,9 +37,10 @@ def run_ncnn(stem, x):
     import ncnn
     net = ncnn.Net(); net.opt.use_vulkan_compute = False; net.opt.use_fp16_storage = False; net.opt.use_fp16_arithmetic = False; net.opt.use_fp16_packed = False
     assert net.load_param(str(stem) + '.param') == 0 and net.load_model(str(stem) + '.bin') == 0
-    ex = net.create_extractor(); ex.input('data', ncnn.Mat(np.ascontiguousarray(x, dtype=np.float32)))
+    xin = np.ascontiguousarray(x, dtype=np.float32)          # ncnn.Mat borrows this memory: keep it alive
+    ex = net.create_extractor(); ex.input('data', ncnn.Mat(xin))
     _, out = ex.extract('output')
-    return np.array(out)
+    return np.array(out, copy=True)
 
 def random_sd(nf=8, nb=2, gc=4, seed=1):
     g = np.random.default_rng(seed); sd = {}
