@@ -71,9 +71,9 @@
   ];
 
   window.htk = {
-    state: async () => ({ settings, dataDir: 'C:\\Tools\\R64texHD-v0.8.0.1\\data', dataWritable: true,
-      tools: noTools ? { texconv: '', realesrgan: '' } : window.__mixedTools ? { texconv: 'C:\\Tools\\R64texHD-v0.8.0.1\\data\\tools\\texconv.exe', realesrgan: '' } : { texconv: 'C:\\Tools\\R64texHD-v0.8.0.1\\data\\tools\\texconv.exe', realesrgan: 'C:\\Tools\\R64texHD-v0.8.0.1\\data\\tools\\realesrgan\\realesrgan-ncnn-vulkan.exe' },
-      version: '0.8.0.1', platform: 'win32', cpus: 16, workers: 8, running: null, shipPorts: (window.__SHIP || {}).ports || [] }),
+    state: async () => ({ settings, dataDir: 'C:\\Tools\\R64texHD-v0.9.0.0\\data', dataWritable: true,
+      tools: noTools ? { texconv: '', realesrgan: '' } : window.__mixedTools ? { texconv: 'C:\\Tools\\R64texHD-v0.9.0.0\\data\\tools\\texconv.exe', realesrgan: '' } : { texconv: 'C:\\Tools\\R64texHD-v0.9.0.0\\data\\tools\\texconv.exe', realesrgan: 'C:\\Tools\\R64texHD-v0.9.0.0\\data\\tools\\realesrgan\\realesrgan-ncnn-vulkan.exe' },
+      version: '0.9.0.0', platform: 'win32', cpus: 16, workers: 8, running: null, shipPorts: (window.__SHIP || {}).ports || [] }),
     saveSettings: async () => true,
     dialog: async () => null,
     inspect: async (kind) => { const r = INSPECT[kind] || ['idle', '', '']; return { state: r[0], title: r[1], text: r[2] }; },
