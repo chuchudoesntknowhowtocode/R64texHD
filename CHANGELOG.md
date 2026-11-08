@@ -3,7 +3,7 @@
 ## v0.9.1.0
 
 ### Upscaling
-- **ONNX engine** (Settings › Helper tools, optional 150 MB download): a second AI engine on onnxruntime with **DirectML** (any DirectX 12 graphics card; falls back to the CPU), with the two strongest permissive game-texture models: **TextureDAT2** (4xTextureDAT2_otf) and **RGT-S dither** (4xTextures_GTAV_rgt-s_dither, trained with dithering), both CC BY 4.0 by Philip Hofmann. Pick them under Settings › AI model; they also show up in the Compare grid. Real-ESRGAN isn't needed for them. It runs as its own process, so the app stays responsive; big textures run in overlapping tiles. Credits in `ONNX-CREDITS.txt`.
+- **ONNX engine** (Settings › Helper tools, optional 108 MB download): a second AI engine on onnxruntime with **DirectML** (any DirectX 12 graphics card; falls back to the CPU), with the two strongest permissive game-texture models: **TextureDAT2** (4xTextureDAT2_otf) and **RGT-S dither** (4xTextures_GTAV_rgt-s_dither, trained with dithering), both CC BY 4.0 by Philip Hofmann. Pick them under Settings › AI model; they also show up in the Compare grid. Real-ESRGAN isn't needed for them. It runs as its own process, so the app stays responsive; big textures run in overlapping tiles. Credits in `ONNX-CREDITS.txt`.
 
 ## v0.9.0.0
 

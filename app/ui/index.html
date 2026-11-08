@@ -1245,7 +1245,7 @@ const TOOL_INFO = {
   texconv: { label: 'texconv', size: '1 MB', use: 'sharp BC7 DDS textures' },
   realesrgan: { label: 'Real-ESRGAN', size: '45 MB', use: 'AI upscaling' },
   models: { label: 'texture models', size: '93 MB', use: 'AI models for game textures', optional: true },
-  onnx: { label: 'ONNX engine', size: '150 MB', use: 'the strongest texture models (DirectML)', optional: true },
+  onnx: { label: 'ONNX engine', size: '108 MB', use: 'the strongest texture models (DirectML)', optional: true },
 };
 const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !TOOL_INFO[n].optional && !S.tools[n]);
 // Real-ESRGAN models: its own three, then the texture pack (Settings › Tools › Texture models).

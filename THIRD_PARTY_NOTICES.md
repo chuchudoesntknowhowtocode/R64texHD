@@ -114,3 +114,10 @@ The texture model pack (Settings › Texture models) holds three ESRGAN models c
 - **4x_HDCube** by Venomalia: CC0 1.0
 - **4x_GameAI 2.0** by Tal: WTFPL
 - **4x_PixelPerfectV4** by Mutin Choler: WTFPL
+
+## ONNX engine (optional download)
+
+Not part of the app; downloaded from Settings into `data/tools/onnx`, with `ONNX-CREDITS.txt`.
+
+- onnxruntime-node / onnxruntime-common 1.22.0, (c) Microsoft Corporation, MIT License — https://github.com/microsoft/onnxruntime (includes the DirectML redistributable, DirectML.dll / dxcompiler.dll / dxil.dll).
+- 4xTextureDAT2_otf and 4xTextures_GTAV_rgt-s_dither by Philip Hofmann (Phhofm), CC BY 4.0 — https://github.com/Phhofm/models. Renamed to texturedat2-x4.onnx / rgts-dither-x4.onnx, otherwise unchanged.
