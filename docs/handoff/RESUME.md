@@ -1,14 +1,14 @@
-Project: R64texHD — #3 (redo) — 2026-11-04 — 0b45703
+Project: R64texHD — #4 — 2026-11-07 — 66368e4
 Root: C:\GitHub\R64texHD
 Scope: portable Windows Electron app: upscale DDS/PNG, convert RT64 dumps, pack/unpack .rtz
-Goal: roadmap item 4 — alpha classifier, dilation bleed, separate alpha upscale, user threshold
-Done when: item 4 committed locally, all tests pass, before/after pictures of a cut-out sent
-Stopped at: roadmap 5 done (colour fix); untested in Electron UI + real Real-ESRGAN
-Next action: roadmap 6 — replicate pad for clamp; 3×3 tile pad for ≤32 px; plan first
-Last cmd: user pushed 0b45703..98aec3e from Windows (works; push from Claude is blocked by proxy 403)
+Goal: roadmap item 10 — comparison grid: 2–4 models per texture side by side, remember the pick per hash
+Done when: grid works in the Upscale preview, choice saved and used by the run, tests pass, picture sent
+Stopped at: items 1–9 done (2 skipped: one GPU); item 10 not started — plan first (> 3 files)
+Next action: read app/ui/index.html preview (drawPreview ~2140, PV state ~2050) + tasks.js preview(); give a 3–5 bullet plan, wait for "go"
+Last cmd: zip dist/R64texHD-v0.8.0.1-Windows.zip → ok (build refreshed with items 7–9)
 Last error: none
 Uncommitted: none
-Settings: chuchu on; previews=yes (send pictures/GIF); visual=live test in Chromium harness; commit locally, never push; commits authored chuchudoesntknowhowtocode
+Settings: chuchu on; previews=yes (send pictures); visual=screenshot (Chromium harness); commit locally, never push; user wants Claude to do downloads/moves itself
 Open Qs: none
 Prev chat: https://claude.ai/code/session_01AbsEdHWAkbULMdhrGUj8Ss — "Claude.ai E1 upgraded conversation"
 WSL: no

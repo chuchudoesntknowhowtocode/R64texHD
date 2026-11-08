@@ -1,0 +1,4 @@
+handoff #3 2026-11-04
+RESUME.md HANDOFF.md PLACES.md INDEX.md
+HEAD 0b45703
+origin/main 8c2d5e2 (9 behind local)

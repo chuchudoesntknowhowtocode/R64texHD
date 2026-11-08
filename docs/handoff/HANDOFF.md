@@ -1,50 +1,50 @@
-# R64texHD handoff #3 — 2026-11-04
+# R64texHD handoff #4 — 2026-11-07
 
 ## Scope
-Research roadmap (docs/research/Better N64 texture upscaling.md) items 1–6, approved by the user. v0.8.0.1 + local work.
+Research roadmap (docs/research/Better N64 texture upscaling.md): items 1–9 done; 10–13 left. v0.8.0.1 + local work.
 
 ## Changes we made
-- f256a85 perf: roadmap 1 — one Real-ESRGAN run per AI group, -j 4:4:4, -t covers largest padded texture (≤400, Auto only), progress from output folder; on failure retry unfinished at -t 128, then HD 4× fallback
-- 0b45703 feat: roadmap 3 — BC7 quality setting (Settings › Upscaling › Performance: Fast -bc q / Normal / Best -bc x, default Best); texconv -wrap/-mirror when both axes tile the same way
-- Earlier (handoff #2 chat): d462c08 review fixes, 9d60740 input card, 75e98dd estimate cache, 2179e66 Scale slider, 08a848a research report
+- 98aec3e, 1bcfc8f (other chat): roadmap 4 cut-out alpha (classifier, bleed, separate alpha, threshold), 5 AI colour fix
+- 9d969bd feat: preview fills its box (clamp 300–720 px), − / Fit / + / % zoom, mouse-wheel zoom 100–800% at the cursor
+- 25dc487 feat: roadmap 6 — full-tile AI padding for textures ≤ 32 px (aiPad); clamp already = replicate
+- da3b7f0 + 2e1037e feat: roadmap 7 — texture models HDCube / GameAI 2.0 / PixelPerfectV4: build/models/convert.py (.pth → ncnn, no PyTorch), check.py (ncnn vs NumPy), Settings › Texture models download, AI model row (6 choices), package.sh makes <name>-models.zip + assets/models/remote.json
+- 20f5c94 feat: roadmap 8 — Smart v2: MMPX (app/core/mmpx.js), routes mmpx / aisprite (Pixel model) / ai → GameAI with models, dither detector + softening, MMPX method
+- 66368e4 feat: roadmap 9 — Supersample (2× then Lanczos, cut-outs re-cut) and Half-size copy ("<output> (half size)")
 
 ## Changes we should make
-- H: get the 9 local commits (8c2d5e2..0b45703) onto GitHub — user's push failed, error unknown
-- H: roadmap 4 — alpha classify (opaque/binary/graded), dilation bleed, separate alpha upscale, user threshold
-- M: roadmap 5 — low-frequency colour fix vs original (RGB only)
-- M: roadmap 6 — replicate pad for clamp; 3×3 tile pad for ≤32 px
-- L: Windows test of AI one-spawn + Low retry, BC7 Best speed on a real dump, Scale slider in Electron, download timeout
-- L: roadmap 2 multi-GPU (skipped: single GPU) — needs ncnn device list probe + Settings picker
+- H: user pushes (2 commits ahead: 20f5c94, 66368e4 — check `git status`)
+- H: roadmap 10 — comparison grid (plan first)
+- M: Windows test with real Real-ESRGAN: texture models, Smart v2 routes, supersample, half copy, preview zoom
+- M: GitHub release v0.8.x: attach Windows zip + scenes zip + models zip (models download needs it + public repo)
+- L: roadmap 11 (onnxruntime-node DirectML: TextureDAT2, RGT-S_dither, 1x dedither / DEDXT), 12 (model manager for NC models), 13 (experiments)
+- L: tune dither thresholds (DITHERED 0.12, DITHER_NEAR 56) on real dumps; edge-aware shrink; pack the half copy too
 
 ## Current state
-- Works: 79/79 tests (node --test tests/*.test.js); stand-in Real-ESRGAN (100 textures, crash at 40 → 60 retried) and stand-in texconv (args checked) runs
-- Not tested with real tools / on Windows since handoff #2
+- Works: 92/92 tests (`node --test tests/*.test.js`); models verified (ncnn vs NumPy ~1e-5; demo pictures sane)
+- Build: C:\GitHub\R64texHD\dist\R64texHD-v0.8.0.1 (+ -Windows.zip 163 MB, -models.zip 93 MB); test models pre-placed in dist\…\data\tools\realesrgan\models (data/ is excluded from the zip)
+- Not tested on Windows: items 6–9, preview zoom, model download (needs release)
 
 ## Decisions
-- Multi-GPU skipped: user's PC is a desktop with one RTX 4060 8 GB
-- BC7 default Best (user's choice, per report)
-- -wrap/-mirror only when both axes agree; mixed → plain edges
-- -g stays the Settings choice (Auto = ncnn default, prefers discrete GPU)
-- Anime = ai + realesrgan-x4plus-anime; AI = ai + realesrgan-x4plus
-- NC models only as opt-in downloads; upscayl-bin is AGPL (don't bundle)
+- Models: optional download, not in the app zip; ids hdcube-x4, gameai2-x4, pixelperfect4-x4; 1x models wait for roadmap 11
+- Smart never picks HDCube; ai → GameAI with models; aisprite = binary alpha 16–64 px → Pixel model
+- Roadmap 2 (multi-GPU) skipped: user has one RTX 4060 8 GB
+- Supersample/half default off; half folder next to output, not inside
 
 ## Watch out for
-- Pushing: device shell gets 403 from proxy; the cloud GitHub link has no push access to this repo. User pushes manually.
-- Use $HOME/mnt/R64texHD (delete allowed there) for git, not $HOME/mnt/GitHub/R64texHD — the latter leaves .lock / tmp_obj files
-- Commit with -c user.name=chuchudoesntknowhowtocode -c user.email=chuchudoesntknowhowtocode@users.noreply.github.com
-- Node 22: `node --test tests/*.test.js` (dir arg fails)
-- CHANGELOG has two "### Upscaling" headings: insert under "## Unreleased" explicitly
-- dds ALPHA_REF is 0.5 (not 128)
-- Stand-in tools for tests: write them outside mnt ($HOME/…), delete after
-- Old per-project starter "R64texHD — continue" (trig_01VCx4qrsXU5XNgpZrPY33h5) exists; new rule: use the shared "handoffchat — continue" only
+- Pushing: device shell gets 403; cloud GitHub link has no push access. User runs `git push origin main` (cmd: `cd /d C:\GitHub\R64texHD`)
+- Git from $HOME/mnt/R64texHD (delete allowed after asking once per chat); commit with -c user.name=chuchudoesntknowhowtocode -c user.email=chuchudoesntknowhowtocode@users.noreply.github.com
+- Full build/package.sh takes > 3 min (tool limit): refresh dist by copying app files into dist/R64texHD-v0.8.0.1/resources/app + `zip -q -r -6 … -x '…/data/*'`
+- ncnn Python: ncnn.Mat(numpy) borrows memory — keep the array alive and copy outputs (np.array(o, copy=True))
+- Downloads: built-in browser pane doesn't save files; Claude in Chrome does (→ C:\Users\Chuchu\Downloads, folder access granted)
+- CHANGELOG: insert under "## Unreleased" → first "### Upscaling"
+- UI screenshots: tar app/ui app/core build/ui-preview → stage → container Playwright with mock-htk.js; delete after
 
 ## Enhancements
+- Comparison grid could reuse PV cache (S, H)
 - Reuse classify cache in Smart run (S, M)
-- Smart preset stays highlighted at any scale (S, L)
-- BC7 quality per preset instead of global (S, L)
 
 ## Open questions
-- What error did the user's `git push` show?
+- none
 
 ## Files that matter most
-app/core/tasks.js (upscaleTask AI branch ~325-380, aiArgs), app/core/dds.js (texconvArgs, mipChain, isCutout), app/core/worker.js (aiPrep/aiFinish), app/core/upscale.js (fillTransparent, hardAlpha), app/ui/index.html (settings rows ~1130)
+app/core/tasks.js (upscaleTask, preview, estimate), app/core/upscale.js, app/core/smart.js, app/core/mmpx.js, app/core/worker.js, app/main.js (tools, installTool), app/ui/index.html (preview ~2050–2200, settings ~1130), build/models/*
