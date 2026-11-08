@@ -9,12 +9,13 @@ Portable Windows Electron app (app/, plain JS, Electron 38). Roadmap 1–12 done
 - b65036d v0.9.2.0 (package.json, CHANGELOG, README)
 - ed504fd helper tools: first start offers all 4 tools (continues past failures); download() falls back to GitHub API asset link on 5xx/429 (github.com/releases/download gave 504 for every file on 11-08); fetchPack() installs …-onnx.zip / …-models.zip found next to the program folder (unpublished builds, offline)
 - e91b099 preview: zoomed → drag to pan, click centres the spot (also Compare grid, middle button); split line drags from the line (24 px grip); Fit unchanged
-- Pushed by user: handoff/next = ed504fd. Not pushed: 7ed1c49, e91b099, handoff #6
+- b06de12 (after #6) DITHERED 0.12 → 0.10: N64 Glide dumps (x64tractor/samples PD/GE/MK64, 4055 textures) — PD dithered 16-colour scenes 0.10–0.125, none on the AI route
+- Pushed by user: handoff/next = ac76f5d. Not pushed: b06de12
 
 ## Changes we should make
 - H: user pushes; Windows test of dist\R64texHD-v0.9.2.0: ONNX engine (DirectML start, speed/VRAM), Upscale page (grip, Output panel, reset, small windows), pan/click-centre, Compare with real AI, own model add (4× ok, 2× refused), Smart aidither; first-start prompt (fresh unzip)
 - H: owner merges handoff/next + releases v0.9.2.0 (build\release.cmd); until then in-app pack downloads 404 (local zips next to the folder work)
-- M: re-check dither on a raw N64 dump (SF2T SNES captures never reach AI route: colours < 96)
+- M: aidither still untested on real data: no dithered texture in SF2T/PD/GE/MK64 reaches the AI route (colours < 96)
 - L: pan: points near the edge can't reach the centre (no padding); split line lost its black outline when zoomed
 - L: roadmap 13 (ncnn vs DML timing AMD/Intel, CPU lane, TensorRT/WinML); ORT session per GPU, fp16; Compare "Original" cell
 
