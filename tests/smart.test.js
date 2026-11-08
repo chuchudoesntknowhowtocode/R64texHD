@@ -38,7 +38,7 @@ test('smart: checker dithering is detected and softened, flat and noisy textures
   const flat = img(16, 16, () => [120, 80, 60, 255]);
   assert.ok(ditherScore(checker) > 0.9, String(ditherScore(checker)));
   assert.strictEqual(ditherScore(flat), 0);
-  assert.ok(ditherScore(img(16, 16, noisy)) < 0.12);
+  assert.ok(ditherScore(img(16, 16, noisy)) < require("../app/core/smart").DITHERED, String(ditherScore(img(16, 16, noisy))));
   // a dithered band on a mostly flat screen still counts (flat pixels don't water the share down)
   const band = img(64, 64, (x, y) => (y >= 8 && y < 16 ? ((x + y) & 1 ? [120, 80, 60, 255] : [140, 96, 70, 255]) : [0, 0, 0, 255]));
   assert.ok(ditherScore(band) >= 0.12, String(ditherScore(band)));

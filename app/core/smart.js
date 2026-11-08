@@ -14,7 +14,7 @@
 const { alphaKind, ditherScore } = require('./upscale');
 
 const COLOR_CAP = 256;
-const DITHERED = 0.12;            // share of dithered pixels above which a texture counts as dithered
+const DITHERED = 0.10;            // share of busy pixels that look dithered above which a texture counts as dithered (tuned 11-08: SF2T SNES noise <= 0.03, Perfect Dark 16-colour dithered scenes 0.10-0.125)
 
 function stats(img) {
   const { width: w, height: h, data: d } = img;

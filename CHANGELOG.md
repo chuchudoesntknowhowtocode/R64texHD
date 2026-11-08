@@ -11,7 +11,7 @@
 - Adding a model reads its scale from the .param layers (Interp / PixelShuffle), not just the file name: a renamed 2× model is turned away, a 4× model with no scale in its name is let in. The name still decides when the layers don't say or say more (x2plus-style models).
 
 ### Smart
-- Dither detection counts only the busy (non-flat) pixels, so a dithered sky or floor on a mostly black or flat texture is now found and softened (tuned on SF2 Turbo screen captures: 7 of 7 dithered gradients found, was 4; no noisy texture flagged). New `tools/dither-tune.js` scores a folder at several limits.
+- Dither detection counts only the busy (non-flat) pixels, so a dithered sky or floor on a mostly black or flat texture is now found and softened (tuned on SF2 Turbo screen captures: 7 of 7 dithered gradients found, was 4; no noisy texture flagged). The dithered cut-off is 10% instead of 12%, so Perfect Dark's dithered 16-colour textures count too (checked on Perfect Dark, GoldenEye and Mario Kart 64 dumps). New `tools/dither-tune.js` scores a folder at several limits.
 
 ### Upscale page
 - Zoomed in, drag the texture to move it around, or click a spot to bring it to the middle of the preview (also in the Compare grid; the middle mouse button drags too). The split line drags from the line itself; at Fit a click still moves the split line.
