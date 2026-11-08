@@ -1,6 +1,6 @@
 # R64texHD - Reimagine Every Pixel
 
-**HD textures for N64 games** · current version **v0.9.1.0** · Windows x64 · GPL-2.0-or-later
+**HD textures for N64 games** · current version **v0.9.2.0** · Windows x64 · GPL-2.0-or-later
 
 R64texHD is an all-in-one tool for N64 HD texture packs. It gets textures out of RT64 dumps and Ship
 port archives, upscales them, and packs them back up for RT64 emulators, recomps and Ship ports. It
@@ -210,8 +210,8 @@ Everything here can be turned off in Settings › Look and feel and Settings ›
 
 ## Download and run
 
-1. Download `R64texHD-v0.9.1.0-Windows.zip` from [Releases](../../releases).
-2. Unzip it anywhere you can write to, for example `C:\Tools\R64texHD-v0.9.1.0`.
+1. Download `R64texHD-v0.9.2.0-Windows.zip` from [Releases](../../releases).
+2. Unzip it anywhere you can write to, for example `C:\Tools\R64texHD-v0.9.2.0`.
 3. Run **R64texHD.exe**. The first launch asks about the optional helper tools and Psychedelic mode.
 
 **Updating:** unzip the new version next to the old one and copy the old `data` folder into it to keep

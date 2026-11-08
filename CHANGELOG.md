@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.9.2.0
 
 ### Your own models
 - Adding a model reads its scale from the .param layers (Interp / PixelShuffle), not just the file name: a renamed 2× model is turned away, a 4× model with no scale in its name is let in. The name still decides when the layers don't say or say more (x2plus-style models).
