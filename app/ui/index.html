@@ -266,7 +266,7 @@ body.job-on .stage .fx-click { cursor: pointer; }
   background-image: linear-gradient(rgba(233,80,138,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,181,150,.4) 1px, transparent 1px);
   background-size: 60px 30px; transform: perspective(380px) rotateX(62deg); transform-origin: top; mask-image: linear-gradient(transparent, #000 40%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 40%, transparent); }
 .phrase { position: relative; margin-top: -6px; padding: 0 20px; text-align: center; font-weight: 400; font-style: normal;
-  font-size: var(--phrase-size, 32.8px); letter-spacing: 0; text-transform: uppercase; line-height: 1.2; white-space: nowrap;   /* always one line */
+  font-size: var(--phrase-size, 32.8px); letter-spacing: 2px; text-transform: uppercase; line-height: 1.2; white-space: nowrap;   /* always one line */
   width: 96vw; box-sizing: border-box; flex: none;   /* may be wider than the logo; the column centres it */
   font-family: "Pixelfy", "Segoe UI Black", system-ui, sans-serif; -webkit-font-smoothing: none; font-smooth: never;
   /* a 2 px black outline (one Pixelfy pixel at 32.8 px), then the cyan / magenta glow around it */
@@ -625,6 +625,26 @@ button.chip { border: 0; font: inherit; font-size: 12px; cursor: pointer; }
 .pv-line { position: absolute; top: 0; bottom: 0; left: var(--x); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.7); pointer-events: none; }
 .pv-line i { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--orange); color: var(--ink); font: 800 10px/1 system-ui, sans-serif; font-style: normal; padding: 5px 6px; white-space: nowrap; box-shadow: 2px 2px 0 #000; }
 .pv-view.z1 .pv-cmp { margin: 0 auto; }
+/* Preview (70%) + Output panel (30%); the preview's height is --pv-h (50% of the window, or what the grip set) */
+.pv-wrap { --pv-h: 50vh; display: flex; gap: 14px; align-items: stretch; margin-bottom: 22px; position: relative; z-index: 3; }   /* not sticky: at half the window it would cover the settings */
+.pv-wrap .preview { flex: 0 0 calc(70% - 7px); min-width: 0; margin-bottom: 0; position: relative; top: auto; }
+.pv-wrap .pv-view { height: var(--pv-h); }
+.pv-wrap .pv-grid .pv-cv { height: calc((var(--pv-h) - 34px) / 2); }
+.pv-wrap .pv-grid.n2 .pv-cv, .pv-wrap .pv-grid.n3 .pv-cv { height: var(--pv-h); }
+.pv-grip { position: absolute; left: 50%; bottom: 2px; transform: translateX(-50%); width: 64px; height: 12px; cursor: ns-resize; display: grid; place-items: center; touch-action: none; }
+.pv-grip i { width: 40px; height: 4px; border-radius: 2px; background: #6d4f93; box-shadow: 0 -3px 0 #6d4f93; }
+.pv-grip:hover i { background: var(--orange); box-shadow: 0 -3px 0 var(--orange); }
+.up-side { flex: 1; min-width: 0; background: var(--panel-2); box-shadow: inset 0 0 0 2px #462d64; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; clip-path: var(--notch); }
+.us-title { font-weight: 700; margin-bottom: 4px; }
+.us-row { display: grid; grid-template-columns: minmax(78px, 38%) 1fr; gap: 8px; align-items: start; padding: 8px 0; border-top: 2px dotted #3b2657; }
+.us-h { font-size: 12.5px; color: var(--muted); padding-top: 7px; }
+.us-c { min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.us-c .seg { flex-wrap: wrap; }
+.us-c .seg.us-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.us-c .seg.us-seg button { padding: 6px 2px; font-size: 12px; }
+.us-c small { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.us-c > .btn { width: 100%; }
+.path input::placeholder { color: #7d6a97; }
 /* Compare grid */
 .pv-cmp-t { flex: none; }
 .pv-cmp-t.on { background: rgba(255,141,122,.16); color: var(--orange-hi); box-shadow: inset 0 0 0 1px rgba(255,141,122,.45); }
@@ -982,6 +1002,8 @@ function withDefaults(c) {
     else if (c[k] === undefined) c[k] = v;
   }
   if (!['pack', 'unpack', 'check'].includes(c.pack.mode)) c.pack.mode = 'pack';
+  if (c.upscale && c.upscale.format !== 'png') c.upscale.format = 'dds';               // output is PNG or DDS ("Same as input" is gone)
+  for (const p of c.userPresets || []) if (p.set && p.set.format === 'same') p.set.format = 'dds';
   return c;
 }
 
@@ -994,7 +1016,7 @@ const pages = {
       ${row('Settings location', 'Settings, downloads and temporary files stay next to the program.', `<div class="tool">${esc(S.dataDir)}</div>`)}`;
   },
   upscale() {
-    const u = cfg.upscale, dds = u.format === 'dds' || u.format === 'same';
+    const u = cfg.upscale, dds = u.format !== 'png';
     const sharpOk = u.method === 'standard' || u.method === 'ai' || u.method === 'smart';
     const cur = presetOf(u), adv = u.advanced === true;
     const cards = UP_PRESETS.map((p) => presetCard(p.id, p.name, p.desc, p.tag, cur === p.id)).join('')
@@ -1003,7 +1025,7 @@ const pages = {
     return `<h2>Upscale Textures</h2><p class="lead">Make N64 textures bigger and sharper. Pick a folder (subfolders are kept) or a few files.</p>
       ${card()}
       ${previewPanel()}
-      ${row('Input', 'A folder of textures, or one or more PNG / DDS files.', pathField('upscale.inputs', u.inputs, [['folder', 'Folder…'], ['images', 'Files…']], 'Choose a folder or files'))}
+      ${row('Input', 'A folder of textures, or one or more PNG / DDS files.', pathField('upscale.inputs', u.inputs, [['folder', 'Folder…'], ['images', 'Files…']], 'Normal Textures'))}
       <div class="presets">${cards}</div>
       ${scaleSteps()}
       ${u.size === 'fit' && u.method !== 'ai' ? row('Longest side', 'Target size when Scale is Fit.', seg('upscale.fit', [['512', '512'], ['1024', '1024'], ['2048', '2048'], ['4096', '4096']], u.fit)) : ''}
@@ -1019,9 +1041,6 @@ const pages = {
       ${row('Cut-out edges', 'Hard keeps see-through bits (leaves, fences, text) crisp.', seg('upscale.hardAlpha', [['true', 'Hard'], ['false', 'Smooth']], String(u.hardAlpha)), u.method !== 'pixel')}
       ${row('Cut-out threshold', 'Where a hard edge is cut. Lower keeps more of thin fences and leaves, higher trims them. 50% matches the game.', slider('upscale.alphaThreshold', u.alphaThreshold ?? 50, u.hardAlpha === false, 'Cut-out threshold'), u.method !== 'pixel')}
       ${row('AI colour fix', 'Keeps AI results the same colours as the original (no hue or brightness shift). Grey textures stay grey.', seg('upscale.colourFix', [['true', 'On'], ['false', 'Off']], String(u.colourFix !== false)), u.method === 'ai' || u.method === 'smart')}
-      ${row('Output format', 'Same keeps each file’s format. DDS loads fastest in game and comes with mipmaps.', seg('upscale.format', [['same', 'Same as input'], ['png', 'PNG'], ['dds', 'DDS']], u.format))}
-      ${row('DDS compression', 'Auto picks BC1 or BC3. BC7 is sharpest (needs texconv). None is uncompressed.',
-        seg('upscale.ddsFormat', DDS_OPTS(), u.ddsFormat, S.tools.texconv ? [] : ['bc7']), dds)}
       ${row('Fences far away', 'Keeps fences, grass and leaves from fading out in the distance.', seg('upscale.keepCoverage', [['true', 'Keep them'], ['false', 'Off']], String(u.keepCoverage)), dds)}
       ${row('Include subfolders', 'Upscale everything inside the folder, keeping the same layout.', seg('upscale.subfolders', [['true', 'Yes'], ['false', 'No']], String(u.subfolders)))}
       ${row('Existing files', 'Skip lets you pick up where you left off.', seg('upscale.existing', [['overwrite', 'Overwrite'], ['skip', 'Skip']], u.existing))}
@@ -1029,7 +1048,7 @@ const pages = {
       ${row('Supersample', 'Makes each texture twice as big, then shrinks it back. Calmer sharpening and fewer AI artefacts; about 3× slower.', seg('upscale.supersample', [['true', 'On'], ['false', 'Off']], String(u.supersample === true)))}
       ${row('Half-size copy', 'Also saves everything at half size in “<output> (half size)”: a 4K pack and an HD pack from one run.', seg('upscale.half', [['true', 'On'], ['false', 'Off']], String(u.half === true)))}
       </div>
-      ${row('Output folder', 'Where the upscaled textures go.', pathField('upscale.output', u.output, [['folder', 'Browse…']]))}
+      ${row('Output folder', 'Where the upscaled textures go.', pathField('upscale.output', u.output, [['folder', 'Browse…']], 'HD Upscaled Textures'))}
       <div class="log" id="log"></div>`;
   },
   convert() {
@@ -1609,7 +1628,7 @@ async function packConverted(folder) {
 // ---------------------------------------------------------------- events
 document.addEventListener('click', async (e) => {
   const nav = e.target.closest('nav button');
-  if (nav) { const changed = nav.dataset.page !== page; page = nav.dataset.page; cfg.page = page; render(); if (changed) { nextHeaderPhrase(); ROMS.asked = false; } maybeScanRoms(); askRomFolder(); return; }
+  if (nav) { if (nav.dataset.page !== page) PV.h = null; const changed = nav.dataset.page !== page; page = nav.dataset.page; cfg.page = page; render(); if (changed) { nextHeaderPhrase(); ROMS.asked = false; } maybeScanRoms(); askRomFolder(); return; }
   const ri = e.target.closest('[data-rom]');
   if (ri) { selectRom(ri.dataset.rom); return; }
   const pz = e.target.closest('[data-pvzoom]');
@@ -1621,6 +1640,13 @@ document.addEventListener('click', async (e) => {
     else setPreviewZoom(z === 'in' ? k * ZOOM_STEP : k / ZOOM_STEP);
     return;
   }
+  if (e.target.id === 'up-reset') {
+    modal(`<div class="ask-tools"><h3>Reset the upscaler?</h3><p>Every Upscale setting goes back to default and the input is cleared. Your output folder and Compare picks stay.</p>
+      <div class="buttons"><button class="btn" id="up-reset-no">Cancel</button><button class="btn primary" id="up-reset-yes">Reset</button></div></div>`);
+    return;
+  }
+  if (e.target.id === 'up-reset-no') { closeModal(); return; }
+  if (e.target.id === 'up-reset-yes') { closeModal(); resetUpscaler(); return; }
   if (e.target.closest('[data-pvcompare]')) { PV.compare = !PV.compare; PV.zoom = 'fit'; PV.scroll = { x: 0, y: 0 }; render(); return; }
   const pch = e.target.closest('[data-pvchip]');
   if (pch) {
@@ -2135,16 +2161,39 @@ function previewPanel() {
       <div class="pv-pick"><button class="btn pv-step" data-pvstep="-1" title="Previous texture">◀</button>
         <select id="pv-file" title="Texture to preview"></select>
         <button class="btn pv-step" data-pvstep="1" title="Next texture">▶</button></div>
-      <div class="seg pv-zoom"><button data-pvzoom="out" title="Zoom out (or scroll down over the preview)">−</button><button data-pvzoom="fit" class="${PV.zoom === 'fit' ? 'on' : ''}" title="Fit the whole texture in the preview">Fit</button><button data-pvzoom="in" title="Zoom in (or scroll up over the preview)">+</button><button data-pvzoom="100" id="pv-pct" title="Actual size (100%)">Fit</button></div>
-      <button class="btn pv-cmp-t ${PV.compare ? 'on' : ''}" data-pvcompare title="Compare 2–4 versions of this texture side by side and pick the best one">Compare</button></div>`;
+      <div class="seg pv-zoom"><button data-pvzoom="out" title="Zoom out (or scroll down over the preview)">−</button><button data-pvzoom="fit" class="${PV.zoom === 'fit' ? 'on' : ''}" title="Fit the whole texture in the preview">Fit</button><button data-pvzoom="in" title="Zoom in (or scroll up over the preview)">+</button><button data-pvzoom="100" id="pv-pct" title="Actual size (100%)">Fit</button></div></div>`;
   const inputs = cfg.upscale.inputs || [];
-  if (!inputs.length) return `<div class="preview"><div class="pv-head"><b>Preview</b></div><div class="pv-empty">Choose a folder or files and a side-by-side preview shows up here.</div></div>`;
-  if (PV.compare) return `<div class="preview" id="preview">${head}${compareBody()}</div>`;
+  const grip = `<div class="pv-grip" id="pv-grip" title="Drag to make the preview taller or shorter"><i></i></div>`;
+  const wrap = (inner) => `<div class="pv-wrap" style="${PV.h ? `--pv-h:${PV.h}px` : ''}">${inner}${upSide()}</div>`;
+  if (!inputs.length) return wrap(`<div class="preview"><div class="pv-head"><b>Preview</b></div><div class="pv-empty">Choose a folder or files and a side-by-side preview shows up here.</div></div>`);
+  if (PV.compare) return wrap(`<div class="preview" id="preview">${head}${compareBody()}${grip}</div>`);
   // Before / after: the full original underneath, the upscaled image over it right of the line; drag the line.
-  return `<div class="preview" id="preview">${head}
+  return wrap(`<div class="preview" id="preview">${head}
     <div class="pv-caps"><div class="pv-cap" id="pv-cap-o"><b>◀ Original</b></div><div class="pv-cap r" id="pv-cap-u"><b>Upscaled ▶</b></div></div>
     <div class="pv-view" id="pv-view-u"><div class="pv-cmp" id="pv-cmp" style="--x:${Math.round(PV.split * 100)}%"><canvas id="pv-o" class="px"></canvas><canvas id="pv-u"></canvas><div class="pv-line"><i>◀ ▶</i></div></div>
-      <div class="pv-busy" id="pv-busy" hidden><i></i>Making preview…</div></div></div>`;
+      <div class="pv-busy" id="pv-busy" hidden><i></i>Making preview…</div></div>${grip}</div>`);
+}
+
+// The panel right of the preview: output type, Compare, the output folder and Reset.
+function upSide() {
+  const u = cfg.upscale, n = Object.keys(cfg.picks || {}).length;
+  const r = (h, body, note = '') => `<div class="us-row"><span class="us-h">${h}</span><div class="us-c">${body}${note ? `<small>${note}</small>` : ''}</div></div>`;
+  return `<aside class="up-side"><b class="us-title">Output</b>
+    ${r('File type', seg('upscale.format', [['png', '.PNG'], ['dds', '.DDS']], u.format === 'png' ? 'png' : 'dds'), u.format === 'png' ? 'Easy to edit.' : 'Loads fastest in game, with mipmaps.')}
+    ${u.format === 'png' ? '' : r('DDS compression', seg('upscale.ddsFormat', DDS_OPTS(), u.ddsFormat, S.tools.texconv ? [] : ['bc7'], 'us-seg'))}
+    ${r('Compare', `<button class="btn pv-cmp-t ${PV.compare ? 'on' : ''}" data-pvcompare title="Show 2–4 versions of a texture side by side and pick the best one">${PV.compare ? 'On' : 'Off'}</button>`,
+      n ? `${n.toLocaleString()} pick${n === 1 ? '' : 's'} saved · <button class="linkbtn" data-pvclear="all">clear all</button>` : 'Pick the best version per texture.')}
+    ${r('Output folder', `<button class="btn" ${u.output ? `data-open="${esc(u.output)}"` : 'disabled'}>Open folder</button>`)}
+    ${r('Reset', '<button class="btn" id="up-reset" title="Every Upscale setting back to default, and the input cleared">Reset Upscaler</button>')}
+  </aside>`;
+}
+// Reset Upscaler: settings back to default and the input cleared (output folder and Compare picks stay).
+function resetUpscaler() {
+  const keep = { output: cfg.upscale.output, presetsSeen: true };
+  cfg.upscale = { inputs: [], subfolders: true, method: 'smart', size: 4, fit: 2048, sharpness: 'normal', edges: 'auto', hardAlpha: true, alphaThreshold: 50, colourFix: true,
+    format: 'dds', ddsFormat: 'bc7', keepCoverage: true, existing: 'overwrite', copyOther: true, supersample: false, half: false, advanced: false, ...UP_PRESETS[0].set, ...keep };
+  PV.compare = false; PV.h = null; PV.zoom = 'fit'; PV.listKey = '';
+  clearFinished(); save(true); render(); toast('Upscaler reset');
 }
 
 function savePreviewScroll() { const v = $('#pv-view-u'); if (v) PV.scroll = { x: v.scrollLeft, y: v.scrollTop }; }
@@ -2467,6 +2516,20 @@ document.addEventListener('keydown', (e) => {
 
 // Drag the before / after line (or click anywhere on the image). Arrow keys nudge it.
 function setSplit(x) { PV.split = Math.max(0, Math.min(1, x)); const c = $('#pv-cmp'); if (c) c.style.setProperty('--x', (PV.split * 100).toFixed(2) + '%'); }
+// Preview height: drag the grip under the preview (resets when you leave the page or restart the app).
+document.addEventListener('pointerdown', (e) => {
+  const g = e.target.closest('#pv-grip'); if (!g || e.button !== 0) return;
+  e.preventDefault(); g.setPointerCapture(e.pointerId);
+  const wrap = g.closest('.pv-wrap');
+  const y0 = e.clientY, h0 = PV.h || innerHeight * 0.5;                // default: half the window (50vh)
+  const move = (ev) => {
+    PV.h = Math.round(Math.max(180, Math.min(innerHeight * 0.9, h0 + (ev.clientY - y0))));
+    if (wrap) wrap.style.setProperty('--pv-h', PV.h + 'px');
+    drawPreview();
+  };
+  const up = () => { g.removeEventListener('pointermove', move); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up); };
+  g.addEventListener('pointermove', move); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+});
 document.addEventListener('pointerdown', (e) => {
   const c = e.target.closest('#pv-cmp'); if (!c || e.button !== 0) return;
   e.preventDefault(); c.setPointerCapture(e.pointerId);
@@ -2499,7 +2562,7 @@ setTimeout(() => { if (!$('#splash').hidden) hideSplash(); else showApp(); }, 60
   cfg = withDefaults(S.settings);
   $('#ver').textContent = 'v' + S.version;
   applyNavFold(); applyMute();
-  if (!Array.isArray(cfg.upscale.inputs)) cfg.upscale.inputs = cfg.upscale.inputs ? [cfg.upscale.inputs] : [];
+  cfg.upscale.inputs = [];                              // the input is never remembered between starts (the output folder is)
   if (cfg.page === 'unpack') { cfg.page = 'pack'; cfg.pack.mode = 'unpack'; }
   if (cfg.page === 'setup') cfg.page = 'welcome';
   const firstRun = !cfg.firstRunDone;
