@@ -1,0 +1,14 @@
+R64texHD ONNX engine
+====================
+
+onnxruntime-node 1.22.0 and onnxruntime-common 1.22.0 (Windows x64 build, DirectML + CPU)
+  (c) Microsoft Corporation, MIT License - https://github.com/microsoft/onnxruntime
+
+Models (both CC BY 4.0, https://creativecommons.org/licenses/by/4.0/), by Philip Hofmann (Phhofm):
+  texturedat2-x4.onnx  = 4xTextureDAT2_otf (DAT2, fp32, opset 17)
+                         https://openmodeldb.info/models/4x-TextureDAT2-otf
+                         https://github.com/Phhofm/models/releases/tag/4xTextureDAT2_otf
+  rgts-dither-x4.onnx  = 4xTextures_GTAV_rgt-s_dither (RGT-S, fp32, opset 17)
+                         https://openmodeldb.info/models/4x-Textures-GTAV-rgt-s-dither
+                         https://github.com/Phhofm/models/releases/tag/4xTextures_GTAV_rgt-s_dither
+  The model files are renamed only; they are not changed.

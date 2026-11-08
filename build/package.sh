@@ -70,6 +70,34 @@ json.dump({'url': url, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(d
 print(f'texture models pack: {len(names)} models, {len(data) / 1e6:.1f} MB')
 PY
 fi
+# ONNX engine pack (roadmap 11): onnxruntime-node (Windows x64 binaries only) + the two CC BY 4.0 ONNX texture models,
+# a separate download installed from Settings into data/tools/onnx. Cached in build/.cache/onnx.
+ONNX_URL="${ONNX_URL:-$REPO_URL/releases/download/v$VERSION/$NAME-onnx.zip}"
+ORT_VERSION=1.22.0
+OC="$CACHE/onnx"; mkdir -p "$OC"
+for p in onnxruntime-node onnxruntime-common; do
+  [ -f "$OC/$p-$ORT_VERSION.tgz" ] || ( cd "$OC" && npm pack -s "$p@$ORT_VERSION" >/dev/null )
+done
+[ -f "$OC/texturedat2-x4.onnx" ] || curl -fsSL -o "$OC/texturedat2-x4.onnx" https://github.com/Phhofm/models/releases/download/4xTextureDAT2_otf/4xTextureDAT2_otf_fp32_opset17.onnx
+[ -f "$OC/rgts-dither-x4.onnx" ] || curl -fsSL -o "$OC/rgts-dither-x4.onnx" https://github.com/Phhofm/models/releases/download/4xTextures_GTAV_rgt-s_dither/4xTextures_GTAV_rgt-s_dither_fp32_opset17.onnx
+python3 - "$OC" "$ORT_VERSION" "$HERE/build/onnx/CREDITS.txt" "$HERE/dist/$NAME-onnx.zip" "$ONNX_URL" "$OUT/resources/app/assets/onnx" <<'PY'
+import hashlib, json, os, sys, tarfile, zipfile
+oc, ver, credits, out, url, dest = sys.argv[1:7]
+with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+    for p in ('onnxruntime-node', 'onnxruntime-common'):
+        with tarfile.open(os.path.join(oc, f'{p}-{ver}.tgz')) as t:
+            for m in t.getmembers():
+                if not m.isfile(): continue
+                rel = m.name.split('/', 1)[1]                          # package/<rel>
+                if p == 'onnxruntime-node' and not (rel in ('package.json', 'LICENSE', 'README.md') or rel.startswith('dist/') or rel.startswith('bin/napi-v6/win32/x64/')): continue
+                if p == 'onnxruntime-common' and not (rel in ('package.json', 'LICENSE', 'README.md') or rel.startswith('dist/cjs/')): continue
+                z.writestr(f'node_modules/{p}/{rel}', t.extractfile(m).read())
+    for m in ('texturedat2-x4', 'rgts-dither-x4'): z.write(os.path.join(oc, m + '.onnx'), f'models/{m}.onnx')
+    z.write(credits, 'ONNX-CREDITS.txt')
+data = open(out, 'rb').read(); os.makedirs(dest, exist_ok=True)
+json.dump({'url': url, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(data), 'models': ['texturedat2-x4', 'rgts-dither-x4']}, open(os.path.join(dest, 'remote.json'), 'w'), indent=1)
+print(f'ONNX engine pack: {len(data) / 1e6:.1f} MB')
+PY
 sed 's/$/\r/' "$HERE/docs/README.txt" > "$OUT/README.txt"
 cp "$HERE/LICENSE" "$OUT/LICENSE.R64texHD.txt"
 cp "$HERE/THIRD_PARTY_NOTICES.md" "$OUT/THIRD_PARTY_NOTICES.md"
@@ -80,4 +108,4 @@ with zipfile.ZipFile('$NAME-Windows.zip', 'w', zipfile.ZIP_DEFLATED, compresslev
         for f in sorted(files):
             z.write(os.path.join(root, f))
 " )
-echo "Done: $HERE/dist/$NAME-Windows.zip, $NAME-scenes.zip and (if built) $NAME-models.zip: attach them all to the release"
+echo "Done: $HERE/dist/$NAME-Windows.zip, $NAME-scenes.zip, $NAME-onnx.zip and (if built) $NAME-models.zip: attach them all to the release"

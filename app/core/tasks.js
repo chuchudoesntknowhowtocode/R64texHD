@@ -299,11 +299,14 @@ async function upscaleTask(p, ctx, tools) {
       .map(([k, l]) => ({ list: l, opts: { ...opts, ...smart.ROUTE_OPTS[k], method: smart.isAi(k) ? 'standard' : smart.ROUTE_OPTS[k].method }, ai: smart.isAi(k), model: smart.routeModel(k, { models: !!tools.models }) }));
   } else {
     let useAi = p.method === 'ai';
-    if (useAi && !tools.realesrgan) { ctx.log('Real-ESRGAN is not installed (Settings), so Standard is used instead.'); useAi = false; opts.method = 'standard'; }
+    if (useAi && !aiCan(tools, tools.realesrganModel || 'realesrgan-x4plus', p.aiOk)) {
+      ctx.log(isOnnxModel(tools.realesrganModel) ? 'The ONNX engine or its model isn’t downloaded (Settings), so Standard is used instead.' : 'Real-ESRGAN is not installed (Settings), so Standard is used instead.');
+      useAi = false; opts.method = 'standard';
+    }
     if (useAi) opts.method = 'standard';                       // the AI result is finished by the Standard steps
     groups = [{ list: todo, opts, ai: useAi }];
     const sizeText0 = p.size === 'fit' ? `to ${p.fit} px` : `${p.size}x`;
-    ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText0} with ${useAi ? 'AI (Real-ESRGAN) + Standard' : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', mmpx: 'Pixel art (MMPX)' }[p.method] || 'Standard'}${p.method === 'standard' || useAi ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
+    ctx.log(`Upscaling ${todo.length.toLocaleString()} image(s) ${sizeText0} with ${useAi ? (isOnnxModel(tools.realesrganModel) ? `AI (ONNX engine, ${ONNX_MODELS[tools.realesrganModel]}) + Standard` : 'AI (Real-ESRGAN) + Standard') : { standard: 'Standard', smooth: 'Smooth', pixel: 'Pixel art', mmpx: 'Pixel art (MMPX)' }[p.method] || 'Standard'}${p.method === 'standard' || useAi ? `, sharpness ${p.sharpness || 'normal'}` : ''}.`);
   }
   // Compare picks: textures with a saved pick leave their group and run with the version that was chosen.
   const picks = p.picks && typeof p.picks === 'object' ? p.picks : {};
@@ -388,14 +391,14 @@ async function upscaleTask(p, ctx, tools) {
           const countOut = () => { try { return fs.readdirSync(outDir).filter((f) => f.endsWith('.png')).length; } catch { return aiDone; } };
           watch = setInterval(() => { aiDone = countOut(); show(prepDone * 0.1 + aiDone * 0.6, `AI upscaling ${aiDone.toLocaleString()} of ${idx.length.toLocaleString()}…`); }, 500);
           let aiErr = null;
-          if (idx.length) try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, gTools, { maxSide, many: true }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
+          if (idx.length) try { await runAi(gTools, inDir, outDir, { maxSide, many: true }, ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
           // Out of video memory is the usual failure: try what's left once more with Low memory use.
           const left = () => idx.filter((i) => !fs.existsSync(outOf(i)));
           if (aiErr && String(tools.aiTile) !== '128' && left().length) {
             ctx.log(`${aiErr.message}. Trying the remaining ${left().length.toLocaleString()} image(s) again with Low GPU memory use.`);
             for (const i of idx) if (fs.existsSync(outOf(i))) fs.rmSync(inOf(i), { force: true });
             aiErr = null;
-            try { await runProcess(tools.realesrgan, aiArgs(inDir, outDir, gTools, { maxSide, tile: 128 }), ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
+            try { await runAi(gTools, inDir, outDir, { maxSide, tile: 128 }, ctx); } catch (e) { if (e instanceof Cancelled || ctx.cancelled()) throw e; aiErr = e; }
           }
           clearInterval(watch); watch = null;
           if (ctx.cancelled()) throw new Cancelled();
@@ -437,16 +440,34 @@ function aiArgs(inDir, outDir, tools, run = {}) {
   return args;
 }
 
-function runProcess(exe, args, ctx) {
+// ONNX models (roadmap 11) run on the ONNX engine (onnx-run.js: DirectML / CPU), the rest on Real-ESRGAN.
+const ONNX_MODELS = { 'texturedat2-x4': 'TextureDAT2', 'rgts-dither-x4': 'RGT-S dither' };
+const isOnnxModel = (m) => Object.prototype.hasOwnProperty.call(ONNX_MODELS, m);
+const onnxModelFile = (tools, m) => (tools.onnx ? path.join(tools.onnx, 'models', m + '.onnx') : '');
+// Can this PC run the AI with this model?
+function aiCan(tools, model, aiOk) {
+  if (isOnnxModel(model)) return !!tools.onnx && fs.existsSync(onnxModelFile(tools, model));
+  return !!tools.realesrgan && aiOk !== false && (!PACK_MODELS.includes(model) || !!tools.models);
+}
+function runAi(tools, inDir, outDir, run, ctx) {
+  const m = tools.realesrganModel || 'realesrgan-x4plus';
+  if (!isOnnxModel(m)) return runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools, run), ctx);
+  const args = [path.join(__dirname, 'onnx-run.js'), '-i', inDir, '-o', outDir, '-m', onnxModelFile(tools, m), '--ort', path.join(tools.onnx, 'node_modules', 'onnxruntime-node')];
+  if (tools.aiGpu && tools.aiGpu !== 'auto') args.push('-g', String(tools.aiGpu));
+  const tile = run.tile || (tools.aiTile && tools.aiTile !== 'auto' ? Number(tools.aiTile) : 0);
+  if (tile) args.push('-t', String(tile));
+  return runProcess(process.execPath, args, ctx, { ELECTRON_RUN_AS_NODE: '1' }, 'ONNX engine');
+}
+function runProcess(exe, args, ctx, env = null, name = 'Real-ESRGAN') {
   return new Promise((resolve, reject) => {
-    const child = spawn(exe, args, { cwd: path.dirname(exe), windowsHide: true });
+    const child = spawn(exe, args, { cwd: path.dirname(exe), windowsHide: true, ...(env ? { env: { ...process.env, ...env } } : {}) });
     let err = '';
     child.stderr.on('data', (d) => { err = (err + d).slice(-2000); });
     ctx.onCancel(() => child.kill());
     child.on('error', reject);
     child.on('close', (code) => {
       if (ctx.cancelled()) reject(new Cancelled());
-      else if (code !== 0) reject(new Error(`Real-ESRGAN failed (${code}): ${err.trim().split('\n').slice(-2).join(' ')}`));
+      else if (code !== 0) reject(new Error(`${name} failed (${code}): ${err.trim().split('\n').slice(-2).join(' ')}`));
       else resolve();
     });
   });
@@ -714,9 +735,9 @@ function parsePick(pick) {
 function pickUsable(pk, tools, aiOk) {
   if (!pk) return false;
   if (pk.route !== 'ai') return true;
-  return !!tools.realesrgan && aiOk !== false && (!PACK_MODELS.includes(pk.model) || !!tools.models);
+  return aiCan(tools, pk.model, aiOk);
 }
-const PICK_MODEL_NAMES = { 'realesrgan-x4plus': 'General', 'realesrgan-x4plus-anime': 'Art', 'realesr-animevideov3': 'Fast art', 'hdcube-x4': 'HDCube', 'gameai2-x4': 'GameAI', 'pixelperfect4-x4': 'Pixel' };
+const PICK_MODEL_NAMES = { ...ONNX_MODELS, 'realesrgan-x4plus': 'General', 'realesrgan-x4plus-anime': 'Art', 'realesr-animevideov3': 'Fast art', 'hdcube-x4': 'HDCube', 'gameai2-x4': 'GameAI', 'pixelperfect4-x4': 'Pixel' };
 const pickName = (pk) => (pk.route === 'ai' ? `AI 4× (${PICK_MODEL_NAMES[pk.model] || pk.model})` : smart.ROUTE_NAMES[pk.route]);
 
 // ---------------------------------------------------------------- live preview (1 · Upscale)
@@ -767,7 +788,7 @@ async function estimate(p, tools, workers) {
     const aiReady = !!tools.realesrgan && p.aiOk !== false;
     const base = { size: p.size, fit: p.fit, maxSize: p.maxSize, sharpness: p.sharpness, hardAlpha: p.hardAlpha, alphaThreshold: (p.alphaThreshold ?? 50) / 100, colourFix: p.colourFix !== false };
     const routeOf = (s) => {
-      if (p.method !== 'smart') return p.method === 'ai' ? (tools.realesrgan ? 'ai' : 'hd') : 'same';
+      if (p.method !== 'smart') return p.method === 'ai' ? (aiCan(tools, tools.realesrganModel || 'realesrgan-x4plus', p.aiOk) ? 'ai' : 'hd') : 'same';
       const r = smart.route(s, { models: !!tools.models }); return smart.isAi(r) && !aiReady ? 'hd' : r;
     };
     const optsFor = (r) => (r === 'same' ? { ...base, method: p.method } : { ...base, ...smart.ROUTE_OPTS[r], method: smart.isAi(r) ? 'standard' : smart.ROUTE_OPTS[r].method });
@@ -831,7 +852,7 @@ async function preview(req, tools) {
   let r, route = '', routeModelLabel = '', forced = '';
   const pk = parsePick(req.pick);
   if (pk) {                                                       // one cell of the Compare grid: this version, whatever the method
-    if (!pickUsable(pk, tools, req.aiOk)) return { error: pk.route === 'ai' && !tools.realesrgan ? 'Real-ESRGAN isn’t downloaded (Settings).' : pk.route === 'ai' && req.aiOk === false ? 'AI needs a Vulkan graphics card.' : 'The texture models aren’t downloaded (Settings).' };
+    if (!pickUsable(pk, tools, req.aiOk)) return { error: isOnnxModel(pk.model) ? 'The ONNX engine isn’t downloaded (Settings).' : pk.route === 'ai' && !tools.realesrgan ? 'Real-ESRGAN isn’t downloaded (Settings).' : pk.route === 'ai' && req.aiOk === false ? 'AI needs a Vulkan graphics card.' : 'The texture models aren’t downloaded (Settings).' };
     let dd = false;
     if (req.method === 'smart' && pk.route !== 'pixel' && pk.route !== 'mmpx') dd = smart.dithered(await previewPool.run('classify', { src: req.src }));
     opts = { ...opts, ...smart.ROUTE_OPTS[pk.route], dedither: dd };
@@ -845,14 +866,14 @@ async function preview(req, tools) {
     const m = smart.routeModel(route, { models });
     if (m) { tools = { ...tools, realesrganModel: m }; routeModelLabel = { 'gameai2-x4': 'GameAI', 'pixelperfect4-x4': 'Pixel model' }[m] || ''; }
   }
-  if (opts.method === 'ai' && tools.realesrgan) {
+  if (opts.method === 'ai' && aiCan(tools, tools.realesrganModel || 'realesrgan-x4plus', req.aiOk)) {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'htk-preview-'));
     try {
       const inDir = path.join(tmp, 'in'), outDir = path.join(tmp, 'out');
       fs.mkdirSync(inDir); fs.mkdirSync(outDir);
       await previewPool.run('aiPrep', { src: req.src, tmpPng: path.join(inDir, '0.png'), pad: 'auto', edges: req.edges, dedither: !!opts.dedither });
       const noCancel = { cancelled: () => false, onCancel: () => {} };
-      await runProcess(tools.realesrgan, aiArgs(inDir, outDir, tools), noCancel);
+      await runAi(tools, inDir, outDir, {}, noCancel);
       r = await previewPool.run('previewAi', { src: req.src, aiPng: path.join(outDir, '0.png'), pad: 'auto', opts, edges: req.edges, save });
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   } else {
@@ -866,4 +887,4 @@ async function preview(req, tools) {
 // Stops the preview worker (on quit, and in tests).
 async function closePreview() { if (previewPool) { const p = previewPool; previewPool = null; await p.close(); } if (romPool) { const p = romPool; romPool = null; await p.close(); } }
 
-module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, stopEstimate, closePreview, aiArgs, Cancelled, Pool, pickKey, parsePick, pickUsable };
+module.exports = { upscaleTask, convertTask, packTask, unpackTask, checkTask, fixTask, o2rExtractTask, o2rBuildTask, romsTask, romInfo, legacyImportTask, legacyHtsTask, riceToO2rTask, inspect, previewList, preview, estimate, stopEstimate, closePreview, aiArgs, Cancelled, Pool, pickKey, parsePick, pickUsable, aiCan, isOnnxModel, ONNX_MODELS };

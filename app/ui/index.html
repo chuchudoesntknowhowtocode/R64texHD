@@ -1145,7 +1145,7 @@ const pages = {
   },
   settings() {
     const t = S.tools;
-    const tool = (name, path, label, size, extra = '') => `${extra}<div class="tool-state ${path ? 'have' : 'missing'}">${pixelIcon(path ? 'green' : 'red', path ? '' : 'x')}<span>${path ? 'Downloaded' : 'Not downloaded'}</span></div><div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}${name === 'models' ? '' : `<button class="btn" data-browse="exe" data-for="${name}">Locate…</button>`}</div><div class="tool" id="tool-${name}"></div>`;
+    const tool = (name, path, label, size, extra = '') => `${extra}<div class="tool-state ${path ? 'have' : 'missing'}">${pixelIcon(path ? 'green' : 'red', path ? '' : 'x')}<span>${path ? 'Downloaded' : 'Not downloaded'}</span></div><div class="path">${path ? `<div class="tool ok" style="flex:1">Installed: ${esc(path)}</div>` : `<button class="btn primary" data-install="${name}" style="flex:1">Download ${label} (${size})</button>`}${name === 'models' || name === 'onnx' ? '' : `<button class="btn" data-browse="exe" data-for="${name}">Locate…</button>`}</div><div class="tool" id="tool-${name}"></div>`;
     const onOff = (key, v) => seg(key, [['true', 'On'], ['false', 'Off']], String(v));
     const anim = cfg.sceneAnimations !== false, wins = cfg.wizardWins || 0;
     const mc = window.Music ? Music.counts() : { yours: 0, yoursDmt: 0 }, now = window.Music && Music.now();
@@ -1158,11 +1158,12 @@ const pages = {
         row('texconv (BC7)', 'From Microsoft. Makes sharp BC7 DDS textures and keeps far-away fences visible.', tool('texconv', t.texconv, 'texconv', TOOL_INFO.texconv.size))
         + row('Real-ESRGAN (AI)', 'For the AI upscale method. Needs a graphics card with Vulkan.', tool('realesrgan', t.realesrgan, 'Real-ESRGAN', TOOL_INFO.realesrgan.size, `<div id="gpu-state">${gpuLines()}</div>`))
         + row('Texture models (AI)', 'HDCube, GameAI and Pixel: AI models made for game textures and sprites, for Real-ESRGAN. Free to share (CC0 / WTFPL).', tool('models', t.models, 'texture models', TOOL_INFO.models.size))
+        + row('ONNX engine (AI)', 'TextureDAT2 and RGT-S dither: the strongest game-texture models (CC BY 4.0, by Philip Hofmann), on onnxruntime with DirectML (any DirectX 12 graphics card; the CPU if that fails). Doesn’t need Real-ESRGAN. Slower than the others.', tool('onnx', t.onnx, 'ONNX engine', TOOL_INFO.onnx.size))
         + row('Check tools at startup', 'If a tool is missing, R64texHD offers to download it when it starts.', onOff('checkTools', cfg.checkTools !== false)))}
       ${sbox('Upscaling', '',
         sub('AI upscaling',
           row('AI model', 'General suits most textures, Art drawn or cartoon ones. HDCube keeps the game\u2019s look (not for text or icons), GameAI suits game textures, Pixel suits sprites (these three need the texture models).',
-            seg('realesrganModel', aiModels().map((m) => [m.id, m.label]), cfg.realesrganModel, S.tools.models ? [] : AI_MODELS.filter((m) => m.pack).map((m) => m.id), 'grid3'))
+            seg('realesrganModel', aiModels().map((m) => [m.id, m.label]), cfg.realesrganModel, AI_MODELS.filter((m) => (m.pack && !S.tools.models) || (m.onnx && !S.tools.onnx)).map((m) => m.id), 'grid3'))
           + row('Your own models', 'Any 4× Real-ESRGAN ncnn model (.param + .bin, e.g. from OpenModelDB, converted). Check each model’s licence: many are non-commercial. They stay on this PC; R64texHD never ships or shares them.',
             `<div class="own-models">${(t.customModels || []).map((n) => `<span class="chip">${esc(n)} <button class="linkbtn" data-model-del="${esc(n)}" title="Remove this model">✕</button></span>`).join('')}
               <button class="btn" id="model-add" ${t.realesrgan ? '' : 'disabled title="Download Real-ESRGAN first"'}>Add a model…</button></div><div class="tool" id="model-msg"></div>`)
@@ -1244,12 +1245,14 @@ const TOOL_INFO = {
   texconv: { label: 'texconv', size: '1 MB', use: 'sharp BC7 DDS textures' },
   realesrgan: { label: 'Real-ESRGAN', size: '45 MB', use: 'AI upscaling' },
   models: { label: 'texture models', size: '93 MB', use: 'AI models for game textures', optional: true },
+  onnx: { label: 'ONNX engine', size: '150 MB', use: 'the strongest texture models (DirectML)', optional: true },
 };
 const missingTools = () => Object.keys(TOOL_INFO).filter((n) => !TOOL_INFO[n].optional && !S.tools[n]);
 // Real-ESRGAN models: its own three, then the texture pack (Settings › Tools › Texture models).
 const AI_MODELS = [
   { id: 'realesrgan-x4plus', label: 'General' }, { id: 'realesrgan-x4plus-anime', label: 'Art' }, { id: 'realesr-animevideov3', label: 'Fast art' },
   { id: 'hdcube-x4', label: 'HDCube', pack: true }, { id: 'gameai2-x4', label: 'GameAI', pack: true }, { id: 'pixelperfect4-x4', label: 'Pixel', pack: true },
+  { id: 'texturedat2-x4', label: 'TextureDAT2', onnx: true }, { id: 'rgts-dither-x4', label: 'RGT-S dither', onnx: true },
 ];
 // Built-in models, then your own (Settings › Your own models).
 const aiModels = () => AI_MODELS.concat(((S && S.tools.customModels) || []).map((n) => ({ id: n, label: n, custom: true })));
@@ -1795,7 +1798,7 @@ function params(task) {
 let AI_ASKED = false;
 async function start(task) {
   const um = cfg.upscale.method;
-  if (task === 'upscale' && (um === 'smart' || um === 'ai') && !S.tools.realesrgan && aiOk() && !AI_ASKED) {
+  if (task === 'upscale' && (um === 'smart' || (um === 'ai' && !(AI_MODELS.find((m) => m.id === cfg.realesrganModel) || {}).onnx)) && !S.tools.realesrgan && aiOk() && !AI_ASKED) {
     modal(`<div class="ask-tools"><h3>${um === 'smart' ? 'Smart' : 'AI'} works best with Real-ESRGAN</h3><p>It’s the AI upscaler for big, detailed textures (45 MB). Without it, those textures use HD 4×.</p>
       <div class="buttons"><button class="btn" id="ai-skip">Not now</button><button class="btn primary" id="ai-get">Download</button></div></div>`);
     return;
@@ -2245,7 +2248,10 @@ function drawPreview() {
 // for that texture (by its RT64 hash), and the Upscale run then makes that version instead.
 function compareChoices() {
   const list = [{ id: 'hd', label: 'HD 4×' }, { id: 'mmpx', label: 'MMPX' }, { id: 'pixel', label: 'Pixel-perfect' }];
-  if (S.tools.realesrgan && aiOk()) for (const m of aiModels()) if (!m.pack || S.tools.models) list.push({ id: 'ai:' + m.id, label: 'AI ' + m.label });
+  for (const m of aiModels()) {
+    const ok = m.onnx ? !!S.tools.onnx : !!S.tools.realesrgan && aiOk() && (!m.pack || S.tools.models);
+    if (ok) list.push({ id: 'ai:' + m.id, label: 'AI ' + m.label });
+  }
   return list;
 }
 function compareSet() {
@@ -2405,7 +2411,7 @@ const stepOk = (s) => !s.ai || !!S.tools.realesrgan;
 function scaleNote() {
   const { i, custom } = scaleStepIndex(), s = SCALE_STEPS[i];
   if (custom) return `${cfg.upscale.size}× (custom, from Advanced options)`;
-  const base = s.id === 'ai' ? `Real-ESRGAN, ${aiModelLabel(cfg.realesrganModel)} model, 4× (pick the model in Settings)` : s.note || `${s.label} bigger · nothing goes past ${cfg.maxSize} px`;
+  const base = s.id === 'ai' ? `${(AI_MODELS.find((m) => m.id === cfg.realesrganModel) || {}).onnx ? 'ONNX engine' : 'Real-ESRGAN'}, ${aiModelLabel(cfg.realesrganModel)} model, 4× (pick the model in Settings)` : s.note || `${s.label} bigger · nothing goes past ${cfg.maxSize} px`;
   return S.tools.realesrgan ? base : base + ' · Anime and AI need Real-ESRGAN (Settings)';
 }
 function scaleSteps() {
@@ -2420,7 +2426,7 @@ function applyScaleStep(j) {
   const u = cfg.upscale;
   if (s.ai) {
     u.method = 'ai'; u.size = 4;
-    const keep = cfg.realesrganModel && !/anime/.test(cfg.realesrganModel) && (S.tools.models || !(AI_MODELS.find((m) => m.id === cfg.realesrganModel) || {}).pack);
+    const keep = cfg.realesrganModel && !/anime/.test(cfg.realesrganModel) && (S.tools.models || !(AI_MODELS.find((m) => m.id === cfg.realesrganModel) || {}).pack) && (S.tools.onnx || !(AI_MODELS.find((m) => m.id === cfg.realesrganModel) || {}).onnx);
     cfg.realesrganModel = s.model || (keep ? cfg.realesrganModel : 'realesrgan-x4plus');
   }
   else { if (u.method === 'ai') u.method = 'standard'; u.size = s.id === 'fit' ? 'fit' : Number(s.id); }

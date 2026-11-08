@@ -89,7 +89,7 @@ function tools() {
     texconv: findTool(settings.texconv, [path.join(toolsDir(), 'texconv.exe'), path.join(programDir(), 'tools', 'texconv.exe')]),
     realesrgan: findTool(settings.realesrgan, [path.join(toolsDir(), 'realesrgan', 'realesrgan-ncnn-vulkan' + exe),
       path.join(programDir(), 'tools', 'realesrgan', 'realesrgan-ncnn-vulkan' + exe)]),
-    models: textureModelsDir(), customModels: customModels(),
+    models: textureModelsDir(), customModels: customModels(), onnx: onnxDir(),
     realesrganModel: settings.realesrganModel, aiGpu: settings.aiGpu, aiTile: settings.aiTile, bc7Quality: settings.bc7Quality || 'best',
   };
 }
@@ -225,6 +225,14 @@ function textureModelsDir() {
   const dir = realesrganModelsDir();
   return dir && TEXTURE_MODELS.every((m) => fs.existsSync(path.join(dir, m + '.param')) && fs.existsSync(path.join(dir, m + '.bin'))) ? dir : '';
 }
+// ONNX engine (roadmap 11): onnxruntime-node (DirectML on Windows, else CPU) plus the ONNX texture models
+// (TextureDAT2, RGT-S dither; CC BY 4.0), one optional download named in assets/onnx/remote.json by build/package.sh.
+const ONNX_REMOTE = path.join(__dirname, 'assets', 'onnx', 'remote.json');
+const onnxHome = () => path.join(toolsDir(), 'onnx');
+function onnxDir() {
+  const d = onnxHome();
+  return fs.existsSync(path.join(d, 'node_modules', 'onnxruntime-node', 'package.json')) && fs.existsSync(path.join(d, 'models')) ? d : '';
+}
 // Your own models (roadmap 12): any extra Real-ESRGAN ncnn model (.param + .bin) in its models folder, added in
 // Settings. They stay on this PC (many popular models are non-commercial, so R64texHD never ships or shares them).
 const MODEL_NAME_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i;
@@ -281,6 +289,20 @@ async function installTool(name) {
     for (const e of rtz.readEntries(zip)) {
       const target = path.resolve(dir, e.name);
       if (!target.startsWith(path.resolve(dir) + path.sep)) continue;
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, rtz.readEntry(zip, e));
+    }
+    fs.rmSync(zip, { force: true });
+  } else if (name === 'onnx') {
+    let remote; try { remote = JSON.parse(fs.readFileSync(ONNX_REMOTE, 'utf8')); } catch { throw new Error('this build has no ONNX engine pack'); }
+    const zip = path.join(TEMP_DIR, 'htk-onnx.zip');
+    await download(remote.url, zip, progress);
+    checkSha(zip, remote.sha256);
+    const dir = onnxHome();
+    fs.rmSync(dir, { recursive: true, force: true });
+    for (const e of rtz.readEntries(zip)) {
+      const target = path.resolve(dir, e.name);
+      if (!target.startsWith(path.resolve(dir) + path.sep) || e.name.endsWith('/')) continue;
       fs.mkdirSync(path.dirname(target), { recursive: true });
       fs.writeFileSync(target, rtz.readEntry(zip, e));
     }
