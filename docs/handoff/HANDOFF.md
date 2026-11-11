@@ -1,42 +1,42 @@
-# R64texHD handoff #6 — 2026-11-08
+# R64texHD handoff #7 — 2026-11-11
 ## Scope
-Portable Windows Electron app (app/, plain JS, Electron 38). Roadmap 1–12 done, 13 (experiments) left. Current version v0.9.2.0 (built in dist/, not released).
+Portable Windows Electron app (app/, plain JS, Electron 38). Roadmap 1–12 done; 13 partly (timings done). Latest release v0.9.2.0 (published 2026-11-08 16:25 UTC).
 
-## Changes we made (this chat, all committed)
-- 6e18a43 tools/dither-tune.js (scores a folder at several DITHER_NEAR limits); ditherScore(img, lim)
-- e89cb96 dither share = hits / busy (non-flat) pixels; tuned on 160 SF2T captures (C:\GitHub\test\capture): 7/7 dithered gradients found (was 4), noise ≤ 0.027; DITHER_NEAR 56, DITHERED 0.12 kept
-- 35e2fad + 7ed1c49 own models: app/core/ncnn.js modelScale (follows the ncnn graph: Interp/PixelShuffle, parallel branches don't multiply) + nameScale; addModel rejects non-4×; verified on 8 real .param (animevideov3 x2/x3/x4, x4plus, anime, 3 texture models)
-- b65036d v0.9.2.0 (package.json, CHANGELOG, README)
-- ed504fd helper tools: first start offers all 4 tools (continues past failures); download() falls back to GitHub API asset link on 5xx/429 (github.com/releases/download gave 504 for every file on 11-08); fetchPack() installs …-onnx.zip / …-models.zip found next to the program folder (unpublished builds, offline)
-- e91b099 preview: zoomed → drag to pan, click centres the spot (also Compare grid, middle button); split line drags from the line (24 px grip); Fit unchanged
-- b06de12 (after #6) DITHERED 0.12 → 0.10: N64 Glide dumps (x64tractor/samples PD/GE/MK64, 4055 textures) — PD dithered 16-colour scenes 0.10–0.125, none on the AI route
-- 3d91c78 Compare grid Original cell; split-line outline fix (after #6, Unreleased in CHANGELOG; dist build has them but zips don't)
-- (next commit) zoomed preview padded by half the box (padView): edges/corners reach the centre; PV.scroll null = centred
-- Pushed by user: handoff/next = ac76f5d. Not pushed: b06de12
+## Changes we made (since #5, all committed; pushed up to ada2e28)
+- 6e18a43, e89cb96, b06de12 dither: tools/dither-tune.js; ditherScore = hits / busy (non-flat) pixels; DITHERED 0.10 (SF2T SNES noise ≤ 0.03, Perfect Dark dithered 16-colour 0.10–0.125); DITHER_NEAR 56
+- 35e2fad, 7ed1c49 own models: app/core/ncnn.js modelScale follows the ncnn graph (Interp/PixelShuffle; parallel branches don't multiply), nameScale fallback; non-4× refused; verified on 8 real .param
+- b65036d v0.9.2.0; ed504fd helper tools: first start offers all 4, GitHub API fallback on 5xx, local pack zips next to the app
+- e91b099, 90d39b2 preview: zoomed → drag to pan, click centres; half-box padding so edges/corners reach the centre (padView, PV.scroll null = centred); Compare zoom keeps the middle spot
+- 3d91c78 Compare Original cell; 16c9f9e split line outline
+- 660b557, 67159b6, 39a7dca tools/bench.ps1 + docs/research/bench-2026-11-08.md (RTX 4060: ncnn x4plus 1.06 s, ONNX 4.9–5.7 s per 512×256; Intel UHD 6.35 / 25.6 s; ONNX CPU 32 s)
+- ada2e28 release.sh defaults to handoff/next; v0.9.2.0 released (0a9165f notes)
 
 ## Changes we should make
-- H: user pushes (b06de12, 215e440, this commit)
-- H: owner merges handoff/next + releases v0.9.2.0 (build\release.cmd); until then in-app pack downloads 404 (local zips next to the folder work)
-- M: aidither still untested on real data: no dithered texture in SF2T/PD/GE/MK64 reaches the AI route (colours < 96)
-- L: roadmap 13 (ncnn vs DML timing AMD/Intel, CPU lane, TensorRT/WinML); ORT session per GPU, fp16; 
+- M: next release when there's enough: Unreleased = Original cell, edge pan, bench.ps1, release.sh fix (bump version, rebuild via ~/pk.sh trick, user runs build\release.cmd)
+- L: aidither untested on real data (no dithered texture in SF2T/PD/GE/MK64 reaches the AI route)
+- L: roadmap 13 leftovers: AMD timing, atlas batching on ORT, TensorRT/WinML; DirectML runs some nodes on CPU (ORT warning)
+- L: ONNX runner doesn't log the card name (bench card column = "DirectML (GPU n)")
 
 ## Current state
-- Works: tests 98 pass; pan verified in Chromium harness; download fallback verified (texconv via API, sha ok); dist build + 4 zips consistent (remote.json sha = zips)
-- Windows test of v0.9.2.0 passed: user ran the 8-item checklist (tools, ONNX, Upscale page, pan, Compare, own models, Smart, first start) → "all good" (11-08)
+- Works: tests 98 pass; v0.9.2.0 Windows test passed (user, 8 items); release downloads 200
+- dist/ holds the v0.9.2.0 build; its folder has later UI files copied in, its zips are the released ones
 
 ## Decisions
-- Dither: change the denominator, not the constants (small N64 textures have few flat pixels → scores ~unchanged)
-- Model scale: layer scale wins; name wins only when it says smaller (unshuffle models read high)
-- First start = all tools; later startups still check only required tools (texconv, Real-ESRGAN)
-- Bot mode skipped: computer use can't drive the Claude app or the portable R64texHD exe (not resolvable)
+- Dither: change the denominator, not the constants; cut-off 0.10 from Perfect Dark
+- Model scale: layer scale wins; the name wins only when it says smaller
+- First start = all tools; later startups check only texconv + Real-ESRGAN
+- Both engines' "auto" picks the RTX on the user's laptop: no GPU-choice change
+- No CPU lane: these ONNX models are too slow on the CPU
 
 ## Watch out for
-- package.sh straight onto the mount gets killed (>180 s, background jobs die with the call) and `rm -rf dist` first → half-wiped dist. Use: `sed -e "s#^HERE=.*#HERE=\"$PWD\"#" -e 's#\$HERE/dist#$HOME/dist#g' -e 's#^OUT=.*#OUT="$HOME/dist/$NAME"#' build/package.sh > ~/pk.sh; bash ~/pk.sh` (~66 s), then `cp -f ~/dist/*.zip dist/` and `cp -rf ~/dist/<name>/. dist/<name>/` (exe/dll copy fails while the app runs: identical anyway; check with diff -rq)
-- `rm -rf dist` is blocked by auto mode; overwrite instead
-- Folder access outside C:\GitHub is blocked (auto mode): ask the user to copy data into C:\GitHub\test
+- package.sh onto the mount gets killed (>180 s) and wipes dist first: build in ~ with `sed -e "s#^HERE=.*#HERE=\"$PWD\"#" -e 's#\$HERE/dist#$HOME/dist#g' -e 's#^OUT=.*#OUT="$HOME/dist/$NAME"#' build/package.sh > ~/pk.sh; bash ~/pk.sh` (~66 s), then `cp -f ~/dist/*.zip dist/` and `cp -rf ~/dist/<name>/. dist/<name>/` (exe/dll copy fails while the app runs; identical)
+- `rm -rf dist` and folder access outside C:\GitHub are blocked by auto mode: overwrite; ask the user to copy data into C:\GitHub\test
+- Background jobs in device_bash die when the call ends
 - Node in the device shell needs NODE_USE_ENV_PROXY=1 for https
-- Git: commit with -c user.name=chuchudoesntknowhowtocode -c user.email=chuchudoesntknowhowtocode@users.noreply.github.com (no identity in the shell); delete permission per chat on C:\GitHub
-- UI harness: stage app/ui/* + build/ui-preview/{mock-htk,preview-data,rom-preview-data}.js → container Playwright; set cfg.upscale.inputs=[…];render() first (input isn't remembered)
+- Git: -c user.name=chuchudoesntknowhowtocode -c user.email=chuchudoesntknowhowtocode@users.noreply.github.com; delete permission per chat on C:\GitHub; local branch is main (pushed to handoff/next)
+- Computer use can't drive the Claude app or R64texHD.exe (not resolvable): Windows tests are MANUAL STEPs
+- PowerShell scripts: Start-Process -Wait for R64texHD.exe (GUI exe); logs inside the repo (TEMP is unreadable)
+- UI harness: stage app/ui/* + build/ui-preview/{mock-htk,preview-data,rom-preview-data}.js → container Playwright; set cfg.upscale.inputs=[…];render() first
 
 ## Files that matter most
-app/ui/index.html (preview ~2160–2460, panDrag ~2545, askTools/installAll ~1280/1400) · app/main.js (download/githubApiAsset ~171, fetchPack/installTool ~300, addModel) · app/core/ncnn.js · app/core/upscale.js (ditherScore ~246) · app/core/smart.js · tools/dither-tune.js · build/package.sh
+app/ui/index.html (preview ~2160–2470, padView/setPreviewZoom ~2420, panDrag ~2580, compare ~2305–2410, askTools ~1280) · app/main.js (download ~171, fetchPack/installTool ~300, addModel) · app/core/{ncnn,smart,upscale,onnx-run}.js · tools/{dither-tune.js,bench.ps1} · build/{package.sh,release.sh}

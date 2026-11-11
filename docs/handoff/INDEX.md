@@ -4,3 +4,4 @@
 #4 | 2026-11-07 | preview zoom; roadmap 6–9 (small-tile pad, texture models, Smart v2, supersample/half); next 10 | 66368e4
 #5 | 2026-11-08 | roadmap 10–12 done, ONNX engine, releases v0.9.0.0/v0.9.1.0, release scripts, new Upscale page, README; next: Windows test | 06ebb06
 #6 | 2026-11-08 | dither busy-share tuning, own-model scale from .param, v0.9.2.0 build, helper-tool download fixes, preview pan; next: Windows test | e91b099
+#7 | 2026-11-11 | v0.9.2.0 released; dither 0.10 on N64 dumps; Compare Original cell; edge pan; bench.ps1 + timings; release.sh default branch | 0a9165f

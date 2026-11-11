@@ -16,6 +16,8 @@
 - C:\Users\Chuchu\Downloads — browser downloads (folder access granted; 3 .pth copies left there) — 2026-11-07
 
 ## Web
+- C:\GitHub\x64tractor\samples\{Perfect Dark,GOLDENEYE,MARIOKART64}-Glide — raw N64 Glide dumps, read-only test data — 2026-11-08
+- C:\GitHub\R64texHD\bench — bench.ps1 results + logs (gitignored) — 2026-11-08
 - https://api.github.com/repos/<o>/<r>/releases/tags/<tag> — API fallback for release downloads — 2026-11-08
 - https://openmodeldb.info/models/4x-HDCube · 4x-GameAI-2-0 · 4x-PixelPerfectV4 — model sources — 2026-11-07
 - https://github.com/Venomalia/HDcube (v1/4x_HDCube_200k.pth) — 2026-11-07
@@ -23,4 +25,4 @@
 ## Repos/links
 - https://github.com/chuchudoesntknowhowtocode/R64texHD/releases/tag/v0.9.2.0 — latest release (4 zips) — 2026-11-08
 - https://github.com/Phhofm/models/releases (4xTextureDAT2_otf, 4xTextures_GTAV_rgt-s_dither ONNX) — ONNX model sources — 2026-11-08
-- https://github.com/chuchudoesntknowhowtocode/R64texHD — public; main = 7062ada (v0.9.1.0), handoff/next = ed504fd; owner merges handoff branches — 2026-11-08
+- https://github.com/chuchudoesntknowhowtocode/R64texHD — public; main = ada2e28 (v0.9.2.0), handoff/next = 39a7dca; owner merges handoff branches — 2026-11-08
